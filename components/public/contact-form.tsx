@@ -1,0 +1,249 @@
+"use client";
+
+import { useActionState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { submitContactForm, type ContactFormState } from "@/app/(public)/contact/actions";
+
+const demandTypes = [
+  "m_a",
+  "private_equity",
+  "litigation",
+  "tax",
+  "corporate",
+  "restructuring",
+  "other",
+] as const;
+
+const demandTypeLabels: Record<typeof demandTypes[number], string> = {
+  m_a:           "Opération M&A",
+  private_equity: "Private Equity / Investissement",
+  litigation:    "Contentieux",
+  tax:           "Conseil fiscal",
+  corporate:     "Corporate / Gouvernance",
+  restructuring: "Restructuration / Insolvabilité",
+  other:         "Autre demande",
+};
+
+const schema = z.object({
+  name: z.string().min(2, "Nom requis"),
+  email: z.string().email("Adresse e-mail invalide"),
+  phone: z.string().optional(),
+  company: z.string().optional(),
+  demand_type: z.enum(demandTypes),
+  subject: z.string().min(2, "Sujet requis"),
+  message: z.string().min(10, "Message trop court (10 caractères minimum)"),
+});
+
+type FormValues = z.infer<typeof schema>;
+
+const initialState: ContactFormState = { status: "idle" };
+
+const inputStyle = {
+  fontFamily: "var(--font-body)",
+  fontSize: "0.9375rem",
+  color: "var(--text-primary)",
+  backgroundColor: "var(--surface)",
+  border: "1px solid var(--border)",
+  borderRadius: 0,
+  padding: "0.75rem 1rem",
+  width: "100%",
+  outline: "none",
+};
+
+const labelStyle = {
+  fontFamily: "var(--font-body)",
+  fontSize: "0.8125rem",
+  color: "var(--text-muted)",
+  display: "block",
+  marginBottom: "0.375rem",
+};
+
+const errorStyle = {
+  fontFamily: "var(--font-body)",
+  fontSize: "0.8125rem",
+  color: "var(--bordeaux)",
+  marginTop: "0.375rem",
+};
+
+export function ContactForm() {
+  const [state, formAction, isPending] = useActionState(submitContactForm, initialState);
+
+  const {
+    register,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { demand_type: "other" },
+  });
+
+  if (state.status === "success") {
+    return (
+      <div
+        className="py-16 text-center"
+        style={{ border: "1px solid var(--border)" }}
+      >
+        <p
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 500,
+            fontStyle: "italic",
+            fontSize: "1.25rem",
+            color: "var(--text-primary)",
+          }}
+        >
+          Message envoyé.
+        </p>
+        <p
+          className="mt-3"
+          style={{
+            fontFamily: "var(--font-body)",
+            fontSize: "0.9375rem",
+            color: "var(--text-secondary)",
+          }}
+        >
+          Nous vous répondrons dans les 24 heures ouvrées.
+        </p>
+      </div>
+    );
+  }
+
+  const serverErrors = state.status === "error" ? state.errors : {};
+
+  return (
+    <form action={formAction} className="space-y-6">
+      {/* Nature de la demande */}
+      <div>
+        <label style={labelStyle} htmlFor="demand_type">Nature de la demande *</label>
+        <select
+          id="demand_type"
+          style={{ ...inputStyle, cursor: "pointer" }}
+          {...register("demand_type")}
+        >
+          {demandTypes.map((val) => (
+            <option key={val} value={val}>
+              {demandTypeLabels[val]}
+            </option>
+          ))}
+        </select>
+        {(errors.demand_type || serverErrors.demand_type) && (
+          <p style={errorStyle}>{errors.demand_type?.message ?? serverErrors.demand_type?.[0]}</p>
+        )}
+      </div>
+
+      {/* Nom + Email */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label style={labelStyle} htmlFor="name">Nom complet *</label>
+          <input
+            id="name"
+            type="text"
+            autoComplete="name"
+            style={inputStyle}
+            {...register("name")}
+          />
+          {(errors.name || serverErrors.name) && (
+            <p style={errorStyle}>{errors.name?.message ?? serverErrors.name?.[0]}</p>
+          )}
+        </div>
+        <div>
+          <label style={labelStyle} htmlFor="email">Adresse e-mail *</label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            style={inputStyle}
+            {...register("email")}
+          />
+          {(errors.email || serverErrors.email) && (
+            <p style={errorStyle}>{errors.email?.message ?? serverErrors.email?.[0]}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Société + Téléphone */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label style={labelStyle} htmlFor="company">Société</label>
+          <input
+            id="company"
+            type="text"
+            autoComplete="organization"
+            style={inputStyle}
+            {...register("company")}
+          />
+        </div>
+        <div>
+          <label style={labelStyle} htmlFor="phone">Téléphone</label>
+          <input
+            id="phone"
+            type="tel"
+            autoComplete="tel"
+            style={inputStyle}
+            {...register("phone")}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label style={labelStyle} htmlFor="subject">Objet de votre demande *</label>
+        <input
+          id="subject"
+          type="text"
+          style={inputStyle}
+          {...register("subject")}
+        />
+        {(errors.subject || serverErrors.subject) && (
+          <p style={errorStyle}>{errors.subject?.message ?? serverErrors.subject?.[0]}</p>
+        )}
+      </div>
+
+      <div>
+        <label style={labelStyle} htmlFor="message">Message *</label>
+        <textarea
+          id="message"
+          rows={6}
+          style={{ ...inputStyle, resize: "vertical" }}
+          {...register("message")}
+        />
+        {(errors.message || serverErrors.message) && (
+          <p style={errorStyle}>{errors.message?.message ?? serverErrors.message?.[0]}</p>
+        )}
+      </div>
+
+      {state.status === "server_error" && (
+        <p style={{ ...errorStyle, fontSize: "0.9375rem" }}>{state.message}</p>
+      )}
+
+      <button
+        type="submit"
+        disabled={isPending}
+        className="text-xs font-medium tracking-widest uppercase px-6 py-3 transition-colors disabled:opacity-50"
+        style={{
+          fontFamily: "var(--font-body)",
+          color: "var(--background)",
+          backgroundColor: "var(--text-primary)",
+          border: "1px solid var(--text-primary)",
+          cursor: isPending ? "wait" : "pointer",
+        }}
+      >
+        {isPending ? "Envoi en cours…" : "Envoyer le message"}
+      </button>
+
+      <p
+        style={{
+          fontFamily: "var(--font-body)",
+          fontSize: "0.8125rem",
+          color: "var(--text-muted)",
+        }}
+      >
+        Vos données sont traitées conformément à notre{" "}
+        <a href="/confidentialite" style={{ color: "var(--bordeaux)" }}>
+          politique de confidentialité
+        </a>
+        .
+      </p>
+    </form>
+  );
+}

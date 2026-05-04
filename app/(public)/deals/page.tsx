@@ -1,11 +1,285 @@
 import type { Metadata } from "next";
-import { PagePlaceholder } from "@/components/ui/page-placeholder";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Deals notables",
-  description: "Sélection d'opérations récentes conseillées par Maison Aldéric & Associés.",
+  title: "Deals notables — Maison Aldéric & Associés",
+  description:
+    "Sélection d'opérations récentes conseillées par Maison Aldéric & Associés en M&A, Private Equity et restructuration.",
 };
 
-export default function DealsPage() {
-  return <PagePlaceholder title="Deals notables" path="/deals" section="public" />;
+interface Deal {
+  id: string;
+  title: string;
+  deal_type: string;
+  sector: string;
+  description: string;
+  year: number;
+  amount_eur: number | null;
+  is_featured: boolean;
+  is_confidential: boolean;
+}
+
+const typeLabels: Record<string, string> = {
+  ma: "M&A",
+  pe: "Private Equity",
+  contentieux: "Contentieux",
+  restructuring: "Restructuration",
+  tax: "Droit fiscal",
+};
+
+function formatAmount(eur: number | null): string | null {
+  if (!eur) return null;
+  if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1)} Md€`;
+  if (eur >= 1_000_000) return `${Math.round(eur / 1_000_000)} M€`;
+  return `${Math.round(eur / 1_000)} K€`;
+}
+
+export default async function DealsPage() {
+  const supabase = await createClient();
+
+  const { data: deals } = await supabase
+    .from("deals")
+    .select("id, title, deal_type, sector, description, year, amount_eur, is_featured, is_confidential")
+    .order("year", { ascending: false })
+    .order("is_featured", { ascending: false });
+
+  const featured = (deals ?? []).filter((d: Deal) => d.is_featured);
+  const others = (deals ?? []).filter((d: Deal) => !d.is_featured);
+
+  return (
+    <>
+      {/* Hero */}
+      <section
+        className="py-24 md:py-32"
+        style={{ backgroundColor: "var(--surface-alt)" }}
+      >
+        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
+          <p
+            className="text-xs font-medium tracking-widest uppercase mb-6"
+            style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
+          >
+            Deals notables
+          </p>
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 500,
+              fontSize: "clamp(2rem, 4vw, 3.25rem)",
+              lineHeight: 1.1,
+              letterSpacing: "-0.02em",
+              color: "var(--text-primary)",
+            }}
+          >
+            Une sélection d&apos;opérations<br />
+            <span style={{ fontStyle: "italic" }}>récentes et représentatives.</span>
+          </h1>
+          <p
+            className="mt-8 max-w-2xl"
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "1.0625rem",
+              color: "var(--text-secondary)",
+              lineHeight: 1.75,
+            }}
+          >
+            Par respect de la confidentialité, certaines opérations sont
+            présentées de manière anonymisée. D&apos;autres sont publiées avec
+            l&apos;accord des parties.
+          </p>
+        </div>
+      </section>
+
+      {/* Featured deals */}
+      {featured.length > 0 && (
+        <section className="py-24 md:py-32" style={{ backgroundColor: "var(--surface)" }}>
+          <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
+            <p
+              className="text-xs font-medium tracking-widest uppercase mb-14"
+              style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
+            >
+              Opérations phares
+            </p>
+            <div className="space-y-px" style={{ border: "1px solid var(--border)" }}>
+              {featured.map((deal: Deal, i: number) => (
+                <DealRow key={deal.id} deal={deal} index={i} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Other deals */}
+      {others.length > 0 && (
+        <section className="py-24 md:py-32" style={{ backgroundColor: "var(--surface-alt)" }}>
+          <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
+            <p
+              className="text-xs font-medium tracking-widest uppercase mb-14"
+              style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
+            >
+              Autres opérations
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-px" style={{ border: "1px solid var(--border)" }}>
+              {others.map((deal: Deal) => (
+                <div
+                  key={deal.id}
+                  className="p-8"
+                  style={{ backgroundColor: "var(--surface)" }}
+                >
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="text-xs font-medium tracking-widest uppercase px-2 py-0.5"
+                        style={{
+                          fontFamily: "var(--font-body)",
+                          color: "var(--bordeaux)",
+                          border: "1px solid var(--bordeaux)",
+                        }}
+                      >
+                        {typeLabels[deal.deal_type] ?? deal.deal_type}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-body)",
+                          fontSize: "0.8125rem",
+                          color: "var(--text-muted)",
+                        }}
+                      >
+                        {deal.year}
+                      </span>
+                    </div>
+                    {deal.amount_eur && (
+                      <span
+                        style={{
+                          fontFamily: "var(--font-display)",
+                          fontWeight: 500,
+                          fontSize: "1rem",
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        {formatAmount(deal.amount_eur)}
+                      </span>
+                    )}
+                  </div>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 500,
+                      fontSize: "1.0625rem",
+                      color: "var(--text-primary)",
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    {deal.title}
+                  </p>
+                  <p
+                    className="mt-3"
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: "0.875rem",
+                      color: "var(--text-secondary)",
+                      lineHeight: 1.7,
+                    }}
+                  >
+                    {deal.description}
+                  </p>
+                  <p
+                    className="mt-3 text-xs"
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      color: "var(--text-muted)",
+                    }}
+                  >
+                    {deal.sector}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+    </>
+  );
+}
+
+function DealRow({ deal, index }: { deal: Deal; index: number }) {
+  return (
+    <div
+      className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 p-8 md:p-10"
+      style={{
+        backgroundColor: index % 2 === 0 ? "var(--surface)" : "var(--background)",
+        borderBottom: "1px solid var(--border)",
+      }}
+    >
+      <div>
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <span
+            className="text-xs font-medium tracking-widest uppercase px-2 py-0.5"
+            style={{
+              fontFamily: "var(--font-body)",
+              color: "var(--bordeaux)",
+              border: "1px solid var(--bordeaux)",
+            }}
+          >
+            {typeLabels[deal.deal_type] ?? deal.deal_type}
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "0.8125rem",
+              color: "var(--text-muted)",
+            }}
+          >
+            {deal.sector} · {deal.year}
+          </span>
+        </div>
+        <p
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 500,
+            fontSize: "1.25rem",
+            color: "var(--text-primary)",
+            lineHeight: 1.3,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {deal.title}
+        </p>
+        <p
+          className="mt-4 max-w-2xl"
+          style={{
+            fontFamily: "var(--font-body)",
+            fontSize: "0.9375rem",
+            color: "var(--text-secondary)",
+            lineHeight: 1.75,
+          }}
+        >
+          {deal.description}
+        </p>
+      </div>
+      {deal.amount_eur && (
+        <div className="md:text-right shrink-0">
+          <p
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 500,
+              fontSize: "1.5rem",
+              color: "var(--text-primary)",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {formatAmount(deal.amount_eur)}
+          </p>
+          <p
+            className="text-xs mt-1"
+            style={{
+              fontFamily: "var(--font-body)",
+              color: "var(--text-muted)",
+            }}
+          >
+            valeur de l&apos;opération
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }

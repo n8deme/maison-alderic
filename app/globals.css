@@ -140,3 +140,64 @@
     font-feature-settings: 'tnum';
   }
 }
+
+/* ——— Prose Aldéric — article markdown ——— */
+.prose-alderic {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--text-secondary);
+}
+.prose-alderic h1,
+.prose-alderic h2,
+.prose-alderic h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+.prose-alderic h1 { font-size: 1.75rem; }
+.prose-alderic h2 { font-size: 1.375rem; }
+.prose-alderic h3 { font-size: 1.125rem; }
+.prose-alderic p { margin-bottom: 1.25rem; }
+.prose-alderic strong { color: var(--text-primary); font-weight: 500; }
+.prose-alderic em { font-style: italic; }
+.prose-alderic a { color: var(--bordeaux); text-decoration: underline; text-underline-offset: 3px; }
+.prose-alderic ul,
+.prose-alderic ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+.prose-alderic li { margin-bottom: 0.5rem; }
+.prose-alderic blockquote {
+  border-left: 2px solid var(--border);
+  padding-left: 1.25rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 1.75rem 0;
+}
+.prose-alderic hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2.5rem 0;
+}
+.prose-alderic code {
+  font-size: 0.875em;
+  background: var(--surface-alt);
+  padding: 0.15em 0.4em;
+  border: 1px solid var(--border);
+}
+.prose-alderic pre {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  margin-bottom: 1.25rem;
+}
+.prose-alderic pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
