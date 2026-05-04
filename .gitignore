@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Supabase seed credentials (passwords pour tests locaux)
+supabase/SEED_CREDENTIALS.md
