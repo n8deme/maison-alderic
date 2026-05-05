@@ -1,20 +1,13 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 function LoginForm() {
-  const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/portail";
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState<"password" | "magic" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const supabase = createClient();
 
   async function signInWithPassword(e: React.FormEvent) {
     e.preventDefault();
@@ -22,189 +15,128 @@ function LoginForm() {
     setError(null);
     setMessage(null);
 
-    const { error: err } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (err) {
-      setError(err.message);
-      setLoading(null);
-    } else {
-      // Reload pour laisser le middleware rafraîchir la session
-      window.location.href = next;
-    }
+    console.log("🔥 LOGIN ATTEMPT:", { email, password });
+    // TODO: Supabase login commenté pour debug
+    setMessage("Login désactivé temporairement pour debug");
+    setLoading(null);
   }
 
-  async function signInWithMagicLink() {
+  async function signInWithMagicLink(e: React.FormEvent) {
+    e.preventDefault();
     setLoading("magic");
     setError(null);
     setMessage(null);
 
-    const { error: err } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-      },
-    });
-
-    if (err) {
-      setError(err.message);
-    } else {
-      setMessage(
-        "Lien envoyé. Vérifiez votre boîte mail et cliquez sur le lien reçu.",
-      );
-    }
+    console.log("🔥 MAGIC LINK ATTEMPT:", { email });
+    setMessage("Magic link désactivé temporairement pour debug");
     setLoading(null);
   }
 
   return (
-    <main
-      className="min-h-screen flex flex-col items-center justify-center px-6"
-      style={{ backgroundColor: "var(--background)" }}
-    >
-      <div className="w-full max-w-md space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-3">
-          <span
-            className="inline-block text-xs tracking-widest uppercase"
-            style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}
-          >
-            Portail client
-          </span>
-          <h1
-            className="text-3xl"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 500,
-              letterSpacing: "-0.02em",
-              color: "var(--text-primary)",
-            }}
-          >
-            Maison Aldéric & Associés
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-serif font-semibold text-slate-900">
+            Espace Client
           </h1>
-          <p
-            className="text-sm"
-            style={{ fontFamily: "var(--font-body)", color: "var(--text-secondary)" }}
-          >
-            Connectez-vous pour accéder à vos dossiers.
+          <p className="mt-2 text-sm text-slate-600">
+            Connectez-vous pour accéder à vos dossiers
           </p>
         </div>
 
-        {/* Password form */}
-        <form onSubmit={signInWithPassword} className="space-y-3">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-xs uppercase tracking-wider mb-1.5"
-              style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
+          {error && (
+            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
+          {message && (
+            <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+              <p className="text-sm text-blue-800">{message}</p>
+            </div>
+          )}
+
+          <form onSubmit={signInWithPassword} className="space-y-6">
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-700 mb-2"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                placeholder="votre@email.com"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-700 mb-2"
+              >
+                Mot de passe
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading === "password"}
+              className="w-full py-3 px-4 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2.5 text-sm border outline-none focus:border-[#1A1A1A] transition-colors"
-              style={{
-                fontFamily: "var(--font-body)",
-                borderColor: "var(--border)",
-                backgroundColor: "var(--surface)",
-                color: "var(--text-primary)",
-              }}
-              placeholder="vous@exemple.be"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-xs uppercase tracking-wider mb-1.5"
-              style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}
-            >
-              Mot de passe
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2.5 text-sm border outline-none focus:border-[#1A1A1A] transition-colors"
-              style={{
-                fontFamily: "var(--font-body)",
-                borderColor: "var(--border)",
-                backgroundColor: "var(--surface)",
-                color: "var(--text-primary)",
-              }}
-            />
+              {loading === "password" ? "Connexion..." : "Se connecter"}
+            </button>
+          </form>
+
+          <div className="mt-6 relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-slate-500">Ou</span>
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading !== null || !email || !password}
-            className="w-full py-3 text-sm transition-opacity disabled:opacity-40"
-            style={{
-              fontFamily: "var(--font-body)",
-              fontWeight: 500,
-              backgroundColor: "var(--text-primary)",
-              color: "var(--background)",
-            }}
-          >
-            {loading === "password" ? "Connexion…" : "Se connecter"}
-          </button>
-        </form>
-
-        {/* Separator */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px" style={{ backgroundColor: "var(--border)" }} />
-          <span
-            className="text-xs uppercase tracking-wider"
-            style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}
-          >
-            ou
-          </span>
-          <div className="flex-1 h-px" style={{ backgroundColor: "var(--border)" }} />
+          <form onSubmit={signInWithMagicLink} className="mt-6">
+            <button
+              type="submit"
+              disabled={loading === "magic"}
+              className="w-full py-3 px-4 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading === "magic"
+                ? "Envoi en cours..."
+                : "Recevoir un lien de connexion"}
+            </button>
+          </form>
         </div>
 
-        {/* Magic link */}
-        <button
-          type="button"
-          onClick={signInWithMagicLink}
-          disabled={loading !== null || !email}
-          className="w-full py-3 text-sm border transition-colors disabled:opacity-40"
-          style={{
-            fontFamily: "var(--font-body)",
-            fontWeight: 500,
-            borderColor: "var(--border)",
-            color: "var(--text-primary)",
-            backgroundColor: "var(--surface)",
-          }}
-        >
-          {loading === "magic" ? "Envoi…" : "Recevoir un lien magique"}
-        </button>
-
-        {/* Messages */}
-        {message && (
-          <p
-            className="text-sm text-center"
-            style={{ fontFamily: "var(--font-body)", color: "var(--text-secondary)" }}
-          >
-            {message}
-          </p>
-        )}
-        {error && (
-          <p
-            className="text-sm text-center"
-            style={{ fontFamily: "var(--font-body)", color: "var(--bordeaux)" }}
-          >
-            {error}
-          </p>
-        )}
+        <p className="text-center text-sm text-slate-600">
+          Besoin d'aide ?{" "}
+          <a href="/contact" className="text-slate-900 hover:underline">
+            Contactez-nous
+          </a>
+        </p>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -212,10 +144,9 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <main
-          className="min-h-screen flex items-center justify-center"
-          style={{ backgroundColor: "var(--background)" }}
-        />
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Chargement...</p>
+        </div>
       }
     >
       <LoginForm />
