@@ -138,10 +138,10 @@ export function DashboardPremium({
             <motion.article
               key={card.key}
               className="rounded-lg border border-border bg-surface p-5"
-              initial={reduce ? false : { opacity: 0, y: 12 }}
+              initial={reduce ? {} : { opacity: 0, y: 12 }}
               whileInView={reduce ? {} : { opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
+              transition={reduce ? {} : { duration: 0.45, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
               whileHover={reduce ? {} : { scale: 1.02 }}
             >
               <div className="mb-4 flex items-center justify-between">
@@ -232,9 +232,21 @@ export function DashboardPremium({
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {dossiers.length === 0 ? (
-            <p className="rounded-sm border border-border bg-surface p-5 text-sm text-text-muted">
-              Aucun dossier en cours.
-            </p>
+            <div className="rounded-sm border border-border bg-surface p-8 text-center">
+              <svg viewBox="0 0 120 72" className="mx-auto h-16 w-24 text-text-muted" aria-hidden="true">
+                <rect x="8" y="14" width="104" height="50" rx="6" fill="currentColor" opacity="0.12" />
+                <path d="M8 28h104" stroke="currentColor" strokeWidth="2" opacity="0.3" />
+                <circle cx="22" cy="22" r="3" fill="currentColor" opacity="0.45" />
+                <circle cx="33" cy="22" r="3" fill="currentColor" opacity="0.3" />
+              </svg>
+              <p className="mt-4 text-sm text-text-secondary">Aucun dossier en cours.</p>
+              <Link
+                href="/contact"
+                className="mt-4 inline-flex rounded-sm border border-bordeaux px-4 py-2 text-xs font-medium uppercase tracking-wide text-bordeaux transition-colors hover:bg-bordeaux hover:text-white"
+              >
+                Contacter le cabinet
+              </Link>
+            </div>
           ) : (
             dossiers.map((dossier, index) => {
               const badge = statusBadge(dossier.status);
@@ -242,10 +254,10 @@ export function DashboardPremium({
                 <motion.article
                   key={dossier.id}
                   className="rounded-lg border border-border bg-surface p-5"
-                  initial={reduce ? false : { opacity: 0, y: 10 }}
+                  initial={reduce ? {} : { opacity: 0, y: 10 }}
                   whileInView={reduce ? {} : { opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.45, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                  transition={reduce ? {} : { duration: 0.45, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <div className="mb-4 flex items-center justify-between gap-3">
                     <span className={`rounded-sm px-2 py-1 text-[10px] uppercase tracking-wide ${badge.cls}`}>

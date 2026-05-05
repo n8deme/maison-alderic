@@ -244,8 +244,32 @@ export default async function ExpertiseSlugPage({ params }: PageProps) {
   const specialistesFromPivot = (specialistesPivot ?? [])
     .map((item: any) => item.avocats)
     .filter(Boolean);
-  const specialistes =
-    specialistesFromPivot.length > 0 ? specialistesFromPivot : (avocats ?? []);
+  let specialistes = specialistesFromPivot.length > 0 ? specialistesFromPivot : (avocats ?? []);
+
+  if (specialistes.length === 0) {
+    const { data: allAvocats } = await supabase
+      .from("avocats")
+      .select("id, full_name, title, slug, avatar_url, expertises")
+      .order("full_name")
+      .limit(24);
+
+    const keywordSet = new Set(
+      keywords
+        .concat(expertise.name, expertise.category, expertise.slug)
+        .map((value) => value.toLowerCase())
+    );
+
+    specialistes = (allAvocats ?? [])
+      .filter((avocat: any) =>
+        (avocat.expertises ?? []).some((exp: string) => {
+          const normalized = exp.toLowerCase();
+          return Array.from(keywordSet).some(
+            (keyword) => normalized.includes(keyword) || keyword.includes(normalized)
+          );
+        })
+      )
+      .slice(0, 4);
+  }
 
   const { data: dealsPivot } =
     expertiseRow?.id
@@ -314,27 +338,35 @@ export default async function ExpertiseSlugPage({ params }: PageProps) {
         <div className="mx-auto max-w-7xl space-y-10">
           <h2 className="text-3xl text-foreground">Nos spécialistes</h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {(specialistes ?? []).map((avocat: any) => (
-              <Link
-                key={avocat.id}
-                href={`/associes/${avocat.slug ?? slugify(avocat.full_name)}`}
-                className="rounded-sm border border-border bg-surface p-5"
-              >
-                <div className="mb-4 flex items-center gap-4">
-                  <div className="relative h-20 w-20 overflow-hidden rounded-full border border-border">
-                    {avocat.avatar_url ? (
-                      <Image src={avocat.avatar_url} alt={avocat.full_name} fill className="object-cover" />
-                    ) : (
-                      <div className="h-full w-full bg-surface-alt" />
-                    )}
+            {(specialistes ?? []).length === 0 ? (
+              <div className="rounded-sm border border-border bg-surface p-6 sm:col-span-2 lg:col-span-4">
+                <p className="text-sm text-text-secondary">
+                  Nos spécialistes sur cette expertise sont mobilisables sur demande.
+                </p>
+              </div>
+            ) : (
+              (specialistes ?? []).map((avocat: any) => (
+                <Link
+                  key={avocat.id}
+                  href={`/associes/${avocat.slug ?? slugify(avocat.full_name)}`}
+                  className="rounded-sm border border-border bg-surface p-5 transition-colors hover:border-bordeaux/35"
+                >
+                  <div className="mb-4 flex items-center gap-4">
+                    <div className="relative h-20 w-20 overflow-hidden rounded-full border border-border">
+                      {avocat.avatar_url ? (
+                        <Image src={avocat.avatar_url} alt={avocat.full_name} fill className="object-cover" />
+                      ) : (
+                        <div className="h-full w-full bg-surface-alt" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-base text-foreground">{avocat.full_name}</p>
+                      <p className="text-sm text-text-secondary">{avocat.title}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-base text-foreground">{avocat.full_name}</p>
-                    <p className="text-sm text-text-secondary">{avocat.title}</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </section>

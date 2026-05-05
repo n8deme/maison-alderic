@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { FileText, Upload } from "lucide-react";
+import Link from "next/link";
 import { DownloadButton } from "@/components/portail/documents/download-button";
 import { uploadDocument } from "./actions";
 
@@ -74,6 +75,12 @@ export default async function DocumentsPage() {
               <p className="text-sm text-text-secondary" style={{ fontFamily: "var(--font-body)" }}>
                 Aucun document disponible.
               </p>
+              <Link
+                href="/portail/messages"
+                className="mt-4 inline-flex rounded-sm border border-bordeaux px-4 py-2 text-xs font-medium uppercase tracking-wide text-bordeaux transition-colors hover:bg-bordeaux hover:text-white"
+              >
+                Demander un document
+              </Link>
             </div>
           ) : (
             <div className="bg-surface border border-border rounded-sm overflow-hidden">

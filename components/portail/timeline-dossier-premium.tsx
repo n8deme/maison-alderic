@@ -66,10 +66,10 @@ export function TimelineDossierPremium({
             <motion.div
               key={step.id}
               className="relative pl-10"
-              initial={reduce ? false : { opacity: 0, x: 12 }}
+              initial={reduce ? {} : { opacity: 0, x: 12 }}
               whileInView={reduce ? {} : { opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+              transition={reduce ? {} : { duration: 0.4, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
             >
               {index < steps.length - 1 && (
                 <div
@@ -117,10 +117,10 @@ export function TimelineDossierPremium({
               <AnimatePresence initial={false}>
                 {isOpen && (
                   <motion.div
-                    initial={reduce ? false : { opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
+                    initial={reduce ? {} : { opacity: 0, height: 0 }}
+                    animate={reduce ? {} : { opacity: 1, height: "auto" }}
                     exit={reduce ? {} : { opacity: 0, height: 0 }}
-                    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                    transition={reduce ? {} : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                     className="overflow-hidden pl-10 pr-3"
                   >
                     <div className="rounded-sm border border-border bg-surface-alt p-4">

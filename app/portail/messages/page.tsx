@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MessageSquare } from "lucide-react";
+import { Inbox } from "lucide-react";
 import { MessagesClient } from "@/components/portail/messages/messages-client";
 import { markThreadAsRead } from "./actions";
 
@@ -66,9 +67,18 @@ export default async function MessagesPage({
         </div>
         <nav className="flex-1 overflow-y-auto py-2">
           {list.length === 0 ? (
-            <p className="px-4 py-2 text-xs text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
-              Aucun dossier actif.
-            </p>
+            <div className="px-4 py-6">
+              <Inbox className="mb-2 h-5 w-5 text-text-muted" />
+              <p className="text-xs text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
+                Aucun dossier actif.
+              </p>
+              <Link
+                href="/contact"
+                className="mt-3 inline-flex rounded-sm border border-bordeaux px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-bordeaux transition-colors hover:bg-bordeaux hover:text-white"
+              >
+                Contacter le cabinet
+              </Link>
+            </div>
           ) : (
             list.map((d) => (
               <Link

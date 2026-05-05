@@ -51,7 +51,7 @@ export function SiteFooter() {
               style={{
                 fontFamily: "var(--font-body)",
                 fontSize: "0.8125rem",
-                color: "var(--text-muted)",
+                color: "var(--text-secondary)",
                 lineHeight: 1.7,
                 fontStyle: "normal",
               }}
@@ -67,7 +67,7 @@ export function SiteFooter() {
           <div className="space-y-4">
             <p
               className="text-xs font-medium tracking-widest uppercase"
-              style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
+              style={{ fontFamily: "var(--font-body)", color: "var(--text-secondary)" }}
             >
               Expertises
             </p>
@@ -76,6 +76,7 @@ export function SiteFooter() {
                 <li key={l.href}>
                   <Link
                     href={l.href}
+                    className="transition-colors hover:text-bordeaux"
                     style={{
                       fontFamily: "var(--font-body)",
                       fontSize: "0.875rem",
@@ -93,7 +94,7 @@ export function SiteFooter() {
           <div className="space-y-4">
             <p
               className="text-xs font-medium tracking-widest uppercase"
-              style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
+              style={{ fontFamily: "var(--font-body)", color: "var(--text-secondary)" }}
             >
               Cabinet
             </p>
@@ -102,6 +103,7 @@ export function SiteFooter() {
                 <li key={l.href}>
                   <Link
                     href={l.href}
+                    className="transition-colors hover:text-bordeaux"
                     style={{
                       fontFamily: "var(--font-body)",
                       fontSize: "0.875rem",
@@ -119,7 +121,7 @@ export function SiteFooter() {
           <div className="space-y-4">
             <p
               className="text-xs font-medium tracking-widest uppercase"
-              style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
+              style={{ fontFamily: "var(--font-body)", color: "var(--text-secondary)" }}
             >
               Prendre contact
             </p>
@@ -136,7 +138,7 @@ export function SiteFooter() {
             </div>
             <Link
               href="/contact"
-              className="inline-block text-xs font-medium tracking-widest uppercase px-4 py-2 mt-2 transition-colors"
+              className="mt-2 inline-block px-4 py-2 text-xs font-medium uppercase tracking-widest transition-colors hover:bg-bordeaux hover:text-white"
               style={{
                 fontFamily: "var(--font-body)",
                 color: "var(--bordeaux)",
@@ -158,7 +160,7 @@ export function SiteFooter() {
             style={{
               fontFamily: "var(--font-body)",
               fontSize: "0.75rem",
-              color: "var(--text-muted)",
+              color: "var(--text-secondary)",
             }}
           >
             © 2026 Maison Aldéric &amp; Associés SCRL — RPM Bruxelles — BCE 0123.456.789
@@ -171,10 +173,11 @@ export function SiteFooter() {
               <Link
                 key={l.href}
                 href={l.href}
+                className="transition-colors hover:text-bordeaux"
                 style={{
                   fontFamily: "var(--font-body)",
                   fontSize: "0.75rem",
-                  color: "var(--text-muted)",
+                  color: "var(--text-secondary)",
                 }}
               >
                 {l.label}

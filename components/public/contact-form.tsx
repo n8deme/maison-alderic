@@ -197,7 +197,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="text-xs font-medium tracking-widest uppercase px-6 py-3 transition-colors disabled:opacity-50"
+        className="px-6 py-3 text-xs font-medium uppercase tracking-widest transition-colors hover:opacity-90 disabled:opacity-50"
         style={{
           fontFamily: "var(--font-body)",
           color: "var(--background)",

@@ -53,7 +53,7 @@ export function HomeExpertisesGrid() {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <section className="px-6 py-32 md:px-12 md:py-40 lg:px-20" style={{ backgroundColor: "var(--surface)" }}>
+    <section className="px-6 py-16 md:px-12 md:py-24 lg:px-20 lg:py-32" style={{ backgroundColor: "var(--surface)" }}>
       <div className="mx-auto max-w-7xl space-y-14 md:space-y-16">
         <div className="space-y-4">
           <span className="text-xs font-medium uppercase tracking-widest text-text-muted">
@@ -66,14 +66,18 @@ export function HomeExpertisesGrid() {
           {EXPERTISES.map((item, index) => (
             <motion.article
               key={item.title}
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 14 }}
               whileInView={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-10% 0px -5% 0px" }}
-              transition={{
-                duration: 0.55,
-                delay: index * 0.05,
-                ease: [0.22, 1, 0.36, 1],
-              }}
+              transition={
+                prefersReducedMotion
+                  ? {}
+                  : {
+                      duration: 0.55,
+                      delay: index * 0.05,
+                      ease: [0.22, 1, 0.36, 1],
+                    }
+              }
             >
               <Link
                 href={item.href}

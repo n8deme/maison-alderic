@@ -66,8 +66,8 @@
 
   /* Text */
   --text-primary:    #1A1A1A;
-  --text-secondary:  #5C5A55;
-  --text-muted:      #8B887F;
+  --text-secondary:  #4F4C46;
+  --text-muted:      #6F6B63;
 
   /* Accent bordeaux */
   --bordeaux:        #7A1F2B;
@@ -87,7 +87,7 @@
   --secondary:             #F2F0EB;
   --secondary-foreground:  #1A1A1A;
   --muted:                 #F2F0EB;
-  --muted-foreground:      #8B887F;
+  --muted-foreground:      #6F6B63;
   --accent:                #7A1F2B;
   --accent-foreground:     #FFFFFF;
   --destructive:           oklch(0.577 0.245 27.325);

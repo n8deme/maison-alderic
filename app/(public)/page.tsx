@@ -52,7 +52,7 @@ export default async function HomePage() {
     <>
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section
-        className="py-32 md:py-40 px-6 md:px-12 lg:px-20"
+        className="px-6 py-20 md:px-12 md:py-28 lg:px-20 lg:py-36"
         style={{ backgroundColor: "var(--background)" }}
       >
         <div className="max-w-7xl mx-auto">
@@ -91,7 +91,7 @@ export default async function HomePage() {
               <div className="flex flex-wrap gap-4 pt-2">
                 <Link
                   href="/contact"
-                  className="inline-block px-6 py-3 text-sm font-medium transition-colors"
+                className="inline-block px-6 py-3 text-sm font-medium transition-colors hover:opacity-90"
                   style={{
                     fontFamily: "var(--font-body)",
                     backgroundColor: "var(--text-primary)",
@@ -102,7 +102,7 @@ export default async function HomePage() {
                 </Link>
                 <Link
                   href="/expertises"
-                  className="inline-block px-6 py-3 text-sm font-medium transition-colors"
+                className="inline-block px-6 py-3 text-sm font-medium transition-colors hover:text-bordeaux"
                   style={{
                     fontFamily: "var(--font-body)",
                     border: "1px solid var(--border)",
@@ -159,7 +159,7 @@ export default async function HomePage() {
 
       {/* ── CTA finale ───────────────────────────────────────── */}
       <section
-        className="py-32 md:py-40 px-6 md:px-12 lg:px-20"
+        className="px-6 py-20 md:px-12 md:py-28 lg:px-20 lg:py-36"
         style={{ backgroundColor: "var(--text-primary)" }}
       >
         <div className="max-w-3xl mx-auto text-center space-y-8">
@@ -183,7 +183,7 @@ export default async function HomePage() {
           </p>
           <Link
             href="/contact"
-            className="inline-block px-8 py-3 text-sm font-medium transition-colors"
+            className="inline-block px-8 py-3 text-sm font-medium transition-colors hover:bg-surface-alt"
             style={{
               fontFamily: "var(--font-body)",
               backgroundColor: "var(--background)",
