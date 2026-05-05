@@ -33,6 +33,8 @@ export async function submitContactForm(
   _prev: ContactFormState,
   formData: FormData,
 ): Promise<ContactFormState> {
+  console.log("[contact] Action called with:", Object.fromEntries(formData.entries()));
+
   const raw = {
     name: formData.get("name"),
     email: formData.get("email"),
@@ -51,12 +53,17 @@ export async function submitContactForm(
     };
   }
 
+  console.log("[contact] Parsed data:", parsed.data);
+
   const supabase = await createClient();
+  console.log("[contact] About to insert:", parsed.data);
   const { error } = await supabase.from("contact_messages").insert(parsed.data);
 
   if (error) {
+    console.error("[contact] Supabase insert error:", error);
     return { status: "server_error", message: "Une erreur est survenue. Veuillez réessayer." };
   }
 
+  console.log("[contact] Insert successful");
   return { status: "success" };
 }

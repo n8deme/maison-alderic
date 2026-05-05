@@ -1,9 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { submitContactForm, type ContactFormState } from "@/app/(public)/contact/actions";
 
 const demandTypes = [
@@ -17,26 +14,14 @@ const demandTypes = [
 ] as const;
 
 const demandTypeLabels: Record<typeof demandTypes[number], string> = {
-  m_a:           "Opération M&A",
+  m_a:            "Opération M&A",
   private_equity: "Private Equity / Investissement",
-  litigation:    "Contentieux",
-  tax:           "Conseil fiscal",
-  corporate:     "Corporate / Gouvernance",
-  restructuring: "Restructuration / Insolvabilité",
-  other:         "Autre demande",
+  litigation:     "Contentieux",
+  tax:            "Conseil fiscal",
+  corporate:      "Corporate / Gouvernance",
+  restructuring:  "Restructuration / Insolvabilité",
+  other:          "Autre demande",
 };
-
-const schema = z.object({
-  name: z.string().min(2, "Nom requis"),
-  email: z.string().email("Adresse e-mail invalide"),
-  phone: z.string().optional(),
-  company: z.string().optional(),
-  demand_type: z.enum(demandTypes),
-  subject: z.string().min(2, "Sujet requis"),
-  message: z.string().min(10, "Message trop court (10 caractères minimum)"),
-});
-
-type FormValues = z.infer<typeof schema>;
 
 const initialState: ContactFormState = { status: "idle" };
 
@@ -69,14 +54,6 @@ const errorStyle = {
 
 export function ContactForm() {
   const [state, formAction, isPending] = useActionState(submitContactForm, initialState);
-
-  const {
-    register,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { demand_type: "other" },
-  });
 
   if (state.status === "success") {
     return (
@@ -118,8 +95,9 @@ export function ContactForm() {
         <label style={labelStyle} htmlFor="demand_type">Nature de la demande *</label>
         <select
           id="demand_type"
+          name="demand_type"
+          defaultValue="other"
           style={{ ...inputStyle, cursor: "pointer" }}
-          {...register("demand_type")}
         >
           {demandTypes.map((val) => (
             <option key={val} value={val}>
@@ -127,8 +105,8 @@ export function ContactForm() {
             </option>
           ))}
         </select>
-        {(errors.demand_type || serverErrors.demand_type) && (
-          <p style={errorStyle}>{errors.demand_type?.message ?? serverErrors.demand_type?.[0]}</p>
+        {serverErrors.demand_type && (
+          <p style={errorStyle}>{serverErrors.demand_type[0]}</p>
         )}
       </div>
 
@@ -138,26 +116,26 @@ export function ContactForm() {
           <label style={labelStyle} htmlFor="name">Nom complet *</label>
           <input
             id="name"
+            name="name"
             type="text"
             autoComplete="name"
             style={inputStyle}
-            {...register("name")}
           />
-          {(errors.name || serverErrors.name) && (
-            <p style={errorStyle}>{errors.name?.message ?? serverErrors.name?.[0]}</p>
+          {serverErrors.name && (
+            <p style={errorStyle}>{serverErrors.name[0]}</p>
           )}
         </div>
         <div>
           <label style={labelStyle} htmlFor="email">Adresse e-mail *</label>
           <input
             id="email"
+            name="email"
             type="email"
             autoComplete="email"
             style={inputStyle}
-            {...register("email")}
           />
-          {(errors.email || serverErrors.email) && (
-            <p style={errorStyle}>{errors.email?.message ?? serverErrors.email?.[0]}</p>
+          {serverErrors.email && (
+            <p style={errorStyle}>{serverErrors.email[0]}</p>
           )}
         </div>
       </div>
@@ -168,20 +146,20 @@ export function ContactForm() {
           <label style={labelStyle} htmlFor="company">Société</label>
           <input
             id="company"
+            name="company"
             type="text"
             autoComplete="organization"
             style={inputStyle}
-            {...register("company")}
           />
         </div>
         <div>
           <label style={labelStyle} htmlFor="phone">Téléphone</label>
           <input
             id="phone"
+            name="phone"
             type="tel"
             autoComplete="tel"
             style={inputStyle}
-            {...register("phone")}
           />
         </div>
       </div>
@@ -190,12 +168,12 @@ export function ContactForm() {
         <label style={labelStyle} htmlFor="subject">Objet de votre demande *</label>
         <input
           id="subject"
+          name="subject"
           type="text"
           style={inputStyle}
-          {...register("subject")}
         />
-        {(errors.subject || serverErrors.subject) && (
-          <p style={errorStyle}>{errors.subject?.message ?? serverErrors.subject?.[0]}</p>
+        {serverErrors.subject && (
+          <p style={errorStyle}>{serverErrors.subject[0]}</p>
         )}
       </div>
 
@@ -203,12 +181,12 @@ export function ContactForm() {
         <label style={labelStyle} htmlFor="message">Message *</label>
         <textarea
           id="message"
+          name="message"
           rows={6}
           style={{ ...inputStyle, resize: "vertical" }}
-          {...register("message")}
         />
-        {(errors.message || serverErrors.message) && (
-          <p style={errorStyle}>{errors.message?.message ?? serverErrors.message?.[0]}</p>
+        {serverErrors.message && (
+          <p style={errorStyle}>{serverErrors.message[0]}</p>
         )}
       </div>
 

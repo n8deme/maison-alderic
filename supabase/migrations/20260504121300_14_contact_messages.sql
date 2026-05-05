@@ -16,11 +16,11 @@ create table if not exists contact_messages (
 -- RLS
 alter table contact_messages enable row level security;
 
--- Allow anonymous inserts (public contact form)
-create policy "anon can insert contact_messages"
+-- Allow public contact form inserts (anon = visiteur, authenticated = client connecté)
+create policy "public can insert contact_messages"
   on contact_messages
   for insert
-  to anon
+  to anon, authenticated
   with check (true);
 
 -- Only authenticated users (staff) can read
