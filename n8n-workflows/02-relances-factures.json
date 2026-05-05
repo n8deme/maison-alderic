@@ -1,0 +1,336 @@
+{
+  "name": "02 — Relances factures impayées",
+  "nodes": [
+    {
+      "id": "sched",
+      "name": "Tous les jours à 9h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "get_inv",
+      "name": "GET factures impayées",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [470, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/invoices' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_KEY }}" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "id,reference,amount,due_date,reminder_level,client_id,dossier_id,profiles!client_id(full_name,email)" },
+            { "name": "status", "value": "eq.unpaid" },
+            { "name": "due_date", "value": "={{ 'lt.' + $now.toISO().substring(0, 10) }}" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "compute",
+      "name": "Calcul niveau relance",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 300],
+      "parameters": {
+        "jsCode": "const today = new Date();\nconst results = [];\n\nfor (const item of $input.all()) {\n  const inv = item.json;\n  const due = new Date(inv.due_date);\n  const days = Math.floor((today - due) / 86400000);\n  const lvl = inv.reminder_level ?? 0;\n\n  let next = 0;\n  if      (days >= 30 && lvl < 3) next = 3;\n  else if (days >= 15 && lvl < 2) next = 2;\n  else if (days >=  7 && lvl < 1) next = 1;\n\n  if (next > 0) {\n    results.push({\n      json: {\n        ...inv,\n        days_overdue: days,\n        next_level: next,\n        client_name:  inv.profiles?.full_name ?? 'Client',\n        client_email: inv.profiles?.email ?? '',\n      }\n    });\n  }\n}\n\nreturn results;"
+      }
+    },
+    {
+      "id": "if_l3",
+      "name": "Niveau 3 ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [910, 300],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            {
+              "id": "cond-l3",
+              "leftValue": "={{ $json.next_level }}",
+              "rightValue": 3,
+              "operator": { "type": "number", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "email_l3",
+      "name": "Email contentieux (interne)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1130, 160],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.RESEND_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({\n  from: 'Maison Aldéric <facturation@maison-alderic.be>',\n  to: ['avocats@maison-alderic.be'],\n  subject: '[CONTENTIEUX] Facture ' + $json.reference + ' — ' + $json.days_overdue + ' jours de retard',\n  html: '<p>La facture <strong>' + $json.reference + '</strong> (' + $json.amount + ' €) du client <strong>' + $json.client_name + '</strong> est impayée depuis <strong>' + $json.days_overdue + ' jours</strong>.</p><p>Ce dossier doit être transmis au service contentieux immédiatement.</p><p>Email client : ' + $json.client_email + '</p>'\n}) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "patch_l3",
+      "name": "PATCH facture contentieux",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1350, 160],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/invoices?id=eq.' + $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ reminder_level: 3, status: 'contentieux', last_reminder_at: $now.toISO() }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "if_l2",
+      "name": "Niveau 2 ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1130, 420],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            {
+              "id": "cond-l2",
+              "leftValue": "={{ $json.next_level }}",
+              "rightValue": 2,
+              "operator": { "type": "number", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "email_l2",
+      "name": "Email mise en demeure",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1350, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.RESEND_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({\n  from: 'Maison Aldéric <facturation@maison-alderic.be>',\n  to: [$json.client_email],\n  subject: 'Mise en demeure — Facture ' + $json.reference + ' impayée',\n  html: '<p>Cher(e) ' + $json.client_name + ',</p><p>Malgré nos rappels précédents, la facture <strong>' + $json.reference + '</strong> d\\'un montant de <strong>' + $json.amount + ' €</strong>, échue le ' + $json.due_date + ', reste impayée depuis <strong>' + $json.days_overdue + ' jours</strong>.</p><p>Nous vous mettons formellement en demeure de procéder au règlement intégral dans les <strong>5 jours ouvrés</strong> suivant la réception de ce courrier. À défaut de paiement dans ce délai, nous nous verrons dans l\\'obligation d\\'engager les procédures de recouvrement appropriées, dont tous les frais vous seront imputés.</p><p>Cordialement,<br><strong>Maison Aldéric & Associés</strong><br>Service facturation'\n}) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "patch_l2",
+      "name": "PATCH facture niveau 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1570, 300],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/invoices?id=eq.' + $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ reminder_level: 2, last_reminder_at: $now.toISO() }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "if_l1",
+      "name": "Niveau 1 ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1350, 560],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            {
+              "id": "cond-l1",
+              "leftValue": "={{ $json.next_level }}",
+              "rightValue": 1,
+              "operator": { "type": "number", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "email_l1",
+      "name": "Email rappel poli",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1570, 440],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.RESEND_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({\n  from: 'Maison Aldéric <facturation@maison-alderic.be>',\n  to: [$json.client_email],\n  subject: 'Rappel — Facture ' + $json.reference + ' en attente de règlement',\n  html: '<p>Cher(e) ' + $json.client_name + ',</p><p>Sauf erreur de notre part, la facture <strong>' + $json.reference + '</strong> d\\'un montant de <strong>' + $json.amount + ' €</strong>, dont la date d\\'échéance était le ' + $json.due_date + ', n\\'a pas encore été réglée.</p><p>Pourriez-vous procéder au paiement dans les meilleurs délais ? Si ce règlement a déjà été effectué, veuillez ne pas tenir compte de ce message et nous en informer afin que nous puissions mettre à jour votre dossier.</p><p>Cordialement,<br><strong>Maison Aldéric & Associés</strong>'\n}) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "patch_l1",
+      "name": "PATCH facture niveau 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1790, 440],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/invoices?id=eq.' + $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ reminder_level: 1, last_reminder_at: $now.toISO() }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "noop",
+      "name": "Aucune action requise",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1570, 680],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Tous les jours à 9h": {
+      "main": [
+        [{ "node": "GET factures impayées", "type": "main", "index": 0 }]
+      ]
+    },
+    "GET factures impayées": {
+      "main": [
+        [{ "node": "Calcul niveau relance", "type": "main", "index": 0 }]
+      ]
+    },
+    "Calcul niveau relance": {
+      "main": [
+        [{ "node": "Niveau 3 ?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Niveau 3 ?": {
+      "main": [
+        [{ "node": "Email contentieux (interne)", "type": "main", "index": 0 }],
+        [{ "node": "Niveau 2 ?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Email contentieux (interne)": {
+      "main": [
+        [{ "node": "PATCH facture contentieux", "type": "main", "index": 0 }]
+      ]
+    },
+    "Niveau 2 ?": {
+      "main": [
+        [{ "node": "Email mise en demeure", "type": "main", "index": 0 }],
+        [{ "node": "Niveau 1 ?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Email mise en demeure": {
+      "main": [
+        [{ "node": "PATCH facture niveau 2", "type": "main", "index": 0 }]
+      ]
+    },
+    "Niveau 1 ?": {
+      "main": [
+        [{ "node": "Email rappel poli", "type": "main", "index": 0 }],
+        [{ "node": "Aucune action requise", "type": "main", "index": 0 }]
+      ]
+    },
+    "Email rappel poli": {
+      "main": [
+        [{ "node": "PATCH facture niveau 1", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "02000000-0000-0000-0000-000000000001",
+  "id": "02-relances-factures",
+  "meta": {
+    "instanceId": "maison-alderic-local"
+  }
+}
