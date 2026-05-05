@@ -44,7 +44,7 @@ export default async function FacturationPage({
   const { invoice: selectedId } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/portail/login");
+  if (!user) redirect("/portail/connexion");
 
   const [invoicesResult, linesResult] = await Promise.all([
     supabase

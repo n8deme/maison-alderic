@@ -20,7 +20,7 @@ export default async function ProfilPage({
   const params = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/portail/login");
+  if (!user) redirect("/portail/connexion");
 
   const { data: profile } = await supabase
     .from("profiles")

@@ -42,7 +42,7 @@ export default async function DossierDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/portail/login");
+  if (!user) redirect("/portail/connexion");
 
   const [dossierRes, timelineRes, leadRes, docsRes, msgsRes] = await Promise.all([
     supabase

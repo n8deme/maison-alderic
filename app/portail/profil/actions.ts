@@ -13,7 +13,7 @@ const profileSchema = z.object({
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/portail/login");
+  if (!user) redirect("/portail/connexion");
 
   const parsed = profileSchema.safeParse({
     full_name: formData.get("full_name"),

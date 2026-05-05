@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Server action — déconnecte l'utilisateur et redirige vers /portail/login.
+ * Server action — déconnecte l'utilisateur et redirige vers /portail/connexion.
  *
  * Usage depuis un Server Component :
  *   <form action={signOut}><button>Se déconnecter</button></form>
@@ -12,5 +12,5 @@ import { createClient } from "@/lib/supabase/server";
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/portail/login");
+  redirect("/portail/connexion");
 }
