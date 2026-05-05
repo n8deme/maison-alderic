@@ -1,9 +1,10 @@
+import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createStaticClient } from "@/lib/supabase/static";
-import { slugify } from "@/lib/slugify";
+import { Reveal } from "@/components/public/reveal";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -11,29 +12,32 @@ interface PageProps {
 
 interface Avocat {
   id: string;
+  slug: string;
   full_name: string;
   title: string;
-  bio: string;
-  specialties: string[];
-  is_founding_partner: boolean;
-  bar_year: number;
-  email: string;
-  linkedin_url: string | null;
+  bio: string | null;
+  expertises: string[];
+  languages: string[] | null;
+  email: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  bar_admission: string | null;
 }
 
 export async function generateStaticParams() {
   const supabase = createStaticClient();
-  const { data } = await supabase.from("avocats").select("full_name");
-  return (data ?? []).map((a: { full_name: string }) => ({ slug: slugify(a.full_name) }));
+  const { data } = await supabase.from("avocats").select("slug").not("slug", "is", null).limit(8);
+  return (data ?? []).map((item: { slug: string }) => ({ slug: item.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const supabase = createStaticClient();
-  const { data } = await supabase.from("avocats").select("full_name, title");
-  const avocat = (data ?? []).find((a: { full_name: string }) => slugify(a.full_name) === slug) as
-    | { full_name: string; title: string }
-    | undefined;
+  const { data: avocat } = await supabase
+    .from("avocats")
+    .select("full_name, title")
+    .eq("slug", slug)
+    .single();
   if (!avocat) return { title: "Associé introuvable" };
   return {
     title: `${avocat.full_name} — Maison Aldéric & Associés`,
@@ -45,194 +49,186 @@ export default async function AssociePage({ params }: PageProps) {
   const { slug } = await params;
   const supabase = await createClient();
 
-  const { data } = await supabase
+  const { data: avocat } = await supabase
     .from("avocats")
-    .select("id, full_name, title, bio, specialties, is_founding_partner, bar_year, email, linkedin_url");
-
-  const avocat = ((data ?? []) as Avocat[]).find((a) => slugify(a.full_name) === slug);
+    .select("id, slug, full_name, title, bio, expertises, languages, email, phone, avatar_url, bar_admission")
+    .eq("slug", slug)
+    .single();
   if (!avocat) notFound();
+
+  const firstName = avocat.full_name.split(" ")[0];
+
+  const publications = [
+    {
+      title: "Gouvernance actionnariale en phase d'hyper-croissance",
+      source: "Revue belge du droit des affaires",
+      year: "2025",
+    },
+    {
+      title: "Negotiation patterns in cross-border transactions",
+      source: "Brussels Business Law Forum",
+      year: "2024",
+    },
+    {
+      title: "Litiges post-acquisition: clauses et precedents",
+      source: "Legal Strategy Conference",
+      year: "2024",
+    },
+    {
+      title: "Gestion du risque contractuel en contexte inflationniste",
+      source: "Corporate Counsel Summit",
+      year: "2023",
+    },
+  ];
+
+  const { data: dealLinks } = await supabase
+    .from("deal_avocats")
+    .select(
+      `
+      deals (
+        id,
+        title,
+        client_name,
+        amount_label,
+        year,
+        category,
+        slug
+      )
+    `
+    )
+    .eq("avocat_id", avocat.id)
+    .limit(3);
+
+  const deals = ((dealLinks ?? [])
+    .map((item: any) => item.deals)
+    .filter(Boolean) as Array<{
+    id: string;
+    title: string;
+    client_name: string;
+    amount_label: string | null;
+    year: number;
+    category: string;
+    slug: string;
+  }>).slice(0, 3);
 
   return (
     <>
-      {/* Hero */}
-      <section
-        className="py-24 md:py-32"
-        style={{ backgroundColor: "var(--surface-alt)" }}
-      >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
-          <Link
-            href="/associes"
-            className="inline-flex items-center gap-2 mb-10 text-xs font-medium tracking-widest uppercase"
-            style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
-          >
-            ← Nos associés
-          </Link>
-          <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-14 lg:gap-20 items-start">
-            {/* Photo */}
-            <div
-              style={{
-                aspectRatio: "3/4",
-                backgroundColor: "var(--surface)",
-                border: "1px solid var(--border)",
-              }}
-            />
-            {/* Info */}
-            <div>
-              {avocat.is_founding_partner && (
-                <p
-                  className="text-xs font-medium tracking-widest uppercase mb-5"
-                  style={{ fontFamily: "var(--font-body)", color: "var(--bordeaux)" }}
-                >
-                  Associé fondateur
-                </p>
-              )}
-              <h1
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 500,
-                  fontSize: "clamp(1.75rem, 3vw, 2.75rem)",
-                  lineHeight: 1.1,
-                  letterSpacing: "-0.02em",
-                  color: "var(--text-primary)",
-                }}
-              >
-                {avocat.full_name}
-              </h1>
-              <p
-                className="mt-3"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: "1rem",
-                  color: "var(--text-secondary)",
-                }}
-              >
-                {avocat.title}
-              </p>
-
-              {/* Specialties */}
-              {avocat.specialties?.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-6">
-                  {avocat.specialties.map((s) => (
-                    <span
-                      key={s}
-                      className="text-xs px-3 py-1"
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        color: "var(--text-muted)",
-                        border: "1px solid var(--border)",
-                      }}
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Bio */}
-              <p
-                className="mt-10 max-w-2xl"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: "0.9375rem",
-                  color: "var(--text-secondary)",
-                  lineHeight: 1.8,
-                }}
-              >
-                {avocat.bio}
-              </p>
-
-              {/* Meta */}
-              <div
-                className="mt-10 pt-8 flex flex-wrap gap-8"
-                style={{ borderTop: "1px solid var(--border)" }}
-              >
-                <div>
-                  <p
-                    className="text-xs font-medium tracking-widest uppercase mb-1"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
-                  >
-                    Barreau
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: "0.9375rem",
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    Bruxelles, depuis {avocat.bar_year}
-                  </p>
-                </div>
-                <div>
-                  <p
-                    className="text-xs font-medium tracking-widest uppercase mb-1"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
-                  >
-                    Contact
-                  </p>
-                  <a
-                    href={`mailto:${avocat.email}`}
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      fontSize: "0.9375rem",
-                      color: "var(--bordeaux)",
-                    }}
-                  >
-                    {avocat.email}
-                  </a>
-                </div>
-                {avocat.linkedin_url && (
-                  <div>
-                    <p
-                      className="text-xs font-medium tracking-widest uppercase mb-1"
-                      style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
-                    >
-                      LinkedIn
-                    </p>
-                    <a
-                      href={avocat.linkedin_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: "0.9375rem",
-                        color: "var(--bordeaux)",
-                      }}
-                    >
-                      Profil LinkedIn
-                    </a>
-                  </div>
+      <section className="px-6 py-24 md:px-12 md:py-32 lg:px-20">
+        <div className="mx-auto max-w-7xl space-y-10">
+          <Reveal className="grid grid-cols-1 gap-10 lg:grid-cols-[0.4fr_0.6fr]">
+            <div className="space-y-4">
+              <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-surface-alt">
+                {avocat.avatar_url ? (
+                  <Image src={avocat.avatar_url} alt={avocat.full_name} fill className="object-cover" />
+                ) : (
+                  <div className="h-full w-full bg-surface-alt" />
                 )}
               </div>
+              <div className="space-y-1 text-sm text-text-secondary">
+                {avocat.email && <p>{avocat.email}</p>}
+                {avocat.phone && <p>{avocat.phone}</p>}
+              </div>
             </div>
+
+            <div className="space-y-6">
+              <p className="text-sm text-text-secondary">
+                <Link href="/associes" className="hover:text-bordeaux">
+                  L&apos;equipe
+                </Link>{" "}
+                / {avocat.full_name}
+              </p>
+              <h1 className="text-5xl text-foreground md:text-6xl">{avocat.full_name}</h1>
+              <p className="text-xl text-text-secondary">{avocat.title}</p>
+              <div className="flex flex-wrap gap-2">
+                {avocat.expertises?.map((specialty: string) => (
+                  <span
+                    key={specialty}
+                    className="rounded-full border border-bordeaux px-3 py-1 text-xs uppercase tracking-wide text-bordeaux"
+                  >
+                    {specialty}
+                  </span>
+                ))}
+              </div>
+              {avocat.languages?.length ? (
+                <p className="text-sm text-text-secondary">Langues: {avocat.languages.join(", ")}</p>
+              ) : null}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="px-6 py-16 md:px-12 md:py-24 lg:px-20">
+        <div className="prose-alderic mx-auto max-w-4xl text-lg leading-relaxed text-text-secondary">
+          <h2 className="mb-6 text-3xl text-foreground">Parcours</h2>
+          <p className="mb-6 first-letter:float-left first-letter:mr-3 first-letter:pt-1 first-letter:text-6xl first-letter:font-medium first-letter:leading-none first-letter:text-bordeaux">
+            {avocat.bio ??
+              "Profil reconnu en conseil transactionnel et contentieux d'affaires, avec une pratique orientee execution et anticipation du risque."}
+          </p>
+          <p className="mb-6">
+            Son approche combine rigueur technique, lisibilite des options juridiques et coordination
+            des parties prenantes dans des contextes sensibles.
+          </p>
+          <p className="mb-6">
+            Il accompagne les dirigeants et investisseurs sur des mandats multi-juridictions en
+            priorisant la clarte contractuelle et la maitrise du calendrier.
+          </p>
+
+          <h3 className="mb-4 mt-12 text-2xl text-foreground">Formation</h3>
+          <ul className="mb-6 list-disc space-y-2 pl-6">
+            <li>LL.M. en droit des affaires internationales</li>
+            <li>Master en droit, Universite libre de Bruxelles</li>
+            <li>Certificat governance & compliance</li>
+          </ul>
+
+          <h3 className="mb-4 mt-12 text-2xl text-foreground">Barreaux</h3>
+          <ul className="mb-6 list-disc space-y-2 pl-6">
+            <li>{avocat.bar_admission ?? "Barreau de Bruxelles"}</li>
+          </ul>
+        </div>
+      </section>
+
+      <section className="bg-surface-alt px-6 py-16 md:px-12 md:py-24 lg:px-20">
+        <div className="mx-auto max-w-4xl space-y-8">
+          <h2 className="text-3xl text-foreground">Publications & interventions</h2>
+          <div className="space-y-5">
+            {publications.map((item) => (
+              <article key={item.title} className="border-b border-border pb-5">
+                <h3 className="text-xl text-foreground">{item.title}</h3>
+                <p className="mt-2 text-sm text-text-secondary">
+                  {item.source} · {item.year}
+                </p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20" style={{ backgroundColor: "var(--surface)" }}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <p
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 500,
-              fontStyle: "italic",
-              fontSize: "1.25rem",
-              color: "var(--text-primary)",
-            }}
-          >
-            Vous souhaitez prendre contact avec {avocat.full_name.split(" ")[0]} ?
-          </p>
+      <section className="px-6 py-16 md:px-12 md:py-24 lg:px-20">
+        <div className="mx-auto max-w-7xl space-y-8">
+          <h2 className="text-3xl text-foreground">Transactions notables</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {(deals ?? []).map((deal: any, index: number) => (
+              <Reveal key={deal.id} delay={index * 0.05}>
+                <article className="rounded-sm border border-border bg-surface p-6">
+                <p className="text-xs uppercase tracking-wide text-bordeaux">{deal.year}</p>
+                <h3 className="mt-3 text-xl text-foreground">{deal.title}</h3>
+                <p className="mt-2 text-sm text-text-secondary">{deal.client_name}</p>
+                <p className="mt-4 text-lg text-bordeaux">{deal.amount_label ?? "Confidentiel"}</p>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 pb-24 md:px-12 lg:px-20">
+        <div className="mx-auto max-w-4xl rounded-sm border border-border bg-surface-alt p-8 text-center md:p-12">
+          <h2 className="text-3xl text-foreground">Travailler avec {firstName} ?</h2>
           <Link
-            href="/contact"
-            className="shrink-0 inline-block text-xs font-medium tracking-widest uppercase px-5 py-2.5"
-            style={{
-              fontFamily: "var(--font-body)",
-              color: "var(--bordeaux)",
-              border: "1px solid var(--bordeaux)",
-            }}
+            href={`/contact?avocat=${slug}`}
+            className="mt-6 inline-flex rounded-sm bg-bordeaux px-6 py-3 text-sm font-medium text-white"
           >
-            Nous écrire
+            Prendre contact
           </Link>
         </div>
       </section>

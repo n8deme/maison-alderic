@@ -156,12 +156,13 @@ select private.seed_create_user(
 -- AVOCATS — table public.avocats (lien via user_id)
 -- ----------------------------------------------------------------------------
 insert into public.avocats (
-  id, user_id, full_name, title, expertises, email, phone,
+  id, user_id, slug, full_name, title, expertises, email, phone,
   bio, bar_admission, languages, is_founding_partner, display_order
 ) values
 (
   'b0000001-1111-4111-8111-000000000001',
   'a0000001-1111-4111-8111-000000000001',
+  'alderic-vermeulen',
   'Aldéric Vermeulen',
   'Associé fondateur',
   array['M&A', 'Private Equity', 'Corporate'],
@@ -176,6 +177,7 @@ insert into public.avocats (
 (
   'b0000002-1111-4111-8111-000000000002',
   'a0000002-1111-4111-8111-000000000002',
+  'sophie-de-borchgrave',
   'Sophie de Borchgrave',
   'Associée fondatrice',
   array['Litigation', 'Arbitrage international', 'Contentieux des affaires'],
@@ -190,6 +192,7 @@ insert into public.avocats (
 (
   'b0000003-1111-4111-8111-000000000003',
   'a0000003-1111-4111-8111-000000000003',
+  'jean-marc-petit',
   'Jean-Marc Petit',
   'Associé fondateur',
   array['Tax', 'Fiscalité internationale', 'Prix de transfert'],
@@ -204,6 +207,7 @@ insert into public.avocats (
 (
   'b0000004-1111-4111-8111-000000000004',
   'a0000004-1111-4111-8111-000000000004',
+  'anais-lambert',
   'Anaïs Lambert',
   'Associée',
   array['Restructuring', 'Insolvabilité', 'Corporate'],
@@ -218,6 +222,7 @@ insert into public.avocats (
 (
   'b0000005-1111-4111-8111-000000000005',
   'a0000005-1111-4111-8111-000000000005',
+  'marc-dewinter',
   'Marc Dewinter',
   'Counsel',
   array['M&A', 'Joint Ventures', 'Corporate Governance'],
@@ -232,6 +237,7 @@ insert into public.avocats (
 (
   'b0000006-1111-4111-8111-000000000006',
   'a0000006-1111-4111-8111-000000000006',
+  'lea-brouwers',
   'Léa Brouwers',
   'Senior Associate',
   array['Private Equity', 'Fund Formation', 'M&A'],
@@ -246,6 +252,7 @@ insert into public.avocats (
 (
   'b0000007-1111-4111-8111-000000000007',
   'a0000007-1111-4111-8111-000000000007',
+  'olivier-maertens',
   'Olivier Maertens',
   'Senior Associate',
   array['Litigation', 'White-Collar Crime', 'Compliance'],
@@ -260,6 +267,7 @@ insert into public.avocats (
 (
   'b0000008-1111-4111-8111-000000000008',
   'a0000008-1111-4111-8111-000000000008',
+  'camilla-janssens',
   'Camille Janssens',
   'Senior Associate',
   array['Tax', 'TVA', 'Litiges fiscaux'],

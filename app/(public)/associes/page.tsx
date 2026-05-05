@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 
 interface Avocat {
   id: string;
+  slug: string | null;
   full_name: string;
   title: string;
   bio: string;
@@ -24,7 +25,7 @@ export default async function AssociesPage() {
 
   const { data: avocats } = await supabase
     .from("avocats")
-    .select("id, full_name, title, bio, specialties, is_founding_partner, bar_year")
+    .select("id, slug, full_name, title, bio, specialties, is_founding_partner, bar_year")
     .order("is_founding_partner", { ascending: false })
     .order("full_name");
 
@@ -116,9 +117,8 @@ export default async function AssociesPage() {
 }
 
 function AvocatCard({ avocat }: { avocat: Avocat }) {
-  const slug = slugify(avocat.full_name);
   return (
-    <Link href={`/associes/${slug}`} className="group block">
+    <Link href={`/associes/${avocat.slug ?? slugify(avocat.full_name)}`} className="group block">
       {/* Photo placeholder */}
       <div
         className="w-full mb-6"

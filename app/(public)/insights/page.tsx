@@ -13,9 +13,9 @@ interface Insight {
   id: string;
   title: string;
   slug: string;
-  summary: string;
+  excerpt: string;
   category: string;
-  reading_time_min: number;
+  reading_time_minutes: number | null;
   published_at: string;
   author: {
     full_name: string;
@@ -38,7 +38,7 @@ export default async function InsightsPage() {
   const { data: insights } = await supabase
     .from("insights")
     .select(`
-      id, title, slug, summary, category, reading_time_min, published_at,
+      id, title, slug, excerpt, category, reading_time_minutes, published_at,
       author:avocats ( full_name, title )
     `)
     .eq("is_published", true)
@@ -127,7 +127,7 @@ export default async function InsightsPage() {
                         color: "var(--text-muted)",
                       }}
                     >
-                      {featured[0].reading_time_min} min
+                      {featured[0].reading_time_minutes ?? 8} min
                     </span>
                   </div>
                   <h2
@@ -151,7 +151,7 @@ export default async function InsightsPage() {
                       lineHeight: 1.75,
                     }}
                   >
-                    {featured[0].summary}
+                    {featured[0].excerpt}
                   </p>
                   <div className="mt-8 flex items-center justify-between">
                     {featured[0].author && (
@@ -239,7 +239,7 @@ function InsightCard({ insight }: { insight: Insight }) {
             color: "var(--text-muted)",
           }}
         >
-          {insight.reading_time_min} min
+          {insight.reading_time_minutes ?? 8} min
         </span>
       </div>
       <p
@@ -263,7 +263,7 @@ function InsightCard({ insight }: { insight: Insight }) {
           lineHeight: 1.7,
         }}
       >
-        {insight.summary}
+        {insight.excerpt}
       </p>
       <div className="mt-5 flex items-center justify-between">
         {insight.author && (

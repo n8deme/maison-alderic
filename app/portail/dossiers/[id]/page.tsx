@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ArrowLeft, CheckCircle2, FileText, MessageSquare, Euro } from "lucide-react";
+import { ArrowLeft, FileText, MessageSquare, Euro } from "lucide-react";
+import { TimelineDossierPremium } from "@/components/portail/timeline-dossier-premium";
 
 export const metadata: Metadata = { title: "Dossier" };
 
@@ -36,83 +37,6 @@ type TimelineStep = {
   completed_at: string | null;
   display_order: number;
 };
-
-function TimelineItem({ step, isLast }: { step: TimelineStep; isLast: boolean }) {
-  const done = step.status === "completed";
-  const wip  = step.status === "in_progress";
-
-  return (
-    <div className="flex gap-4">
-      {/* Column left: circle + line */}
-      <div className="flex flex-col items-center pt-0.5">
-        <div
-          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2"
-          style={{
-            borderColor: done || wip ? "var(--bordeaux)" : "var(--border)",
-            backgroundColor: done ? "var(--bordeaux)" : "var(--surface)",
-          }}
-        >
-          {done ? (
-            <CheckCircle2 className="w-3 h-3" style={{ color: "#fff" }} />
-          ) : wip ? (
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--bordeaux)" }} />
-          ) : (
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--border)" }} />
-          )}
-        </div>
-        {!isLast && (
-          <div
-            className="w-px flex-1 mt-1"
-            style={{ backgroundColor: done ? "var(--bordeaux)" : "var(--border)", minHeight: "20px" }}
-          />
-        )}
-      </div>
-
-      {/* Column right: content */}
-      <div className={`flex-1 pb-7 ${isLast ? "pb-0" : ""}`}>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p
-              className="text-sm font-medium leading-tight"
-              style={{
-                fontFamily: "var(--font-body)",
-                color: done || wip ? "var(--foreground)" : "var(--text-muted)",
-              }}
-            >
-              {step.title}
-            </p>
-            {step.description && (
-              <p className="text-xs text-text-secondary mt-0.5" style={{ fontFamily: "var(--font-body)" }}>
-                {step.description}
-              </p>
-            )}
-          </div>
-          <div className="shrink-0 text-right space-y-0.5">
-            {done && step.completed_at && (
-              <p className="text-[10px] text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
-                {fmtDate(step.completed_at)}
-              </p>
-            )}
-            {!done && step.due_date && (
-              <p className="text-[10px] text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
-                Échéance {fmtDate(step.due_date)}
-              </p>
-            )}
-            <span
-              className="inline-flex items-center px-1.5 py-0.5 rounded-sm text-[9px] font-medium uppercase tracking-wider"
-              style={{
-                color: done || wip ? "var(--bordeaux)" : "var(--text-muted)",
-                backgroundColor: done || wip ? "rgba(122,31,43,0.08)" : "var(--surface-alt)",
-              }}
-            >
-              {done ? "Terminé" : wip ? "En cours" : "À venir"}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default async function DossierDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -212,26 +136,35 @@ export default async function DossierDetailPage({ params }: { params: Promise<{ 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Timeline */}
-        <div className="lg:col-span-2 bg-surface border border-border rounded-sm p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-sm font-medium" style={{ fontFamily: "var(--font-body)" }}>
-              Avancement du dossier
-            </h2>
-            {timeline.length > 0 && (
-              <span className="text-xs text-text-muted tabular-nums" style={{ fontFamily: "var(--font-body)" }}>
-                {doneSteps}/{timeline.length} étapes
-              </span>
-            )}
-          </div>
-
+        <div className="lg:col-span-2">
           {timeline.length === 0 ? (
-            <p className="text-sm text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
-              Aucune étape définie pour ce dossier.
-            </p>
+            <div className="rounded-lg border border-border bg-surface p-6">
+              <p className="text-sm text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
+                Aucune étape définie pour ce dossier.
+              </p>
+            </div>
           ) : (
-            timeline.map((step, idx) => (
-              <TimelineItem key={step.id} step={step} isLast={idx === timeline.length - 1} />
-            ))
+            <TimelineDossierPremium
+              summaryHref={`/portail/dossiers/${id}`}
+              steps={timeline.map((step) => ({
+                id: step.id,
+                title: step.title,
+                description: step.description,
+                status:
+                  step.status === "completed"
+                    ? "completed"
+                    : step.status === "in_progress"
+                      ? "in_progress"
+                      : step.status === "blocked"
+                        ? "blocked"
+                        : "pending",
+                dueDate: step.due_date,
+                completedAt: step.completed_at,
+                actionRequired: step.status !== "completed" && !!step.due_date,
+                notes: step.description,
+                attachments: [],
+              }))}
+            />
           )}
         </div>
 

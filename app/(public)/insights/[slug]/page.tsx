@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { createClient } from "@/lib/supabase/server";
 import { createStaticClient } from "@/lib/supabase/static";
 import { formatDateFr } from "@/lib/format-date";
+import { slugify } from "@/lib/slugify";
+import { Reveal } from "@/components/public/reveal";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -15,14 +18,16 @@ interface Insight {
   id: string;
   title: string;
   slug: string;
-  summary: string;
+  excerpt: string;
   content: string;
   category: string;
-  reading_time_min: number;
+  reading_time_minutes: number;
   published_at: string;
   author: {
+    id: string;
     full_name: string;
     title: string;
+    avatar_url: string | null;
   } | null;
 }
 
@@ -49,14 +54,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const supabase = createStaticClient();
   const { data } = await supabase
     .from("insights")
-    .select("title, summary")
+    .select("title, excerpt")
     .eq("slug", slug)
     .eq("is_published", true)
     .single();
   if (!data) return { title: "Article introuvable" };
   return {
     title: `${data.title} — Maison Aldéric & Associés`,
-    description: data.summary,
+    description: data.excerpt,
   };
 }
 
@@ -67,8 +72,8 @@ export default async function InsightPage({ params }: PageProps) {
   const { data: insight } = await supabase
     .from("insights")
     .select(`
-      id, title, slug, summary, content, category, reading_time_min, published_at,
-      author:avocats ( full_name, title )
+      id, title, slug, excerpt, content, category, reading_time_minutes, published_at,
+      author:avocats ( id, full_name, title, avatar_url )
     `)
     .eq("slug", slug)
     .eq("is_published", true)
@@ -80,176 +85,150 @@ export default async function InsightPage({ params }: PageProps) {
 
   const { data: related } = await supabase
     .from("insights")
-    .select("id, title, slug, category, reading_time_min, published_at")
+    .select("id, title, slug, category, reading_time_minutes, published_at, excerpt")
     .eq("is_published", true)
-    .eq("category", item.category)
     .neq("slug", slug)
+    .order("published_at", { ascending: false })
     .limit(3);
+
+  const headingMatches = Array.from(item.content.matchAll(/^##\s+(.+)$/gm)).map((match) => {
+    const title = match[1].trim();
+    return { title, id: slugify(title) };
+  });
 
   return (
     <>
-      {/* Hero */}
-      <section
-        className="py-16 md:py-24"
-        style={{ backgroundColor: "var(--surface-alt)" }}
-      >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
-          <Link
-            href="/insights"
-            className="inline-flex items-center gap-2 mb-10 text-xs font-medium tracking-widest uppercase"
-            style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
-          >
-            ← Insights
-          </Link>
-          <div className="flex flex-wrap items-center gap-3 mb-8">
-            <span
-              className="text-xs font-medium tracking-widest uppercase px-2 py-0.5"
-              style={{
-                fontFamily: "var(--font-body)",
-                color: "var(--bordeaux)",
-                border: "1px solid var(--bordeaux)",
-              }}
-            >
-              {categoryLabels[item.category] ?? item.category}
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-body)",
-                fontSize: "0.8125rem",
-                color: "var(--text-muted)",
-              }}
-            >
-              {item.reading_time_min} min de lecture · {formatDateFr(item.published_at)}
-            </span>
-          </div>
-          <h1
-            className="max-w-3xl"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 500,
-              fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)",
-              lineHeight: 1.15,
-              letterSpacing: "-0.02em",
-              color: "var(--text-primary)",
-            }}
-          >
-            {item.title}
-          </h1>
-          <p
-            className="mt-6 max-w-2xl"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 500,
-              fontStyle: "italic",
-              fontSize: "1.0625rem",
-              color: "var(--text-secondary)",
-              lineHeight: 1.6,
-            }}
-          >
-            {item.summary}
+      <section className="px-6 py-16 md:px-12 md:py-20 lg:px-20">
+        <div className="mx-auto max-w-4xl space-y-6">
+          <p className="text-sm text-text-secondary">
+            <Link href="/insights" className="hover:text-bordeaux">
+              Insights
+            </Link>{" "}
+            / {categoryLabels[item.category] ?? item.category} / {item.title}
           </p>
-          {item.author && (
-            <div
-              className="mt-10 pt-6 flex items-center gap-4"
-              style={{ borderTop: "1px solid var(--border)" }}
-            >
-              <div
-                className="w-10 h-10 shrink-0"
-                style={{
-                  backgroundColor: "var(--surface)",
-                  border: "1px solid var(--border)",
-                }}
-              />
-              <div>
-                <p
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: "0.875rem",
-                    color: "var(--text-primary)",
-                    fontWeight: 500,
-                  }}
-                >
-                  {item.author.full_name}
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: "0.8125rem",
-                    color: "var(--text-muted)",
-                  }}
-                >
-                  {item.author.title}
-                </p>
-              </div>
-            </div>
-          )}
+          <span className="inline-flex rounded-full bg-bordeaux/10 px-3 py-1 text-xs uppercase tracking-wide text-bordeaux">
+            {categoryLabels[item.category] ?? item.category}
+          </span>
+          <h1 className="text-5xl leading-tight text-foreground md:text-6xl">{item.title}</h1>
+          <p className="text-sm text-text-secondary">
+            {formatDateFr(item.published_at)} · {item.reading_time_minutes} min ·{" "}
+            {item.author?.full_name ?? "Maison Aldéric"}
+          </p>
         </div>
       </section>
 
-      {/* Cover image placeholder */}
-      <div
-        className="w-full"
-        style={{
-          height: "clamp(200px, 35vw, 480px)",
-          backgroundColor: "var(--surface)",
-          borderTop: "1px solid var(--border)",
-          borderBottom: "1px solid var(--border)",
-        }}
-      />
-
-      {/* Article content */}
-      <section className="py-16 md:py-24" style={{ backgroundColor: "var(--surface)" }}>
-        <div className="max-w-3xl mx-auto px-6 md:px-12 lg:px-20">
-          <div className="prose-alderic">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+      <section className="relative px-6 py-16 md:px-12 md:py-24 lg:px-20">
+        <div className="mx-auto max-w-4xl">
+          <div className="prose-alderic prose-lg">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                p: ({ children }) => {
+                  return (
+                    <p className="mb-6 text-lg leading-relaxed text-text-secondary first-letter:float-left first-letter:mr-3 first-letter:pt-1 first-letter:text-6xl first-letter:font-medium first-letter:leading-none first-letter:text-bordeaux">
+                      {children}
+                    </p>
+                  );
+                },
+                h2: ({ children }) => {
+                  const title = String(children);
+                  const id = slugify(title);
+                  return (
+                    <h2 id={id} className="mb-6 mt-12 text-3xl text-foreground">
+                      {children}
+                    </h2>
+                  );
+                },
+                h3: ({ children }) => <h3 className="mb-4 mt-8 text-2xl text-foreground">{children}</h3>,
+                blockquote: ({ children }) => (
+                  <blockquote className="my-8 border-l-4 border-bordeaux py-4 pl-6 text-xl italic text-text-secondary">
+                    {children}
+                  </blockquote>
+                ),
+                a: ({ href, children }) => (
+                  <Link href={href ?? "#"} className="text-bordeaux underline underline-offset-4">
+                    {children}
+                  </Link>
+                ),
+              }}
+            >
               {item.content}
             </ReactMarkdown>
           </div>
         </div>
-      </section>
 
-      {/* Related */}
-      {(related ?? []).length > 0 && (
-        <section className="py-20 md:py-28" style={{ backgroundColor: "var(--surface-alt)" }}>
-          <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
-            <p
-              className="text-xs font-medium tracking-widest uppercase mb-10"
-              style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
-            >
-              Dans la même catégorie
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {(related as Array<{ id: string; title: string; slug: string; category: string; reading_time_min: number; published_at: string }>).map((r) => (
-                <Link key={r.id} href={`/insights/${r.slug}`} className="group block">
-                  <p
-                    className="mb-2 text-xs font-medium tracking-widest uppercase"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
-                  >
-                    {categoryLabels[r.category] ?? r.category} · {r.reading_time_min} min
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontWeight: 500,
-                      fontSize: "1.0625rem",
-                      color: "var(--text-primary)",
-                      lineHeight: 1.35,
-                    }}
-                  >
-                    {r.title}
-                  </p>
-                  <p
-                    className="mt-2 text-xs"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
-                  >
-                    {formatDateFr(r.published_at)}
-                  </p>
+        {headingMatches.length > 0 && (
+          <aside className="fixed right-8 top-32 hidden w-64 rounded-sm border border-border bg-surface p-4 lg:block">
+            <p className="mb-3 text-xs uppercase tracking-wide text-text-muted">Sommaire</p>
+            <nav className="space-y-2">
+              {headingMatches.map((heading) => (
+                <Link key={heading.id} href={`#${heading.id}`} className="block text-sm text-text-secondary hover:text-bordeaux">
+                  {heading.title}
                 </Link>
               ))}
+            </nav>
+          </aside>
+        )}
+      </section>
+
+      {item.author && (
+        <section className="bg-surface-alt px-6 py-12 md:px-12 lg:px-20">
+          <div className="mx-auto max-w-4xl rounded-sm border border-border bg-surface p-6">
+            <div className="flex items-center gap-4">
+              <div className="relative h-20 w-20 overflow-hidden rounded-full border border-border">
+                {item.author.avatar_url ? (
+                  <Image src={item.author.avatar_url} alt={item.author.full_name} fill className="object-cover" />
+                ) : (
+                  <div className="h-full w-full bg-surface-alt" />
+                )}
+              </div>
+              <div>
+                <p className="text-lg text-foreground">{item.author.full_name}</p>
+                <p className="text-sm text-text-secondary">{item.author.title}</p>
+                <Link href={`/associes/${slugify(item.author.full_name)}`} className="mt-1 inline-block text-sm text-bordeaux">
+                  Voir le profil →
+                </Link>
+              </div>
             </div>
           </div>
         </section>
       )}
+
+      <section className="px-6 py-16 md:px-12 md:py-24 lg:px-20">
+        <div className="mx-auto max-w-6xl space-y-8">
+          <h2 className="text-3xl text-foreground">Articles liés</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {(related as any[]).map((entry, index: number) => (
+              <Reveal key={entry.id} delay={index * 0.05}>
+                <Link href={`/insights/${entry.slug}`} className="block rounded-sm border border-border bg-surface p-6">
+                <p className="text-xs uppercase tracking-wide text-bordeaux">
+                  {categoryLabels[entry.category] ?? entry.category}
+                </p>
+                <h3 className="mt-3 text-xl text-foreground">{entry.title}</h3>
+                <p className="mt-2 text-sm text-text-secondary">{formatDateFr(entry.published_at)}</p>
+                <p className="mt-3 line-clamp-2 text-sm text-text-secondary">{entry.excerpt}</p>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-bordeaux/5 px-6 py-16 md:px-12 lg:px-20">
+        <div className="mx-auto max-w-4xl rounded-sm border border-border bg-surface p-8 md:p-10">
+          <h2 className="text-3xl text-foreground">Recevez nos insights par email</h2>
+          <form className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <input
+              type="email"
+              placeholder="Votre adresse email"
+              className="h-11 flex-1 rounded-sm border border-border bg-background px-4 text-sm text-foreground placeholder:text-text-muted focus:outline-none"
+            />
+            <button type="button" className="h-11 rounded-sm bg-bordeaux px-5 text-sm font-medium text-white">
+              S&apos;abonner
+            </button>
+          </form>
+        </div>
+      </section>
     </>
   );
 }
