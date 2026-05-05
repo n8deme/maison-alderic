@@ -25,7 +25,7 @@ export default async function MessagesPage({
   const { dossier: selectedId } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/portail/connexion");
+  if (!user) redirect("/connexion");
 
   // Fetch all client dossiers for the left panel
   const { data: dossiers } = await supabase

@@ -37,7 +37,7 @@ function fmtTime(iso: string) {
 export default async function RdvPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/portail/connexion");
+  if (!user) redirect("/connexion");
 
   const now = new Date().toISOString();
 

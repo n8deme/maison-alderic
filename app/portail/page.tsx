@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Tableau de bord" };
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/portail/connexion");
+  if (!user) redirect("/connexion");
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();

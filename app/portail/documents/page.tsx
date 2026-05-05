@@ -29,7 +29,7 @@ function fmtDate(iso: string) {
 export default async function DocumentsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/portail/connexion");
+  if (!user) redirect("/connexion");
 
   const [docsResult, dossiersResult] = await Promise.all([
     supabase

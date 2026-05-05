@@ -23,6 +23,6 @@ export async function GET(request: NextRequest) {
 
   // Échec : retour login avec flag d'erreur
   return NextResponse.redirect(
-    `${origin}/portail/login?error=callback_failed`,
+    `${origin}/connexion?error=callback_failed`,
   );
 }
