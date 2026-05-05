@@ -67,17 +67,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function InsightPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const supabase = createStaticClient();
 
-  const { data: insight } = await supabase
+  const { data: insight, error } = await supabase
     .from("insights")
-    .select(`
-      id, title, slug, excerpt, content, category, reading_time_minutes, published_at,
-      author:avocats ( id, full_name, title, avatar_url )
-    `)
+    .select("*")
     .eq("slug", slug)
     .eq("is_published", true)
     .single();
+
+  console.log("🔍 QUERY RESULT:", { insight, error, slug });
 
   if (!insight) notFound();
 
