@@ -79,11 +79,11 @@ Tous les emails utilisent le format `kev+<slug>@n8de.me` (alias Gmail) — ce qu
 ## Tester l'auth flow
 
 1. Lancer `pnpm dev`
-2. Aller sur http://localhost:3000/portail → redirige vers `/portail/login`
+2. Aller sur http://localhost:3000/portail → redirige vers `/connexion`
 3. Saisir un email seed (ex : `kev+client-industrial@n8de.me`)
 4. **Option password** : entrer le password depuis `SEED_CREDENTIALS.md` → redirection vers `/portail`
 5. **Option magic link** : cliquer "Recevoir un lien magique" → email reçu → cliquer → redirection vers `/portail`
-6. Cliquer sur "Se déconnecter" → retour `/portail/login`
+6. Cliquer sur "Se déconnecter" → retour `/connexion`
 
 ---
 

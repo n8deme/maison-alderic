@@ -35,30 +35,19 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  console.log("🔐 MIDDLEWARE:", { 
-    pathname, 
-    hasUser: !!user, 
-    userEmail: user?.email 
-  });
-
-  // 🚨 DEBUG — AJOUT D'UN LOG AVANT CHAQUE REDIRECT
-  
-  // Protection /portail/* sauf /portail/login
-  if (!user && pathname.startsWith("/portail") && pathname !== "/portail/login") {
-    console.log("❌ REDIRECT 1 — User not logged, redirecting to /portail/login");
+  // Protection /portail/* — redirect vers /connexion si pas loggué
+  if (!user && pathname.startsWith("/portail")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/portail/login";
+    url.pathname = "/connexion";
     return NextResponse.redirect(url);
   }
 
-  // Si déjà loggué et sur /portail/login → redirect vers /portail
-  if (user && pathname === "/portail/login") {
-    console.log("✅ REDIRECT 2 — User logged, redirecting to /portail");
+  // Si déjà loggué et sur /connexion → redirect vers /portail
+  if (user && pathname === "/connexion") {
     const url = request.nextUrl.clone();
     url.pathname = "/portail";
     return NextResponse.redirect(url);
   }
 
-  console.log("✅ NO REDIRECT — Returning normal response");
   return supabaseResponse;
 }
