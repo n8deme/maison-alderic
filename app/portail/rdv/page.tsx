@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAvocatPhoto } from "@/lib/avocats-photos";
+import { formatDateFrLong } from "@/lib/format-date";
 import { Calendar, Clock, MapPin, CheckCircle2, XCircle } from "lucide-react";
 
 export const metadata: Metadata = { title: "Rendez-vous" };
@@ -26,10 +29,6 @@ function StatusBadge({ status }: { status: AppointmentStatus }) {
   );
 }
 
-function fmtDate(iso: string) {
-  return new Intl.DateTimeFormat("fr-BE", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
-}
-
 function fmtTime(iso: string) {
   return new Intl.DateTimeFormat("fr-BE", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
 }
@@ -44,7 +43,7 @@ export default async function RdvPage() {
   const [upcomingResult, pastResult] = await Promise.all([
     supabase
       .from("appointments")
-      .select("id, title, description, starts_at, ends_at, location, status, avocat:avocats(full_name, title)")
+      .select("id, title, description, starts_at, ends_at, location, status, avocat:avocats(full_name, title, slug)")
       .eq("client_id", user.id)
       .in("status", ["scheduled", "confirmed"])
       .gte("starts_at", now)
@@ -52,7 +51,7 @@ export default async function RdvPage() {
 
     supabase
       .from("appointments")
-      .select("id, title, starts_at, ends_at, location, status, avocat:avocats(full_name, title)")
+      .select("id, title, starts_at, ends_at, location, status, avocat:avocats(full_name, title, slug)")
       .eq("client_id", user.id)
       .or(`status.eq.completed,status.eq.cancelled,starts_at.lt.${now}`)
       .order("starts_at", { ascending: false })
@@ -62,7 +61,7 @@ export default async function RdvPage() {
   const upcoming = upcomingResult.data ?? [];
   const past     = pastResult.data     ?? [];
 
-  type Avocat = { full_name: string; title: string };
+  type Avocat = { full_name: string; title: string; slug: string | null };
 
   return (
     <div className="p-6 md:p-8 max-w-3xl">
@@ -117,7 +116,7 @@ export default async function RdvPage() {
                     <div className="flex items-center gap-2">
                       <Calendar className="w-3.5 h-3.5 text-text-muted shrink-0" />
                       <span className="text-xs text-text-secondary capitalize" style={{ fontFamily: "var(--font-body)" }}>
-                        {fmtDate(appt.starts_at)}
+                        {formatDateFrLong(appt.starts_at)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -135,9 +134,18 @@ export default async function RdvPage() {
                       </div>
                     )}
                     {avocat && (
-                      <p className="text-xs text-text-muted mt-1" style={{ fontFamily: "var(--font-body)" }}>
-                        Avec {avocat.full_name} — {avocat.title}
-                      </p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <Image
+                          src={getAvocatPhoto(avocat.slug ?? "")}
+                          alt={avocat.full_name}
+                          width={48}
+                          height={48}
+                          className="rounded-full object-cover"
+                        />
+                        <p className="text-xs text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
+                          Avec {avocat.full_name} — {avocat.title}
+                        </p>
+                      </div>
                     )}
                   </div>
 
@@ -182,7 +190,7 @@ export default async function RdvPage() {
                     </p>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-text-muted capitalize" style={{ fontFamily: "var(--font-body)" }}>
-                        {fmtDate(appt.starts_at)}
+                        {formatDateFrLong(appt.starts_at)}
                       </span>
                       {avocat && (
                         <>

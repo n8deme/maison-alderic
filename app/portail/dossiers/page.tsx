@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { formatDateFrLong } from "@/lib/format-date";
 import { cn } from "@/lib/utils";
 import { FolderOpen, ChevronRight, Calendar } from "lucide-react";
 
@@ -30,10 +31,6 @@ function StatusBadge({ status }: { status: DossierStatus }) {
       {STATUS_LABELS[status] ?? status}
     </span>
   );
-}
-
-function fmtDate(iso: string) {
-  return new Intl.DateTimeFormat("fr-BE", { day: "numeric", month: "short", year: "numeric" }).format(new Date(iso));
 }
 
 export default async function DossierListPage({
@@ -178,7 +175,7 @@ export default async function DossierListPage({
                 <div className="hidden sm:flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-text-muted" />
                   <span className="text-[10px] text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
-                    {fmtDate(d.opened_at)}
+                    {formatDateFrLong(d.opened_at)}
                   </span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-text-muted transition-transform group-hover:translate-x-0.5" />

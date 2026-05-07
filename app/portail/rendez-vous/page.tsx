@@ -3,17 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { formatDateFrLong } from "@/lib/format-date";
 
 export const metadata: Metadata = { title: "Rendez-vous" };
-
-function fmtDate(iso: string) {
-  return new Intl.DateTimeFormat("fr-BE", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(iso));
-}
 
 function fmtTime(iso: string) {
   return new Intl.DateTimeFormat("fr-BE", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
@@ -118,7 +110,7 @@ export default async function PortailRendezVousPage({
                 <div className="space-y-1.5 text-xs text-text-secondary">
                   <p className="flex items-center gap-2">
                     <Calendar className="h-3.5 w-3.5 text-text-muted" />
-                    {fmtDate(appt.starts_at)}
+                    {formatDateFrLong(appt.starts_at)}
                   </p>
                   <p className="flex items-center gap-2">
                     <Clock className="h-3.5 w-3.5 text-text-muted" />

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { HomeExpertisesGrid } from "@/components/public/home-expertises-grid";
 import { HomeDealsSticky } from "@/components/public/home-deals-sticky";
 import { HomeAssociesReveal } from "@/components/public/home-associes-reveal";
 import { HomeInsightsMagazine } from "@/components/public/home-insights-magazine";
+import { Reveal } from "@/components/public/reveal";
 
 export const metadata: Metadata = {
   title: "Maison Aldéric & Associés — Cabinet d'avocats d'affaires, Bruxelles",
@@ -24,7 +26,17 @@ const chiffres = [
   { value: "2003", label: "Année de création du cabinet" },
 ];
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>;
+}) {
+  // ✨ Intercepte le code OAuth/magic link et redirige vers /auth/callback
+  const params = await searchParams;
+  if (params.code) {
+    redirect(`/auth/callback?code=${params.code}`);
+  }
+
   const supabase = await createClient();
 
   const [{ data: deals }, { data: avocats }, { data: insights }] = await Promise.all([
@@ -51,11 +63,12 @@ export default async function HomePage() {
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section
-        className="px-6 py-20 md:px-12 md:py-28 lg:px-20 lg:py-36"
-        style={{ backgroundColor: "var(--background)" }}
-      >
-        <div className="max-w-7xl mx-auto">
+      <Reveal>
+        <section
+          className="px-6 py-20 md:px-12 md:py-28 lg:px-20 lg:py-36"
+          style={{ backgroundColor: "var(--background)" }}
+        >
+          <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
             {/* Left */}
             <div className="space-y-8">
@@ -142,27 +155,35 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
-        </div>
-      </section>
+          </div>
+        </section>
+      </Reveal>
 
       {/* ── Expertises ───────────────────────────────────────── */}
       <HomeExpertisesGrid />
 
       {/* ── Deals notables ───────────────────────────────────── */}
-      <HomeDealsSticky deals={deals ?? []} />
+      <Reveal>
+        <HomeDealsSticky deals={deals ?? []} />
+      </Reveal>
 
       {/* ── Associés fondateurs ──────────────────────────────── */}
-      <HomeAssociesReveal avocats={avocats ?? []} />
+      <Reveal delay={0.05}>
+        <HomeAssociesReveal avocats={avocats ?? []} />
+      </Reveal>
 
       {/* ── Insights récents ─────────────────────────────────── */}
-      <HomeInsightsMagazine insights={insights ?? []} />
+      <Reveal delay={0.1}>
+        <HomeInsightsMagazine insights={insights ?? []} />
+      </Reveal>
 
       {/* ── CTA finale ───────────────────────────────────────── */}
-      <section
-        className="px-6 py-20 md:px-12 md:py-28 lg:px-20 lg:py-36"
-        style={{ backgroundColor: "var(--text-primary)" }}
-      >
-        <div className="max-w-3xl mx-auto text-center space-y-8">
+      <Reveal>
+        <section
+          className="px-6 py-20 md:px-12 md:py-28 lg:px-20 lg:py-36"
+          style={{ backgroundColor: "var(--text-primary)" }}
+        >
+          <div className="max-w-3xl mx-auto text-center space-y-8">
           <h2
             className="text-4xl md:text-5xl"
             style={{
@@ -192,8 +213,9 @@ export default async function HomePage() {
           >
             Prendre contact
           </Link>
-        </div>
-      </section>
+          </div>
+        </section>
+      </Reveal>
     </>
   );
 }

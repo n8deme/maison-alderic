@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { formatDateFrLong } from "@/lib/format-date";
 import { Receipt, AlertCircle, CheckCircle2, Clock, Ban } from "lucide-react";
 
 export const metadata: Metadata = { title: "Facturation" };
@@ -30,10 +31,6 @@ function StatusBadge({ status }: { status: InvoiceStatus }) {
 
 function fmtEur(n: number) {
   return new Intl.NumberFormat("fr-BE", { style: "currency", currency: "EUR" }).format(n);
-}
-
-function fmtDate(iso: string) {
-  return new Intl.DateTimeFormat("fr-BE", { day: "numeric", month: "short", year: "numeric" }).format(new Date(iso));
 }
 
 export default async function FacturationPage({
@@ -158,12 +155,12 @@ export default async function FacturationPage({
                         </span>
                         {inv.due_at && (inv.status === "sent" || inv.status === "overdue") && (
                           <span className="text-xs text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
-                            Échéance {fmtDate(inv.due_at)}
+                            Échéance {formatDateFrLong(inv.due_at)}
                           </span>
                         )}
                         {inv.paid_at && inv.status === "paid" && (
                           <span className="text-xs text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
-                            Payée le {fmtDate(inv.paid_at)}
+                            Payée le {formatDateFrLong(inv.paid_at)}
                           </span>
                         )}
                       </div>
