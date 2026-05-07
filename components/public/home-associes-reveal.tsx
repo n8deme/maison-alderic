@@ -19,12 +19,12 @@ export function HomeAssociesReveal({ avocats }: { avocats: AvocatItem[] }) {
         <div className="flex items-end justify-between">
           <div className="space-y-4">
             <span className="text-xs font-medium uppercase tracking-widest text-text-muted">
-              Notre equipe
+              Notre équipe
             </span>
             <h2 className="text-4xl text-foreground md:text-5xl">Les associes</h2>
           </div>
           <Link href="/associes" className="hidden text-sm text-bordeaux md:inline">
-            Voir l&apos;equipe →
+            Voir l&apos;équipe →
           </Link>
         </div>
 

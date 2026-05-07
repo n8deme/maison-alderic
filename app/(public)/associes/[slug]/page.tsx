@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createStaticClient } from "@/lib/supabase/static";
 import { Reveal } from "@/components/public/reveal";
+import { getAvocatPhoto } from "@/lib/avocats-photos";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -70,7 +71,7 @@ export default async function AssociePage({ params }: PageProps) {
       year: "2024",
     },
     {
-      title: "Litiges post-acquisition: clauses et precedents",
+      title: "Litiges post-acquisition: clauses et précédents",
       source: "Legal Strategy Conference",
       year: "2024",
     },
@@ -118,11 +119,13 @@ export default async function AssociePage({ params }: PageProps) {
           <Reveal className="grid grid-cols-1 gap-10 lg:grid-cols-[0.4fr_0.6fr]">
             <div className="space-y-4">
               <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-surface-alt">
-                {avocat.avatar_url ? (
-                  <Image src={avocat.avatar_url} alt={avocat.full_name} fill className="object-cover" />
-                ) : (
-                  <div className="h-full w-full bg-surface-alt" />
-                )}
+                <Image
+                  src={getAvocatPhoto(slug)}
+                  alt={avocat.full_name}
+                  width={600}
+                  height={600}
+                  className="h-full w-full rounded-lg object-cover"
+                />
               </div>
               <div className="space-y-1 text-sm text-text-secondary">
                 {avocat.email && <p>{avocat.email}</p>}
@@ -133,7 +136,7 @@ export default async function AssociePage({ params }: PageProps) {
             <div className="space-y-6">
               <p className="text-sm text-text-secondary">
                 <Link href="/associes" className="hover:text-bordeaux">
-                  L&apos;equipe
+                  L&apos;équipe
                 </Link>{" "}
                 / {avocat.full_name}
               </p>
@@ -162,7 +165,7 @@ export default async function AssociePage({ params }: PageProps) {
           <h2 className="mb-6 text-3xl text-foreground">Parcours</h2>
           <p className="mb-6 first-letter:float-left first-letter:mr-3 first-letter:pt-1 first-letter:text-6xl first-letter:font-medium first-letter:leading-none first-letter:text-bordeaux">
             {avocat.bio ??
-              "Profil reconnu en conseil transactionnel et contentieux d'affaires, avec une pratique orientee execution et anticipation du risque."}
+              "Profil reconnu en conseil transactionnel et contentieux d'affaires, avec une pratique orientée exécution et anticipation du risque."}
           </p>
           <p className="mb-6">
             Son approche combine rigueur technique, lisibilite des options juridiques et coordination
@@ -170,13 +173,13 @@ export default async function AssociePage({ params }: PageProps) {
           </p>
           <p className="mb-6">
             Il accompagne les dirigeants et investisseurs sur des mandats multi-juridictions en
-            priorisant la clarte contractuelle et la maitrise du calendrier.
+            priorisant la clarté contractuelle et la maîtrise du calendrier.
           </p>
 
           <h3 className="mb-4 mt-12 text-2xl text-foreground">Formation</h3>
           <ul className="mb-6 list-disc space-y-2 pl-6">
             <li>LL.M. en droit des affaires internationales</li>
-            <li>Master en droit, Universite libre de Bruxelles</li>
+            <li>Master en droit, Université libre de Bruxelles</li>
             <li>Certificat governance & compliance</li>
           </ul>
 

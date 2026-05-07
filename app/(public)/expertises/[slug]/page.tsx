@@ -26,21 +26,21 @@ const EXPERTISES_FALLBACK: ExpertiseContent[] = [
     name: "Fusions & Acquisitions",
     category: "M&A",
     description:
-      "Structuration, negociation et execution des transactions strategiques en Belgique et en Europe.",
+      "Structuration, négociation et exécution des transactions stratégiques en Belgique et en Europe.",
     intro:
       "Nous accompagnons dirigeants, fonds et actionnaires dans les moments decisifs d'une transaction. Notre approche combine securisation contractuelle, lecture business et gestion du rythme de closing.",
     sections: [
       {
         title: "Structuration pre-deal",
-        body: "Cadrage de la gouvernance, architecture de transaction et scenarios de partage de risque.",
+        body: "Cadrage de la gouvernance, architecture de transaction et scénarios de partage de risque.",
       },
       {
-        title: "Due diligence orientee decision",
-        body: "Priorisation des risques materielles pour concentrer les negociations sur les sujets critiques.",
+        title: "Due diligence orientée décision",
+        body: "Priorisation des risques matériels pour concentrer les négociations sur les sujets critiques.",
       },
       {
         title: "Negociation documentaire",
-        body: "SPA, garanties, earn-out et clauses d'ajustement avec logique d'execution pragmatique.",
+        body: "SPA, garanties, earn-out et clauses d'ajustement avec logique d'exécution pragmatique.",
       },
       {
         title: "Closing et post-closing",
@@ -68,12 +68,12 @@ const EXPERTISES_FALLBACK: ExpertiseContent[] = [
     category: "Contentieux",
     description: "Defense strategique en litiges commerciaux et arbitrages.",
     intro:
-      "Nous traitons le contentieux comme un levier de negociation autant que de defense, avec une lecture business des enjeux.",
+      "Nous traitons le contentieux comme un levier de négociation autant que de défense, avec une lecture business des enjeux.",
     sections: [
       { title: "Evaluation du risque", body: "Cartographie des issues et strategie processuelle." },
       { title: "Phase pre-contentieuse", body: "Mise en demeure, preservation de preuves et protocoles." },
       { title: "Procedure", body: "Plaidoirie, coordination experts et pilotage du calendrier." },
-      { title: "Resolution", body: "Settlement structure et execution des decisions." },
+      { title: "Résolution", body: "Settlement structuré et exécution des décisions." },
     ],
   },
   {
@@ -86,7 +86,7 @@ const EXPERTISES_FALLBACK: ExpertiseContent[] = [
     sections: [
       { title: "Structuration", body: "Schema fiscal des flux et des vehicules d'investissement." },
       { title: "Conformite", body: "Documentation prix de transfert et obligations declaratives." },
-      { title: "Controles", body: "Preparation, defense et transaction avec l'administration." },
+      { title: "Contrôles", body: "Préparation, défense et transaction avec l'administration." },
       { title: "Coordination transfrontaliere", body: "Pilotage multi-juridictions avec conseils locaux." },
     ],
   },
@@ -108,12 +108,12 @@ const EXPERTISES_FALLBACK: ExpertiseContent[] = [
     slug: "restructuring",
     name: "Restructuring",
     category: "Restructuring",
-    description: "Reorganisation juridique en contexte de tension financiere.",
+    description: "Réorganisation juridique en contexte de tension financière.",
     intro:
       "Nous construisons des plans de stabilisation et de retournement protegeant la valeur et les parties prenantes.",
     sections: [
       { title: "Diagnostic", body: "Analyse des contrats, suretes et fragilites juridiques." },
-      { title: "Plan d'action", body: "Priorisation des options et calendrier d'execution." },
+      { title: "Plan d'action", body: "Priorisation des options et calendrier d'exécution." },
       { title: "Negociation parties prenantes", body: "Creanciers, actionnaires et management." },
       { title: "Mise en oeuvre", body: "Documentation, procedure et securisation finale." },
     ],
