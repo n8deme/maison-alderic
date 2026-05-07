@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -80,6 +80,7 @@ function PortailSidebar({
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 "relative flex items-center gap-3 px-3 py-2 rounded-sm text-sm transition-colors",
                 active
@@ -173,11 +174,7 @@ export default function PortailShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
-
-  const sidebarProps = { profile, unreadCount, signOutAction, pathname };
+  const sidebarProps = { profile, unreadCount, signOutAction, pathname, onClose: () => setMobileOpen(false) };
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -195,7 +192,7 @@ export default function PortailShell({
             onClick={() => setMobileOpen(false)}
           />
           <aside className="fixed inset-y-0 left-0 z-50 flex flex-col w-60 border-r border-border bg-background lg:hidden">
-            <PortailSidebar {...sidebarProps} onClose={() => setMobileOpen(false)} />
+            <PortailSidebar {...sidebarProps} />
           </aside>
         </>
       )}

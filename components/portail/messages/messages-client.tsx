@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Send, Loader2 } from "lucide-react";
 import { sendMessage } from "@/app/portail/messages/actions";
+import { getAvocatPhoto } from "@/lib/avocats-photos";
 
 type Message = {
   id: string;
@@ -11,6 +13,12 @@ type Message = {
   created_at: string;
   sender_type: string;
   sender_id: string;
+};
+
+type AvocatRef = {
+  id: string;
+  full_name: string;
+  slug: string | null;
 };
 
 function fmtTime(iso: string) {
@@ -29,10 +37,12 @@ export function MessagesClient({
   dossierId,
   initialMessages,
   userId,
+  avocatsById,
 }: {
   dossierId: string;
   initialMessages: Message[];
   userId: string;
+  avocatsById: Record<string, AvocatRef>;
 }) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [content, setContent]   = useState("");
@@ -108,6 +118,7 @@ export function MessagesClient({
         )}
         {messages.map((msg, idx) => {
           const isClient = msg.sender_id === userId;
+          const avocat = !isClient ? avocatsById[msg.sender_id] : undefined;
           const prevMsg  = messages[idx - 1];
           const showDay  = !prevMsg || !isSameDay(prevMsg.created_at, msg.created_at);
 
@@ -123,11 +134,20 @@ export function MessagesClient({
                   </span>
                 </div>
               )}
-              <div className={`flex ${isClient ? "justify-end" : "justify-start"} mb-1`}>
+              <div className={`mb-1 flex ${isClient ? "justify-end" : "justify-start"} gap-2`}>
+                {!isClient && (
+                  <Image
+                    src={getAvocatPhoto(avocat?.slug ?? "")}
+                    alt={avocat?.full_name ?? "Maison Aldéric"}
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 rounded-full object-cover shrink-0"
+                  />
+                )}
                 <div className="max-w-[72%] space-y-0.5">
                   {!isClient && (
                     <p className="text-[10px] text-text-muted px-1" style={{ fontFamily: "var(--font-body)" }}>
-                      Maison Aldéric
+                      {avocat?.full_name ?? "Maison Aldéric"}
                     </p>
                   )}
                   <div

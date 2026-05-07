@@ -1,13 +1,28 @@
 import { createBrowserClient } from "@supabase/ssr";
 
-/**
- * Client Supabase pour Client Components (browser).
- * Utilise les cookies du navigateur — la session est synchronisée avec
- * le middleware qui rafraîchit les tokens.
- */
 export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        flowType: "pkce",
+        storage: {
+          getItem: (key) => {
+            if (typeof document === "undefined") return null;
+            const match = document.cookie.match(new RegExp("(^| )" + key + "=([^;]+)"));
+            return match ? decodeURIComponent(match[2]) : null;
+          },
+          setItem: (key, value) => {
+            if (typeof document === "undefined") return;
+            document.cookie = `${key}=${encodeURIComponent(value)}; path=/; max-age=600; SameSite=Lax`;
+          },
+          removeItem: (key) => {
+            if (typeof document === "undefined") return;
+            document.cookie = `${key}=; path=/; max-age=0`;
+          },
+        },
+      },
+    },
   );
 }

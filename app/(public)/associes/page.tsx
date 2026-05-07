@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { getAvocatPhoto } from "@/lib/avocats-photos";
 import { slugify } from "@/lib/slugify";
 
 export const metadata: Metadata = {
@@ -15,9 +17,9 @@ interface Avocat {
   full_name: string;
   title: string;
   bio: string;
-  specialties: string[];
+  expertises: string[];
   is_founding_partner: boolean;
-  bar_year: number;
+  bar_admission: string | null;
 }
 
 export default async function AssociesPage() {
@@ -25,7 +27,7 @@ export default async function AssociesPage() {
 
   const { data: avocats } = await supabase
     .from("avocats")
-    .select("id, slug, full_name, title, bio, specialties, is_founding_partner, bar_year")
+    .select("id, slug, full_name, title, bio, expertises, is_founding_partner, bar_admission")
     .order("is_founding_partner", { ascending: false })
     .order("full_name");
 
@@ -117,17 +119,19 @@ export default async function AssociesPage() {
 }
 
 function AvocatCard({ avocat }: { avocat: Avocat }) {
+  const avocatSlug = avocat.slug ?? slugify(avocat.full_name);
+
   return (
-    <Link href={`/associes/${avocat.slug ?? slugify(avocat.full_name)}`} className="group block">
-      {/* Photo placeholder */}
-      <div
-        className="w-full mb-6"
-        style={{
-          aspectRatio: "3/4",
-          backgroundColor: "var(--surface-alt)",
-          border: "1px solid var(--border)",
-        }}
-      />
+    <Link href={`/associes/${avocatSlug}`} className="group block">
+      <div className="mb-6 flex justify-center">
+        <Image
+          src={getAvocatPhoto(avocatSlug)}
+          alt={avocat.full_name}
+          width={200}
+          height={200}
+          className="rounded-full object-cover"
+        />
+      </div>
       <p
         style={{
           fontFamily: "var(--font-display)",
@@ -149,9 +153,9 @@ function AvocatCard({ avocat }: { avocat: Avocat }) {
       >
         {avocat.title}
       </p>
-      {avocat.specialties?.length > 0 && (
+      {avocat.expertises?.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-4">
-          {avocat.specialties.slice(0, 3).map((s: string) => (
+          {avocat.expertises.slice(0, 3).map((s: string) => (
             <span
               key={s}
               className="text-xs px-2.5 py-1"

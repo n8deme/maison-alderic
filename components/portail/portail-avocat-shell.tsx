@@ -1,0 +1,168 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  LayoutDashboard,
+  FolderOpen,
+  Users,
+  Calendar,
+  Receipt,
+  FileText,
+  User,
+  Menu,
+  X,
+} from "lucide-react";
+
+type Profile = { full_name: string | null; email: string };
+
+const NAV = [
+  { href: "/portail-avocat", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/portail-avocat/dossiers", label: "Dossiers", icon: FolderOpen, exact: false },
+  { href: "/portail-avocat/clients", label: "Clients", icon: Users, exact: false },
+  { href: "/portail-avocat/agenda", label: "Agenda", icon: Calendar, exact: false },
+  { href: "/portail-avocat/facturation", label: "Facturation", icon: Receipt, exact: false },
+  { href: "/portail-avocat/documents", label: "Documents", icon: FileText, exact: false },
+  { href: "/portail-avocat/profil", label: "Mon profil", icon: User, exact: false },
+];
+
+function getInitials(name: string | null, email: string) {
+  if (name) return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  return email[0]?.toUpperCase() ?? "?";
+}
+
+function Sidebar({
+  profile,
+  signOutAction,
+  pathname,
+  onClose,
+}: {
+  profile: Profile;
+  signOutAction: () => Promise<void>;
+  pathname: string;
+  onClose?: () => void;
+}) {
+  function isActive(item: { href: string; exact: boolean }) {
+    return item.exact ? pathname === item.href : pathname.startsWith(item.href);
+  }
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="border-b border-border px-5 py-5">
+        <p className="text-sm font-medium leading-tight" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}>
+          Maison Alderic
+        </p>
+        <div className="mt-1 flex items-center gap-2">
+          <p className="text-[10px] uppercase tracking-widest text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
+            Portail avocat
+          </p>
+          <span
+            className="rounded-sm px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider"
+            style={{ backgroundColor: "rgba(122,31,43,0.1)", color: "var(--bordeaux)" }}
+          >
+            AVOCAT
+          </span>
+        </div>
+        {onClose && (
+          <button onClick={onClose} className="absolute right-3 top-3 rounded-sm p-1 transition-colors hover:bg-surface-alt">
+            <X className="h-4 w-4 text-text-muted" />
+          </button>
+        )}
+      </div>
+
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
+        {NAV.map((item) => {
+          const active = isActive(item);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onClose}
+              className={cn(
+                "relative flex items-center gap-3 rounded-sm px-3 py-2 text-sm transition-colors",
+                active ? "bg-surface font-medium text-foreground" : "text-text-secondary hover:bg-surface hover:text-foreground"
+              )}
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              {active && (
+                <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full" style={{ backgroundColor: "var(--bordeaux)" }} />
+              )}
+              <Icon className="h-4 w-4 shrink-0" style={{ color: active ? "var(--bordeaux)" : "var(--text-muted)" }} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="border-t border-border px-3 py-3">
+        <div className="flex items-center gap-3 px-2 py-1.5">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-[11px] font-semibold" style={{ backgroundColor: "var(--surface-alt)", color: "var(--text-secondary)" }}>
+            {getInitials(profile.full_name, profile.email)}
+          </div>
+          <p className="flex-1 truncate text-xs font-medium" style={{ color: "var(--text-primary)", fontFamily: "var(--font-body)" }}>
+            {profile.full_name ?? profile.email}
+          </p>
+          <form action={signOutAction}>
+            <button type="submit" className="rounded-sm p-1 transition-colors hover:bg-surface-alt" title="Se deconnecter">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--text-muted)" }}>
+                <path d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function PortailAvocatShell({
+  profile,
+  signOutAction,
+  children,
+}: {
+  profile: Profile;
+  signOutAction: () => Promise<void>;
+  children: React.ReactNode;
+}) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const sidebarProps = { profile, signOutAction, pathname, onClose: () => setMobileOpen(false) };
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-background">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-background lg:flex">
+        <Sidebar {...sidebarProps} />
+      </aside>
+
+      {mobileOpen && (
+        <>
+          <div className="fixed inset-0 z-40 lg:hidden" style={{ backgroundColor: "rgba(26,26,26,0.3)" }} onClick={() => setMobileOpen(false)} />
+          <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-background lg:hidden">
+            <Sidebar {...sidebarProps} />
+          </aside>
+        </>
+      )}
+
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="flex h-12 shrink-0 items-center gap-3 border-b border-border bg-surface px-4 lg:hidden">
+          <button onClick={() => setMobileOpen(true)} className="rounded-sm p-1 -ml-1 transition-colors hover:bg-surface-alt">
+            <Menu className="h-5 w-5 text-text-muted" />
+          </button>
+          <span className="text-sm font-medium" style={{ fontFamily: "var(--font-display)" }}>
+            Maison Alderic
+          </span>
+          <span
+            className="rounded-sm px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider"
+            style={{ backgroundColor: "rgba(122,31,43,0.1)", color: "var(--bordeaux)" }}
+          >
+            AVOCAT
+          </span>
+        </header>
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </div>
+    </div>
+  );
+}

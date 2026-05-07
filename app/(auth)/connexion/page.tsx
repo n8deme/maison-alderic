@@ -1,6 +1,8 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -8,6 +10,21 @@ function LoginForm() {
   const [loading, setLoading] = useState<"password" | "magic" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  // Fonction pour traduire les erreurs Supabase en français
+  function translateError(errorMessage: string): string {
+    const translations: Record<string, string> = {
+      "Invalid login credentials": "Email ou mot de passe incorrect",
+      "Email not confirmed": "Veuillez confirmer votre email avant de vous connecter",
+      "User not found": "Aucun compte associé à cet email",
+      "Invalid email or password": "Email ou mot de passe incorrect",
+      "Email rate limit exceeded": "Trop de tentatives. Veuillez réessayer dans quelques minutes",
+      "Password should be at least 6 characters": "Le mot de passe doit contenir au moins 6 caractères",
+    };
+
+    return translations[errorMessage] || errorMessage;
+  }
 
   async function signInWithPassword(e: React.FormEvent) {
     e.preventDefault();
@@ -15,10 +32,33 @@ function LoginForm() {
     setError(null);
     setMessage(null);
 
-    console.log("🔥 LOGIN ATTEMPT:", { email, password });
-    // TODO: Supabase login commenté pour debug
-    setMessage("Login désactivé temporairement pour debug");
-    setLoading(null);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setError(translateError(error.message));
+        setLoading(null);
+        return;
+      }
+
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .maybeSingle();
+
+        const targetUrl = profile?.role === "avocat" ? "/portail-avocat" : "/portail";
+        window.location.href = targetUrl;
+      }
+    } catch (err) {
+      setError("Une erreur inattendue s'est produite");
+      setLoading(null);
+    }
   }
 
   async function signInWithMagicLink(e: React.FormEvent) {
@@ -27,9 +67,27 @@ function LoginForm() {
     setError(null);
     setMessage(null);
 
-    console.log("🔥 MAGIC LINK ATTEMPT:", { email });
-    setMessage("Magic link désactivé temporairement pour debug");
-    setLoading(null);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        setError(translateError(error.message));
+        setLoading(null);
+        return;
+      }
+
+      setMessage("Un lien de connexion a été envoyé à votre adresse email");
+      setLoading(null);
+    } catch (err) {
+      setError("Une erreur inattendue s'est produite");
+      setLoading(null);
+    }
   }
 
   return (

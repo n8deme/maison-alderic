@@ -17,6 +17,12 @@ type Message = {
   sender_id: string;
 };
 
+type AvocatRef = {
+  id: string;
+  full_name: string;
+  slug: string | null;
+};
+
 export default async function MessagesPage({
   searchParams,
 }: {
@@ -42,6 +48,7 @@ export default async function MessagesPage({
 
   // Fetch messages for selected thread + mark as read
   let initialMessages: Message[] = [];
+  let avocatsById: Record<string, AvocatRef> = {};
   if (activeId) {
     const [msgsResult] = await Promise.all([
       supabase
@@ -52,6 +59,24 @@ export default async function MessagesPage({
       markThreadAsRead(activeId),
     ]);
     initialMessages = (msgsResult.data ?? []) as Message[];
+
+    const avocatIds = Array.from(
+      new Set(
+        initialMessages
+          .filter((msg) => msg.sender_type === "avocat")
+          .map((msg) => msg.sender_id)
+          .filter(Boolean)
+      )
+    );
+
+    if (avocatIds.length > 0) {
+      const { data: avocats } = await supabase
+        .from("avocats")
+        .select("id, full_name, slug")
+        .in("id", avocatIds);
+
+      avocatsById = Object.fromEntries((avocats ?? []).map((a) => [a.id, a]));
+    }
   }
 
   const activeDossier = list.find((d) => d.id === activeId);
@@ -137,6 +162,7 @@ export default async function MessagesPage({
                 dossierId={activeId!}
                 initialMessages={initialMessages}
                 userId={user.id}
+                avocatsById={avocatsById}
               />
             </div>
           </>

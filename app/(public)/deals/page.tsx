@@ -9,39 +9,35 @@ export const metadata: Metadata = {
 
 interface Deal {
   id: string;
+  slug: string | null;
   title: string;
-  deal_type: string;
-  sector: string;
+  client_name: string | null;
+  category: string;
   description: string;
   year: number;
-  amount_eur: number | null;
+  amount_label: string | null;
   is_featured: boolean;
-  is_confidential: boolean;
 }
 
 const typeLabels: Record<string, string> = {
-  ma: "M&A",
-  pe: "Private Equity",
-  contentieux: "Contentieux",
-  restructuring: "Restructuration",
-  tax: "Droit fiscal",
+  "M&A": "M&A",
+  "PE": "Private Equity",
+  "Private Equity": "Private Equity",
+  "Litigation": "Contentieux",
+  "Contentieux": "Contentieux",
+  "Restructuring": "Restructuration",
+  "Tax": "Droit fiscal",
+  "Corporate": "Corporate",
 };
-
-function formatAmount(eur: number | null): string | null {
-  if (!eur) return null;
-  if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1)} Md€`;
-  if (eur >= 1_000_000) return `${Math.round(eur / 1_000_000)} M€`;
-  return `${Math.round(eur / 1_000)} K€`;
-}
 
 export default async function DealsPage() {
   const supabase = await createClient();
 
   const { data: deals } = await supabase
     .from("deals")
-    .select("id, title, deal_type, sector, description, year, amount_eur, is_featured, is_confidential")
+    .select("id, slug, title, client_name, category, description, year, amount_label, is_featured")
     .order("year", { ascending: false })
-    .order("is_featured", { ascending: false });
+    .order("display_order", { ascending: true });
 
   const featured = (deals ?? []).filter((d: Deal) => d.is_featured);
   const others = (deals ?? []).filter((d: Deal) => !d.is_featured);
@@ -135,7 +131,7 @@ export default async function DealsPage() {
                           border: "1px solid var(--bordeaux)",
                         }}
                       >
-                        {typeLabels[deal.deal_type] ?? deal.deal_type}
+                        {typeLabels[deal.category] ?? deal.category}
                       </span>
                       <span
                         style={{
@@ -147,7 +143,7 @@ export default async function DealsPage() {
                         {deal.year}
                       </span>
                     </div>
-                    {deal.amount_eur && (
+                    {deal.amount_label && (
                       <span
                         style={{
                           fontFamily: "var(--font-display)",
@@ -156,10 +152,21 @@ export default async function DealsPage() {
                           color: "var(--text-primary)",
                         }}
                       >
-                        {formatAmount(deal.amount_eur)}
+                        {deal.amount_label}
                       </span>
                     )}
                   </div>
+                  {deal.client_name && (
+                    <p
+                      className="text-xs uppercase tracking-widest mb-2"
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      {deal.client_name}
+                    </p>
+                  )}
                   <p
                     style={{
                       fontFamily: "var(--font-display)",
@@ -181,15 +188,6 @@ export default async function DealsPage() {
                     }}
                   >
                     {deal.description}
-                  </p>
-                  <p
-                    className="mt-3 text-xs"
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    {deal.sector}
                   </p>
                 </div>
               ))}
@@ -220,7 +218,7 @@ function DealRow({ deal, index }: { deal: Deal; index: number }) {
               border: "1px solid var(--bordeaux)",
             }}
           >
-            {typeLabels[deal.deal_type] ?? deal.deal_type}
+            {typeLabels[deal.category] ?? deal.category}
           </span>
           <span
             style={{
@@ -229,9 +227,20 @@ function DealRow({ deal, index }: { deal: Deal; index: number }) {
               color: "var(--text-muted)",
             }}
           >
-            {deal.sector} · {deal.year}
+            {deal.year}
           </span>
         </div>
+        {deal.client_name && (
+          <p
+            className="text-xs uppercase tracking-widest mb-2"
+            style={{
+              fontFamily: "var(--font-body)",
+              color: "var(--text-muted)",
+            }}
+          >
+            {deal.client_name}
+          </p>
+        )}
         <p
           style={{
             fontFamily: "var(--font-display)",
@@ -256,7 +265,7 @@ function DealRow({ deal, index }: { deal: Deal; index: number }) {
           {deal.description}
         </p>
       </div>
-      {deal.amount_eur && (
+      {deal.amount_label && (
         <div className="md:text-right shrink-0">
           <p
             style={{
@@ -267,7 +276,7 @@ function DealRow({ deal, index }: { deal: Deal; index: number }) {
               letterSpacing: "-0.02em",
             }}
           >
-            {formatAmount(deal.amount_eur)}
+            {deal.amount_label}
           </p>
           <p
             className="text-xs mt-1"

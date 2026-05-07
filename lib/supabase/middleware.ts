@@ -36,16 +36,37 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Protection /portail/* — redirect vers /connexion si pas loggué
-  if (!user && pathname.startsWith("/portail")) {
+  if (!user && (pathname.startsWith("/portail") || pathname.startsWith("/portail-avocat"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/connexion";
     return NextResponse.redirect(url);
   }
 
+  // Protection /portail-avocat/* — réservé aux profils avocat
+  if (user && pathname.startsWith("/portail-avocat")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.role !== "avocat") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/portail";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Si déjà loggué et sur /connexion → redirect vers /portail
   if (user && pathname === "/connexion") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
     const url = request.nextUrl.clone();
-    url.pathname = "/portail";
+    url.pathname = profile?.role === "avocat" ? "/portail-avocat" : "/portail";
     return NextResponse.redirect(url);
   }
 
