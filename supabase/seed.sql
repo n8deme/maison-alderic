@@ -21,3 +21,77 @@ WHERE slug IN (
   'thomas-lefebvre',
   'julie-moreau'
 );
+
+-- Lier client@test.com a un client existant pour le portail
+DO $$
+DECLARE
+  v_user_id uuid;
+  v_source_client uuid;
+BEGIN
+  SELECT id INTO v_user_id
+  FROM auth.users
+  WHERE email = 'client@test.com'
+  LIMIT 1;
+
+  IF v_user_id IS NULL THEN
+    RAISE NOTICE 'client@test.com introuvable dans auth.users';
+    RETURN;
+  END IF;
+
+  -- Cas schema avec table public.clients
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'clients'
+  ) THEN
+    IF EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'clients' AND column_name = 'user_id'
+    ) THEN
+      EXECUTE $q$
+        UPDATE public.clients
+        SET user_id = (SELECT id FROM auth.users WHERE email = 'client@test.com' LIMIT 1)
+        WHERE id = (SELECT id FROM public.clients LIMIT 1)
+      $q$;
+    ELSIF EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'clients' AND column_name = 'profile_id'
+    ) THEN
+      UPDATE public.clients
+      SET profile_id = v_user_id
+      WHERE id = (SELECT id FROM public.clients LIMIT 1);
+    ELSIF EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'clients' AND column_name = 'owner_id'
+    ) THEN
+      UPDATE public.clients
+      SET owner_id = v_user_id
+      WHERE id = (SELECT id FROM public.clients LIMIT 1);
+    END IF;
+  END IF;
+
+  -- Fallback du schema actuel: rattacher le portefeuille d'un client existant a client@test.com
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'dossiers' AND column_name = 'client_id'
+  ) THEN
+    SELECT client_id INTO v_source_client
+    FROM public.dossiers
+    WHERE client_id IS NOT NULL
+      AND client_id <> v_user_id
+    ORDER BY opened_at NULLS LAST
+    LIMIT 1;
+
+    IF v_source_client IS NOT NULL THEN
+      UPDATE public.dossiers SET client_id = v_user_id WHERE client_id = v_source_client;
+      UPDATE public.invoices SET client_id = v_user_id WHERE client_id = v_source_client;
+      UPDATE public.appointments SET client_id = v_user_id WHERE client_id = v_source_client;
+      UPDATE public.messages SET sender_id = v_user_id WHERE sender_type = 'client' AND sender_id = v_source_client;
+    END IF;
+  END IF;
+END
+$$;
