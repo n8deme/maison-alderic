@@ -95,3 +95,10 @@ BEGIN
   END IF;
 END
 $$;
+
+-- Cohérence associées fondatrices
+UPDATE avocats
+SET
+  is_founding_partner = true,
+  title = 'Associée fondatrice'
+WHERE slug = 'anais-lambert';

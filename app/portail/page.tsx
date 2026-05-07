@@ -12,6 +12,8 @@ export default async function DashboardPage() {
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+  const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const weekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
 
   const [profileRes, dossiersRes, docsRes, invoicesRes] = await Promise.all([
@@ -20,8 +22,7 @@ export default async function DashboardPage() {
       .from("dossiers")
       .select("id, reference, title, status, opened_at")
       .eq("client_id", user.id)
-      .order("opened_at", { ascending: false })
-      .limit(12),
+      .order("opened_at", { ascending: false }),
     supabase
       .from("documents")
       .select("id", { count: "exact", head: true })
@@ -37,6 +38,23 @@ export default async function DashboardPage() {
   const dossiers = dossiersRes.data ?? [];
   const dossierIds = dossiers.map((item) => item.id);
   const activeDossiers = dossiers.filter((item) => item.status !== "won" && item.status !== "archived").length;
+  const currentMonthActive = dossiers.filter(
+    (item) =>
+      item.status !== "won" &&
+      item.status !== "archived" &&
+      item.opened_at >= startOfMonth
+  ).length;
+  const prevMonthActive = dossiers.filter(
+    (item) =>
+      item.status !== "won" &&
+      item.status !== "archived" &&
+      item.opened_at >= startOfPrevMonth &&
+      item.opened_at < endOfPrevMonth
+  ).length;
+  const activeTrend =
+    prevMonthActive > 0
+      ? `${Math.round(((currentMonthActive - prevMonthActive) / prevMonthActive) * 100) > 0 ? "+" : ""}${Math.round(((currentMonthActive - prevMonthActive) / prevMonthActive) * 100)}% ce mois`
+      : null;
 
   const [timelineRes, activityRes, leadRes] = dossierIds.length
     ? await Promise.all([
@@ -52,7 +70,7 @@ export default async function DashboardPage() {
           .limit(5),
         supabase
           .from("dossier_avocats")
-          .select("dossier_id, role, avocat:avocats(full_name, avatar_url)")
+          .select("dossier_id, role, avocat:avocats(id, full_name, slug)")
           .in("dossier_id", dossierIds)
           .eq("role", "lead"),
       ])
@@ -67,10 +85,10 @@ export default async function DashboardPage() {
   const recentDocuments = docsRes.count ?? 0;
   const billedThisMonth = (invoicesRes.data ?? []).reduce((sum, item) => sum + Number(item.amount_ttc), 0);
 
-  const leadByDossier = new Map<string, { full_name: string; avatar_url: string | null }>();
+  const leadByDossier = new Map<string, { id: string; full_name: string; slug: string | null }>();
   for (const row of leadRes.data ?? []) {
     if (row.dossier_id && row.avocat) {
-      leadByDossier.set(row.dossier_id, row.avocat as { full_name: string; avatar_url: string | null });
+      leadByDossier.set(row.dossier_id, row.avocat as { id: string; full_name: string; slug: string | null });
     }
   }
 
@@ -98,7 +116,8 @@ export default async function DashboardPage() {
     };
   });
 
-  const fullName = profileRes.data?.full_name ?? "Client";
+  const fallbackName = user.email?.split("@")[0]?.split(/[._-]/)[0] ?? "Client";
+  const fullName = profileRes.data?.full_name ?? `${fallbackName.charAt(0).toUpperCase()}${fallbackName.slice(1)}`;
   const firstName = fullName.split(" ")[0] ?? fullName;
   const todayLabel = new Intl.DateTimeFormat("fr-BE", {
     weekday: "long",
@@ -116,6 +135,7 @@ export default async function DashboardPage() {
         pendingActions,
         recentDocuments,
         billedThisMonth,
+        activeTrend,
       }}
       activity={(activityRes.data ?? []) as any[]}
       dossiers={dossiersForCards}

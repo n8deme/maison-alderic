@@ -30,22 +30,8 @@ const EXPERTISES = [
     number: "04",
     title: "Fiscal",
     description:
-      "Pilotage fiscal transfrontalier, structurations et securisation des impacts transactionnels.",
+      "Pilotage fiscal transfrontalier, structurations et sécurisation des impacts transactionnels.",
     href: "/expertises#tax",
-  },
-  {
-    number: "05",
-    title: "Corporate",
-    description:
-      "Gouvernance, pactes d'actionnaires et architecture societaire pour phases de croissance.",
-    href: "/expertises#corporate",
-  },
-  {
-    number: "06",
-    title: "Restructuring",
-    description:
-      "Réorganisation opérationnelle et financière, prévention des risques et scénarios de retournement.",
-    href: "/expertises#restructuring",
   },
 ] as const;
 
@@ -62,7 +48,7 @@ export function HomeExpertisesGrid() {
           <h2 className="text-4xl text-foreground md:text-5xl">Nos expertises</h2>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {EXPERTISES.map((item, index) => (
             <motion.article
               key={item.title}

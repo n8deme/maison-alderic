@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { getAvocatPhoto } from "@/lib/avocats-photos";
 import {
   AlertCircle,
   ArrowRight,
@@ -27,7 +28,7 @@ type DashboardDossier = {
   nextAction: string;
   nextActionDate: string | null;
   progressPct: number;
-  leadAvocat: { full_name: string; avatar_url: string | null } | null;
+  leadAvocat: { id: string; full_name: string; slug: string | null } | null;
 };
 
 type ActivityItem = {
@@ -46,6 +47,7 @@ type DashboardPremiumProps = {
     pendingActions: number;
     recentDocuments: number;
     billedThisMonth: number;
+    activeTrend: string | null;
   };
   activity: ActivityItem[];
   dossiers: DashboardDossier[];
@@ -98,7 +100,7 @@ export function DashboardPremium({
       icon: CircleCheck,
       value: String(stats.activeDossiers),
       label: "Dossiers actifs",
-      trend: "+12% ce mois",
+      trend: stats.activeTrend,
     },
     {
       key: "pending",
@@ -146,7 +148,7 @@ export function DashboardPremium({
             >
               <div className="mb-4 flex items-center justify-between">
                 <Icon className="h-5 w-5 text-bordeaux" />
-                <span className="text-xs text-text-muted">{card.trend}</span>
+                {card.trend ? <span className="text-xs text-text-muted">{card.trend}</span> : <span />}
               </div>
               <p className="tabular text-4xl font-medium text-foreground">{card.value}</p>
               <p className="mt-2 text-sm text-text-secondary">{card.label}</p>
@@ -268,17 +270,13 @@ export function DashboardPremium({
 
                   <p className="text-xl text-foreground">{dossier.title}</p>
                   <div className="mt-3 flex items-center gap-2">
-                    <div className="h-8 w-8 overflow-hidden rounded-full border border-border bg-surface-alt">
-                      {dossier.leadAvocat?.avatar_url ? (
-                        <Image
-                          src={dossier.leadAvocat.avatar_url}
-                          alt={dossier.leadAvocat.full_name}
-                          width={32}
-                          height={32}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : null}
-                    </div>
+                    <Image
+                      src={getAvocatPhoto(dossier.leadAvocat?.slug ?? "")}
+                      alt={dossier.leadAvocat?.full_name ?? "Avocat"}
+                      width={40}
+                      height={40}
+                      className="rounded-full object-cover"
+                    />
                     <p className="text-sm text-text-secondary">
                       {dossier.leadAvocat?.full_name ?? "Avocat référent"}
                     </p>

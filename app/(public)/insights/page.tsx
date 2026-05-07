@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateFr } from "@/lib/format-date";
 
@@ -17,6 +18,7 @@ interface Insight {
   category: string;
   reading_time_minutes: number | null;
   published_at: string;
+  cover_image_url: string | null;
   author: {
     full_name: string;
     title: string;
@@ -38,7 +40,7 @@ export default async function InsightsPage() {
   const { data: insights } = await supabase
     .from("insights")
     .select(`
-      id, title, slug, excerpt, category, reading_time_minutes, published_at,
+      id, title, slug, excerpt, category, reading_time_minutes, published_at, cover_image_url,
       author:avocats ( full_name, title )
     `)
     .eq("is_published", true)
@@ -101,13 +103,37 @@ export default async function InsightsPage() {
                 style={{ border: "1px solid var(--border)" }}
               >
                 <div
-                  className="hidden lg:block"
+                  className="relative hidden lg:block"
                   style={{
                     backgroundColor: "var(--surface-alt)",
                     minHeight: "360px",
                     borderRight: "1px solid var(--border)",
                   }}
-                />
+                >
+                  {featured[0].cover_image_url ? (
+                    <Image
+                      src={featured[0].cover_image_url}
+                      alt={featured[0].title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-end bg-bordeaux p-8">
+                      <p
+                        style={{
+                          fontFamily: "var(--font-display)",
+                          fontWeight: 500,
+                          fontSize: "1.5rem",
+                          lineHeight: 1.2,
+                          letterSpacing: "-0.01em",
+                          color: "white",
+                        }}
+                      >
+                        {featured[0].title}
+                      </p>
+                    </div>
+                  )}
+                </div>
                 <div className="p-10 md:p-14">
                   <div className="flex items-center gap-3 mb-6">
                     <span
@@ -214,13 +240,32 @@ function InsightCard({ insight }: { insight: Insight }) {
   return (
     <Link href={`/insights/${insight.slug}`} className="group flex flex-col">
       <div
-        className="w-full mb-6"
+        className="relative mb-6 w-full overflow-hidden"
         style={{
           aspectRatio: "16/9",
           backgroundColor: "var(--surface)",
           border: "1px solid var(--border)",
         }}
-      />
+      >
+        {insight.cover_image_url ? (
+          <Image src={insight.cover_image_url} alt={insight.title} fill className="object-cover" />
+        ) : (
+          <div className="flex h-full items-end bg-bordeaux p-5">
+            <p
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 500,
+                fontSize: "1rem",
+                lineHeight: 1.25,
+                letterSpacing: "-0.01em",
+                color: "white",
+              }}
+            >
+              {insight.title}
+            </p>
+          </div>
+        )}
+      </div>
       <div className="flex items-center gap-3 mb-4">
         <span
           className="text-xs font-medium tracking-widest uppercase px-2 py-0.5"

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getAvocatPhoto } from "@/lib/avocats-photos";
 import { slugify } from "@/lib/slugify";
 
 type AvocatItem = {
@@ -21,7 +22,7 @@ export function HomeAssociesReveal({ avocats }: { avocats: AvocatItem[] }) {
             <span className="text-xs font-medium uppercase tracking-widest text-text-muted">
               Notre équipe
             </span>
-            <h2 className="text-4xl text-foreground md:text-5xl">Les associes</h2>
+            <h2 className="text-4xl text-foreground md:text-5xl">Les associés</h2>
           </div>
           <Link href="/associes" className="hidden text-sm text-bordeaux md:inline">
             Voir l&apos;équipe →
@@ -31,21 +32,14 @@ export function HomeAssociesReveal({ avocats }: { avocats: AvocatItem[] }) {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {avocats.map((a) => (
             <Link key={a.id} href={`/associes/${slugify(a.full_name)}`} className="group space-y-4">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-sm border border-border bg-surface-alt">
-                {a.avatar_url ? (
-                  <Image
-                    src={a.avatar_url}
-                    alt={a.full_name}
-                    fill
-                    sizes="(min-width: 1024px) 22vw, (min-width: 640px) 45vw, 90vw"
-                    className="object-cover grayscale transition duration-700 ease-out group-hover:grayscale-0"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-[linear-gradient(135deg,var(--surface-alt),var(--border))]" />
-                )}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,rgba(26,26,26,0),rgba(26,26,26,0.72))] p-4 opacity-0 transition duration-500 ease-out group-hover:opacity-100">
-                  <p className="text-sm font-medium text-white">Profil complet</p>
-                </div>
+              <div className="flex justify-center">
+                <Image
+                  src={a.avatar_url ?? getAvocatPhoto(slugify(a.full_name))}
+                  alt={a.full_name}
+                  width={200}
+                  height={200}
+                  className="rounded-full object-cover grayscale transition duration-700 ease-out group-hover:grayscale-0"
+                />
               </div>
 
               <div className="space-y-2">
