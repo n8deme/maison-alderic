@@ -38,7 +38,7 @@ export function HomeAssociesReveal({ avocats }: { avocats: AvocatItem[] }) {
                   alt={a.full_name}
                   width={200}
                   height={200}
-                  className="rounded-full object-cover grayscale transition duration-700 ease-out group-hover:grayscale-0"
+                  className="rounded-full object-cover grayscale"
                 />
               </div>
 

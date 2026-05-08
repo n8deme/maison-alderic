@@ -124,7 +124,7 @@ export default async function AssociePage({ params }: PageProps) {
                   alt={avocat.full_name}
                   width={600}
                   height={600}
-                  className="h-full w-full rounded-lg object-cover"
+                  className="h-full w-full rounded-lg object-cover grayscale"
                 />
               </div>
               <div className="space-y-1 text-sm text-text-secondary">
