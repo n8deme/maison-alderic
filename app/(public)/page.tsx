@@ -79,12 +79,11 @@ export default async function HomePage({
                 Cabinet d'avocats d'affaires — Bruxelles
               </span>
               <h1
-                className="text-5xl md:text-6xl"
+                className="text-5xl md:text-6xl text-foreground"
                 style={{
                   fontFamily: "var(--font-display)",
                   fontWeight: 500,
                   letterSpacing: "-0.02em",
-                  color: "var(--text-primary)",
                   lineHeight: 1.05,
                 }}
               >
