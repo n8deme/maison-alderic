@@ -13,7 +13,7 @@ export function HomeDealsSticky({ deals }: { deals: DealItem[] }) {
   if (deals.length === 0) return null;
 
   return (
-    <section className="bg-surface-alt px-6 py-32 md:px-12 md:py-40 lg:px-20">
+    <section className="bg-surface-alt px-6 py-16 md:px-12 md:py-24 lg:px-20">
       <div className="mx-auto max-w-7xl">
         <div className="mb-10 flex items-end justify-between pb-2 md:mb-12">
           <div className="space-y-4">
