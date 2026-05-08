@@ -133,7 +133,7 @@ export default async function AssociePage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 px-4 sm:px-0">
               <p className="text-sm text-text-secondary">
                 <Link href="/associes" className="hover:text-bordeaux">
                   L&apos;équipe
