@@ -17,11 +17,11 @@ export function Reveal({
   return (
     <motion.div
       className={className}
-      initial={prefersReducedMotion ? {} : { opacity: 0, y: 14 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
       whileInView={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      viewport={{ once: true, margin: "0px 0px -8% 0px" }}
       transition={
-        prefersReducedMotion ? {} : { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }
+        prefersReducedMotion ? {} : { duration: 0.38, delay, ease: [0.22, 1, 0.36, 1] }
       }
     >
       {children}

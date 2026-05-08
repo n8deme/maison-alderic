@@ -52,15 +52,15 @@ export function HomeExpertisesGrid() {
           {EXPERTISES.map((item, index) => (
             <motion.article
               key={item.title}
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 14 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
               whileInView={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-10% 0px -5% 0px" }}
+              viewport={{ once: true, margin: "0px 0px -5% 0px" }}
               transition={
                 prefersReducedMotion
                   ? {}
                   : {
-                      duration: 0.55,
-                      delay: index * 0.05,
+                      duration: 0.4,
+                      delay: index * 0.035,
                       ease: [0.22, 1, 0.36, 1],
                     }
               }
