@@ -27,6 +27,7 @@ interface Insight {
     id: string;
     full_name: string;
     title: string;
+    slug: string | null;
     avatar_url: string | null;
   } | null;
 }
@@ -71,12 +72,20 @@ export default async function InsightPage({ params }: PageProps) {
 
   const { data: insight, error } = await supabase
     .from("insights")
-    .select("*")
+    .select(`
+      id,
+      title,
+      slug,
+      excerpt,
+      content,
+      category,
+      reading_time_minutes,
+      published_at,
+      author:avocats(id, full_name, title, slug, avatar_url)
+    `)
     .eq("slug", slug)
     .eq("is_published", true)
     .single();
-
-  console.log("🔍 QUERY RESULT:", { insight, error, slug });
 
   if (!insight) notFound();
 
@@ -111,7 +120,13 @@ export default async function InsightPage({ params }: PageProps) {
           <h1 className="text-5xl leading-tight text-foreground md:text-6xl">{item.title}</h1>
           <p className="text-sm text-text-secondary">
             {formatDateFr(item.published_at)} · {item.reading_time_minutes} min ·{" "}
-            {item.author?.full_name ?? "Maison Aldéric"}
+            {item.author ? (
+              <Link href={`/associes/${item.author.slug ?? slugify(item.author.full_name)}`} className="hover:text-bordeaux">
+                {item.author.full_name}
+              </Link>
+            ) : (
+              "Maison Aldéric"
+            )}
           </p>
         </div>
       </section>
