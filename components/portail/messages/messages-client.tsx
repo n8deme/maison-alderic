@@ -59,6 +59,10 @@ export function MessagesClient({
   }, [messages]);
 
   useEffect(() => {
+    setMessages(initialMessages);
+  }, [dossierId, initialMessages]);
+
+  useEffect(() => {
     const channel = supabase
       .channel(`messages-${dossierId}`)
       .on(
