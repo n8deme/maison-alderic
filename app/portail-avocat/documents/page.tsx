@@ -49,7 +49,7 @@ export default async function AvocatDocumentsPage({
       <form className="mb-4 grid grid-cols-1 gap-2 rounded-sm border border-border bg-surface p-3 md:grid-cols-4">
         <input name="q" defaultValue={params.q ?? ""} placeholder="Recherche document" className="rounded-sm border border-border px-2 py-2 text-xs" />
         <select name="category" defaultValue={params.category ?? "all"} className="rounded-sm border border-border px-2 py-2 text-xs">
-          <option value="all">Categorie: toutes</option>
+          <option value="all">Catégorie : toutes</option>
           <option value="contract">Contrat</option>
           <option value="mandat">Mandat</option>
           <option value="pleading">Conclusions</option>
@@ -76,11 +76,11 @@ export default async function AvocatDocumentsPage({
           <thead className="bg-surface-alt text-text-muted">
             <tr>
               <th className="px-3 py-2">Nom</th>
-              <th className="px-3 py-2">Categorie</th>
+              <th className="px-3 py-2">Catégorie</th>
               <th className="px-3 py-2">Dossier</th>
               <th className="px-3 py-2">Client</th>
               <th className="px-3 py-2">Date upload</th>
-              <th className="px-3 py-2">Uploade par</th>
+              <th className="px-3 py-2">Uploadé par</th>
             </tr>
           </thead>
           <tbody>

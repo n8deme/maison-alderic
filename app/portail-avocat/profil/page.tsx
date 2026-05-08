@@ -4,6 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Mon profil" };
 
+const ROLE_LABELS: Record<string, string> = {
+  client: "Client",
+  avocat: "Avocat",
+  admin: "Administrateur",
+};
+
 export default async function AvocatProfilPage() {
   const supabase = await createClient();
   const {
@@ -25,10 +31,12 @@ export default async function AvocatProfilPage() {
         <p className="text-sm text-foreground">{profile?.full_name ?? "-"}</p>
         <p className="mt-3 text-xs text-text-muted">Email</p>
         <p className="text-sm text-foreground">{user.email ?? profile?.email ?? "-"}</p>
-        <p className="mt-3 text-xs text-text-muted">Telephone</p>
+        <p className="mt-3 text-xs text-text-muted">Téléphone</p>
         <p className="text-sm text-foreground">{profile?.phone ?? "-"}</p>
-        <p className="mt-3 text-xs text-text-muted">Role</p>
-        <p className="text-sm text-foreground">{profile?.role ?? "avocat"}</p>
+        <p className="mt-3 text-xs text-text-muted">Rôle</p>
+        <p className="text-sm text-foreground">
+          {profile?.role ? ROLE_LABELS[profile.role] ?? `${profile.role.charAt(0).toUpperCase()}${profile.role.slice(1)}` : "Avocat"}
+        </p>
       </div>
     </div>
   );

@@ -6,8 +6,8 @@ import PortailAvocatShell from "@/components/portail/portail-avocat-shell";
 
 export const metadata: Metadata = {
   title: {
-    default: "Portail avocat | Maison Alderic & Associes",
-    template: "%s | Maison Alderic",
+    default: "Portail avocat",
+    template: "%s — Maison Aldéric & Associés",
   },
 };
 

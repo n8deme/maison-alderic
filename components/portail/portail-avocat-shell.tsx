@@ -52,7 +52,7 @@ function Sidebar({
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-5 py-5">
         <p className="text-sm font-medium leading-tight" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}>
-          Maison Alderic
+          Maison Aldéric
         </p>
         <div className="mt-1 flex items-center gap-2">
           <p className="text-[10px] uppercase tracking-widest text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
@@ -152,7 +152,7 @@ export default function PortailAvocatShell({
             <Menu className="h-5 w-5 text-text-muted" />
           </button>
           <span className="text-sm font-medium" style={{ fontFamily: "var(--font-display)" }}>
-            Maison Alderic
+            Maison Aldéric
           </span>
           <span
             className="rounded-sm px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider"

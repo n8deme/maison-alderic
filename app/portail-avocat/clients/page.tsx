@@ -31,7 +31,7 @@ export default async function AvocatClientsPage() {
     <div className="max-w-7xl p-6 md:p-8">
       <div className="mb-6">
         <h1 className="text-3xl" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>Clients</h1>
-        <p className="mt-1 text-sm text-text-secondary">Vue globale des clients et de leur activite dossier.</p>
+        <p className="mt-1 text-sm text-text-secondary">Vue globale des clients et de leur activité dossier.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">

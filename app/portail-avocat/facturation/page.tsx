@@ -57,13 +57,13 @@ export default async function AvocatFacturationPage() {
         <table className="min-w-full text-left text-xs">
           <thead className="bg-surface-alt text-text-muted">
             <tr>
-              <th className="px-3 py-2">Numero</th>
+              <th className="px-3 py-2">Numéro</th>
               <th className="px-3 py-2">Client</th>
               <th className="px-3 py-2">Dossier</th>
               <th className="px-3 py-2">Montant TTC</th>
               <th className="px-3 py-2">Statut</th>
-              <th className="px-3 py-2">Date emission</th>
-              <th className="px-3 py-2">Echeance</th>
+              <th className="px-3 py-2">Date émission</th>
+              <th className="px-3 py-2">Échéance</th>
               <th className="px-3 py-2">Actions</th>
             </tr>
           </thead>
