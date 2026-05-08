@@ -1,13 +1,7 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 
-/**
- * Route handler appelée après clic sur un magic link.
- *
- * Supabase redirige ici avec ?code=xxx, on l'échange contre une session
- * côté serveur (cookies SSR posés correctement), puis on redirige vers
- * le portail correspondant au rôle du user.
- */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
@@ -16,7 +10,26 @@ export async function GET(request: NextRequest) {
   console.log("🔐 [auth/callback] Called with code:", code?.slice(0, 20) + "...");
 
   if (code) {
-    const supabase = await createClient();
+    const cookieStore = await cookies();
+    
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            // Route Handler context — on DOIT pouvoir écrire
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
@@ -30,27 +43,19 @@ export async function GET(request: NextRequest) {
     }
 
     if (!error && data.user) {
-      // Si un "next" explicite est fourni, on l'utilise
       if (next) {
         return NextResponse.redirect(`${origin}${next}`);
       }
 
-      // Sinon, on redirige selon le rôle
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", data.user.id)
         .maybeSingle();
 
-      if (profileError) {
-        console.error("❌ [auth/callback] Profile fetch error:", profileError.message);
-      }
-
       console.log("📋 [auth/callback] Profile role:", profile?.role);
 
-      const targetPath =
-        profile?.role === "avocat" ? "/portail-avocat" : "/portail";
-
+      const targetPath = profile?.role === "avocat" ? "/portail-avocat" : "/portail";
       console.log("➡️ [auth/callback] Redirecting to:", targetPath);
 
       return NextResponse.redirect(`${origin}${targetPath}`);
@@ -59,6 +64,5 @@ export async function GET(request: NextRequest) {
     console.error("❌ [auth/callback] No code in URL");
   }
 
-  // Échec : retour login avec flag d'erreur
   return NextResponse.redirect(`${origin}/connexion?error=callback_failed`);
 }
