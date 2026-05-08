@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Send, Loader2 } from "lucide-react";
@@ -48,7 +48,7 @@ export function MessagesClient({
   const [content, setContent]   = useState("");
   const [sending, setSending]   = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const supabase  = createClient();
+  const supabase  = useMemo(() => createClient(), []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "auto" });
