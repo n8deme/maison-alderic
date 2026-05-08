@@ -15,7 +15,9 @@ export function createClient() {
           },
           setItem: (key, value) => {
             if (typeof document === "undefined") return;
-            document.cookie = `${key}=${encodeURIComponent(value)}; path=/; max-age=600; SameSite=Lax`;
+            const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+            const securePart = isLocalhost ? "" : "; Secure";
+            document.cookie = `${key}=${encodeURIComponent(value)}; path=/; max-age=600; SameSite=Lax${securePart}`;
           },
           removeItem: (key) => {
             if (typeof document === "undefined") return;

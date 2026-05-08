@@ -101,12 +101,12 @@ export default async function PortailAvocatDashboardPage() {
       <section className="mt-8 grid grid-cols-1 gap-4 xl:grid-cols-12">
         <article className="rounded-lg border border-border bg-surface p-6 xl:col-span-7">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl text-foreground">Activite recente</h2>
+            <h2 className="text-xl text-foreground">Activité récente</h2>
             <Link href="/portail-avocat/dossiers" className="text-sm text-bordeaux">Voir dossiers</Link>
           </div>
           <div className="space-y-2">
             {(activityRes.data ?? []).length === 0 ? (
-              <p className="text-sm text-text-muted">Aucune activite recente.</p>
+              <p className="text-sm text-text-muted">Aucune activité récente.</p>
             ) : (
               (activityRes.data ?? []).map((item: any) => (
                 <div key={item.id} className="rounded-sm border border-border-subtle p-3">

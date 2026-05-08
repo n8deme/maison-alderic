@@ -96,7 +96,6 @@ export function TimelineDossierPremium({
                       <p className={`text-xl ${step.status === "in_progress" ? "font-medium" : ""} text-foreground`}>
                         {step.title}
                       </p>
-                      {step.description && <p className="mt-1 text-sm text-text-secondary">{step.description}</p>}
                     </div>
                     <ChevronDown className={`mt-1 h-4 w-4 text-text-muted transition-transform ${isOpen ? "rotate-180" : ""}`} />
                   </div>

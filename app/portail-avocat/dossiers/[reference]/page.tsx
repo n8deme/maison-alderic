@@ -1,10 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { ArrowLeft, Building2, Calendar, CheckCircle2, Circle, Clock, FileText, Mail, Phone, User, AlertCircle } from 'lucide-react'
 
 type PageProps = {
   params: Promise<{ reference: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { reference } = await params
+  return { title: reference }
 }
 
 const STATUS_LABELS: Record<string, string> = {

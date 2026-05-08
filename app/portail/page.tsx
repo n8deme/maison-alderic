@@ -16,18 +16,13 @@ export default async function DashboardPage() {
   const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const weekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
 
-  const [profileRes, dossiersRes, docsRes, invoicesRes] = await Promise.all([
+  const [profileRes, dossiersRes, invoicesRes] = await Promise.all([
     supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
     supabase
       .from("dossiers")
       .select("id, reference, title, status, opened_at")
       .eq("client_id", user.id)
       .order("opened_at", { ascending: false }),
-    supabase
-      .from("documents")
-      .select("id", { count: "exact", head: true })
-      .eq("uploaded_by", user.id)
-      .gte("created_at", weekAgo),
     supabase
       .from("invoices")
       .select("amount_ttc, issued_at")
@@ -55,6 +50,14 @@ export default async function DashboardPage() {
     prevMonthActive > 0
       ? `${Math.round(((currentMonthActive - prevMonthActive) / prevMonthActive) * 100) > 0 ? "+" : ""}${Math.round(((currentMonthActive - prevMonthActive) / prevMonthActive) * 100)}% ce mois`
       : null;
+
+  const docsRes = dossierIds.length
+    ? await supabase
+        .from("documents")
+        .select("id", { count: "exact", head: true })
+        .in("dossier_id", dossierIds)
+        .gte("created_at", weekAgo)
+    : { count: 0 };
 
   const [timelineRes, activityRes, leadRes] = dossierIds.length
     ? await Promise.all([
