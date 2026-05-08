@@ -102,3 +102,41 @@ SET
   is_founding_partner = true,
   title = 'Associée fondatrice'
 WHERE slug = 'anais-lambert';
+
+-- Seed profil complet pour client@test.com
+DO $$
+DECLARE
+  v_user_id uuid;
+BEGIN
+  SELECT id INTO v_user_id
+  FROM auth.users
+  WHERE email = 'client@test.com'
+  LIMIT 1;
+
+  IF v_user_id IS NULL THEN
+    RAISE NOTICE 'client@test.com introuvable dans auth.users';
+    RETURN;
+  END IF;
+
+  INSERT INTO profiles (id, email, full_name, company, phone, role)
+  VALUES (
+    v_user_id,
+    'client@test.com',
+    'Marc Dewinter',
+    'TechScale BV',
+    '+32 478 12 34 56',
+    'client'
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    full_name = EXCLUDED.full_name,
+    company = EXCLUDED.company,
+    phone = EXCLUDED.phone,
+    role = EXCLUDED.role;
+
+  -- Aligner le dossier seed principal sur ce profil client
+  UPDATE dossiers
+  SET client_id = v_user_id
+  WHERE reference = 'MA-2026-0010';
+END
+$$;
