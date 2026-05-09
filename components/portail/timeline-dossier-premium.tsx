@@ -40,14 +40,69 @@ function StepIcon({ status }: { status: TimelinePremiumStep["status"] }) {
 export function TimelineDossierPremium({
   steps,
   summaryHref,
+  onCompleteStep,
 }: {
   steps: TimelinePremiumStep[];
   summaryHref: string;
+  onCompleteStep?: (stepId: string) => Promise<void>;
 }) {
   const reduce = useReducedMotion();
   const [openStepId, setOpenStepId] = useState<string | null>(steps[0]?.id ?? null);
+  const [confirmStepId, setConfirmStepId] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const confirmStep = steps.find((s) => s.id === confirmStepId);
+
+  async function handleConfirm() {
+    if (!confirmStepId || !onCompleteStep) return;
+    setPending(true);
+    try {
+      await onCompleteStep(confirmStepId);
+    } finally {
+      setConfirmStepId(null);
+      setPending(false);
+    }
+  }
 
   return (
+    <>
+    {confirmStepId && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+      >
+        <div className="w-full max-w-sm rounded-sm border border-border bg-background p-6 shadow-xl space-y-4">
+          <h2 className="text-xl font-medium" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>
+            Compléter cette étape ?
+          </h2>
+          {confirmStep && (
+            <p className="text-sm text-text-secondary" style={{ fontFamily: "var(--font-body)" }}>
+              Marquer{" "}
+              <span className="font-medium text-foreground">&ldquo;{confirmStep.title}&rdquo;</span>{" "}
+              comme complétée. Cette action est transmise à votre avocat.
+            </p>
+          )}
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={() => setConfirmStepId(null)}
+              disabled={pending}
+              className="flex-1 py-2 text-xs font-medium rounded-sm border transition-colors hover:bg-surface-alt disabled:opacity-50"
+              style={{ borderColor: "var(--border)", color: "var(--foreground)", fontFamily: "var(--font-body)" }}
+            >
+              Annuler
+            </button>
+            <button
+              onClick={handleConfirm}
+              disabled={pending}
+              className="flex-1 py-2 text-xs font-medium rounded-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ backgroundColor: "var(--bordeaux)", color: "#fff", fontFamily: "var(--font-body)" }}
+            >
+              {pending ? "En cours…" : "Confirmer"}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     <section className="rounded-lg border border-border bg-surface p-6">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl text-foreground">Timeline du dossier</h2>
@@ -141,7 +196,8 @@ export function TimelineDossierPremium({
                       {step.actionRequired && (
                         <button
                           type="button"
-                          className="inline-flex rounded-sm bg-bordeaux px-4 py-2 text-sm font-medium text-white"
+                          onClick={() => setConfirmStepId(step.id)}
+                          className="inline-flex rounded-sm bg-bordeaux px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
                         >
                           Compléter cette étape
                         </button>
@@ -155,5 +211,6 @@ export function TimelineDossierPremium({
         })}
       </div>
     </section>
+    </>
   );
 }

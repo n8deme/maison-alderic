@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ArrowLeft, FileText, MessageSquare, Euro } from "lucide-react";
 import { TimelineDossierPremium } from "@/components/portail/timeline-dossier-premium";
+import { completeStep } from "./actions";
 
 export const metadata: Metadata = { title: "Dossier" };
 
@@ -146,6 +147,7 @@ export default async function DossierDetailPage({ params }: { params: Promise<{ 
           ) : (
             <TimelineDossierPremium
               summaryHref={`/portail/dossiers/${id}`}
+              onCompleteStep={async (stepId) => { "use server"; await completeStep(stepId, id); }}
               steps={timeline.map((step) => ({
                 id: step.id,
                 title: step.title,
