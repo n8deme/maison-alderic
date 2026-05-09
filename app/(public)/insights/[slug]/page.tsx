@@ -118,7 +118,7 @@ export default async function InsightPage({ params }: PageProps) {
           <span className="inline-flex rounded-full bg-bordeaux/10 px-3 py-1 text-xs uppercase tracking-wide text-bordeaux">
             {categoryLabels[item.category] ?? item.category}
           </span>
-          <h1 className="text-5xl leading-tight text-foreground md:text-6xl">{frenchTypography(item.title)}</h1>
+          <h1 className="max-w-3xl text-5xl leading-tight text-foreground md:text-6xl">{frenchTypography(item.title)}</h1>
           <p className="text-sm text-text-secondary">
             {formatDateFr(item.published_at)} · {item.reading_time_minutes} min ·{" "}
             {item.author ? (
