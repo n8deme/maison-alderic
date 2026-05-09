@@ -11,7 +11,7 @@ const cabinetLinks = [
   { href: "/associes", label: "Nos associés" },
   { href: "/deals", label: "Deals notables" },
   { href: "/insights", label: "Insights" },
-  { href: "/contact", label: "Carrières" },
+  { href: "/carrieres", label: "Carrières" },
 ];
 
 export function SiteFooter() {
