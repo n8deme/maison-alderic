@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { NewInvoiceButton } from "@/components/portail-avocat/facturation/new-invoice-button";
 
 export const metadata: Metadata = { title: "Facturation" };
 
@@ -37,8 +38,9 @@ export default async function AvocatFacturationPage() {
 
   return (
     <div className="max-w-7xl p-6 md:p-8">
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>Facturation</h1>
+        <NewInvoiceButton />
       </div>
 
       <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">

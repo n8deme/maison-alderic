@@ -80,20 +80,24 @@ export default async function PortailAvocatDashboardPage() {
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Dossiers actifs", value: activeRes.count ?? 0, icon: FolderOpen },
-          { label: "Nouveaux clients (mois)", value: newClientsRes.count ?? 0, icon: UserPlus },
-          { label: "RDV semaine", value: rdvWeekRes.count ?? 0, icon: CalendarDays },
-          { label: "CA du mois", value: fmtEur(caMonth), icon: Euro },
+          { label: "Dossiers actifs",        value: activeRes.count ?? 0,     icon: FolderOpen,  href: "/portail-avocat/dossiers?status=active" },
+          { label: "Nouveaux clients (mois)", value: newClientsRes.count ?? 0, icon: UserPlus,    href: "/portail-avocat/clients" },
+          { label: "RDV semaine",            value: rdvWeekRes.count ?? 0,     icon: CalendarDays, href: "/portail-avocat/agenda" },
+          { label: "CA du mois",             value: fmtEur(caMonth),           icon: Euro,        href: "/portail-avocat/facturation" },
         ].map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className="rounded-lg border border-border bg-surface p-5">
+            <Link
+              key={card.label}
+              href={card.href}
+              className="rounded-lg border border-border bg-surface p-5 cursor-pointer transition-colors hover:bg-surface-alt"
+            >
               <div className="mb-2 flex items-center justify-between">
                 <Icon className="h-4 w-4 text-bordeaux" />
               </div>
               <p className="text-3xl text-foreground">{card.value}</p>
               <p className="mt-1 text-xs text-text-muted">{card.label}</p>
-            </article>
+            </Link>
           );
         })}
       </section>

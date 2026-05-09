@@ -22,7 +22,7 @@ export default async function AvocatDocumentsPage({
 
   let query = supabase
     .from("documents")
-    .select("id, name, category, created_at, dossier_id, uploaded_by, dossier:dossiers(reference, title, client:profiles!client_id(full_name)), uploader:profiles!uploaded_by(full_name)")
+    .select("id, name, file_path, category, created_at, dossier_id, uploaded_by, dossier:dossiers(reference, title, client:profiles!client_id(full_name)), uploader:profiles!uploaded_by(full_name)")
     .order("created_at", { ascending: false });
 
   if (params.category && params.category !== "all") query = query.eq("category", params.category);
@@ -81,6 +81,7 @@ export default async function AvocatDocumentsPage({
               <th className="px-3 py-2">Client</th>
               <th className="px-3 py-2">Date upload</th>
               <th className="px-3 py-2">Uploadé par</th>
+              <th className="px-3 py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -98,6 +99,15 @@ export default async function AvocatDocumentsPage({
                 <td className="px-3 py-2">{doc.dossier?.client?.full_name ?? "-"}</td>
                 <td className="px-3 py-2">{fmtDate(doc.created_at)}</td>
                 <td className="px-3 py-2">{doc.uploader?.full_name ?? "-"}</td>
+                <td className="px-3 py-2">
+                  <a
+                    href={`/api/documents/${doc.id}/download`}
+                    className="text-bordeaux underline"
+                    download={doc.name}
+                  >
+                    ↓ Télécharger
+                  </a>
+                </td>
               </tr>
             ))}
           </tbody>
