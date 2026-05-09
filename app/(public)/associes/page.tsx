@@ -129,7 +129,7 @@ function AvocatCard({ avocat }: { avocat: Avocat }) {
           alt={avocat.full_name}
           width={200}
           height={200}
-          className="rounded-full object-cover"
+          className="rounded-full object-cover grayscale"
         />
       </div>
       <p
