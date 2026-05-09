@@ -133,7 +133,7 @@ export default function ExpertisesPage() {
         <section
           key={exp.id}
           id={exp.id}
-          className="py-24 md:py-32"
+          className="py-16 md:py-24"
           style={{ backgroundColor: exp.bg }}
         >
           <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
