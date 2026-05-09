@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ArrowLeft, Building2, Calendar, CheckCircle2, Circle, Clock, FileText, Mail, Phone, User, AlertCircle } from 'lucide-react'
+import { EditDossierButton } from '@/components/portail-avocat/dossiers/edit-dossier-button'
 
 type PageProps = {
   params: Promise<{ reference: string }>
@@ -94,6 +95,7 @@ export default async function DossierDetailAvocatPage({ params }: PageProps) {
           >
             {STATUS_LABELS[dossier.status] ?? dossier.status}
           </span>
+          <EditDossierButton />
         </div>
         <p className="text-lg text-slate-600">{dossier.title}</p>
         {dossier.description && (

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Mail, Building2, FileText, Calendar } from "lucide-react";
+import { ArrowLeft, Mail, Building2, Calendar } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { dossierStatusLabel } from "@/lib/dossier-status";
+import { NewDossierButton } from "@/components/portail-avocat/clients/new-dossier-button";
 
 export const metadata: Metadata = { title: "Profil client" };
 
@@ -115,13 +117,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
 
           {/* Actions rapides */}
           <div className="space-y-2">
-            <Link
-              href={`/portail-avocat/dossiers?client=${client.id}`}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-bordeaux bg-bordeaux px-4 py-2.5 text-sm text-white transition hover:bg-bordeaux/90"
-            >
-              <FileText className="h-4 w-4" />
-              Nouveau dossier
-            </Link>
+            <NewDossierButton />
             <Link
               href={`/portail-avocat/agenda?client=${client.id}`}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm transition hover:bg-surface-alt"
@@ -165,7 +161,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
                                 : "bg-orange-50 text-orange-700"
                         }`}
                       >
-                        {dossier.status}
+                        {dossierStatusLabel[dossier.status] ?? dossier.status}
                       </span>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-text-secondary">
