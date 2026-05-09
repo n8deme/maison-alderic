@@ -166,11 +166,11 @@ export default async function DocumentsPage() {
                 <select
                   name="dossier_id"
                   required
-                  className="w-full text-xs border border-border rounded-sm px-2.5 py-2 bg-background focus:outline-none focus:ring-1 focus:ring-[color:var(--bordeaux)]"
+                  className="w-full text-xs border border-border rounded-sm px-2.5 py-2 bg-background focus:outline-none focus:ring-1 focus:ring-[color:var(--bordeaux)] truncate"
                   style={{ fontFamily: "var(--font-body)" }}
                 >
                   {dossiers.map((dos) => (
-                    <option key={dos.id} value={dos.id}>
+                    <option key={dos.id} value={dos.id} className="truncate">
                       {dos.reference} — {dos.title}
                     </option>
                   ))}

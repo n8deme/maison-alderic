@@ -58,11 +58,13 @@ function relativeTimeFr(iso: string) {
   const then = new Date(iso).getTime();
   const diffMs = Math.max(0, now - then);
   const hours = Math.floor(diffMs / 3_600_000);
-  if (hours < 1) return "à l'instant";
-  if (hours < 24) return `il y a ${hours}h`;
-  const days = Math.floor(hours / 24);
-  if (days === 1) return "hier";
-  return `il y a ${days} jours`;
+  if (hours < 1) return "À l'instant";
+  if (hours < 24) return "Récemment";
+  const date = new Date(iso);
+  return new Intl.DateTimeFormat("fr-BE", {
+    day: "numeric",
+    month: "short",
+  }).format(date);
 }
 
 function formatShortDate(iso: string | null) {
@@ -100,7 +102,7 @@ export function DashboardPremium({
       icon: CircleCheck,
       value: String(stats.activeDossiers),
       label: "Dossiers actifs",
-      trend: stats.activeTrend,
+      trend: null,
     },
     {
       key: "pending",
@@ -121,7 +123,7 @@ export function DashboardPremium({
       icon: Euro,
       value: formatEur(stats.billedThisMonth),
       label: "Facturé ce mois",
-      trend: "Suivi mensuel",
+      trend: null,
     },
   ];
 
@@ -255,7 +257,7 @@ export function DashboardPremium({
               return (
                 <motion.article
                   key={dossier.id}
-                  className="rounded-lg border border-border bg-surface p-5"
+                  className="rounded-lg border border-border bg-surface p-5 flex flex-col"
                   initial={reduce ? {} : { opacity: 0, y: 10 }}
                   whileInView={reduce ? {} : { opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -291,7 +293,7 @@ export function DashboardPremium({
                     </div>
                   </div>
 
-                  <Link href={`/portail/dossiers/${dossier.id}`} className="mt-4 inline-flex items-center gap-1 text-sm text-bordeaux">
+                  <Link href={`/portail/dossiers/${dossier.id}`} className="mt-auto pt-4 inline-flex items-center gap-1 text-sm text-bordeaux">
                     Voir détails <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </motion.article>
