@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateFrLong } from "@/lib/format-date";
 import { Receipt, AlertCircle, CheckCircle2, Clock, Ban } from "lucide-react";
+import { computeDisplayStatus, type InvoiceStatusKey } from "@/lib/invoice-status";
+import { PayButton } from "@/components/portail/facturation/pay-button";
 
 export const metadata: Metadata = { title: "Facturation" };
 
-type InvoiceStatus = "draft" | "sent" | "paid" | "overdue" | "cancelled";
+type InvoiceStatus = InvoiceStatusKey;
 
 const STATUS_CONFIG: Record<InvoiceStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   draft:     { label: "Brouillon",  color: "var(--text-muted)",     bg: "var(--surface-alt)",        icon: <Clock className="w-3 h-3" />         },
@@ -65,7 +67,10 @@ export default async function FacturationPage({
   }> | null;
 
   const totalDue = invoices
-    .filter((i) => i.status === "sent" || i.status === "overdue")
+    .filter((i) => {
+      const ds = computeDisplayStatus({ status: i.status, due_at: i.due_at });
+      return ds === "sent" || ds === "overdue";
+    })
     .reduce((s, i) => s + Number(i.amount_ttc), 0);
 
   const selected = selectedId ? invoices.find((i) => i.id === selectedId) : null;
@@ -165,7 +170,7 @@ export default async function FacturationPage({
                         )}
                       </div>
                     </div>
-                    <StatusBadge status={inv.status as InvoiceStatus} />
+                    <StatusBadge status={computeDisplayStatus({ status: inv.status, due_at: inv.due_at })} />
                   </a>
                 );
               })}
@@ -181,7 +186,7 @@ export default async function FacturationPage({
                 <h2 className="text-xs font-medium uppercase tracking-wider text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
                   {selected.invoice_number}
                 </h2>
-                <StatusBadge status={selected.status as InvoiceStatus} />
+                <StatusBadge status={computeDisplayStatus({ status: selected.status, due_at: selected.due_at })} />
               </div>
 
               {/* Lines */}
@@ -222,13 +227,9 @@ export default async function FacturationPage({
                 </div>
               </div>
 
-              {(selected.status === "sent" || selected.status === "overdue") && (
-                <button
-                  className="w-full py-2.5 text-xs font-medium rounded-sm transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "var(--bordeaux)", color: "#fff", fontFamily: "var(--font-body)" }}
-                >
-                  Régler cette facture
-                </button>
+              {(computeDisplayStatus({ status: selected.status, due_at: selected.due_at }) === "sent" ||
+                computeDisplayStatus({ status: selected.status, due_at: selected.due_at }) === "overdue") && (
+                <PayButton invoiceNumber={selected.invoice_number} />
               )}
             </div>
           ) : (
