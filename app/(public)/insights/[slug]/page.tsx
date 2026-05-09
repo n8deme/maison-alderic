@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import { createClient } from "@/lib/supabase/server";
 import { createStaticClient } from "@/lib/supabase/static";
 import { formatDateFr } from "@/lib/format-date";
+import { frenchTypography } from "@/lib/typography";
 import { slugify } from "@/lib/slugify";
 import { Reveal } from "@/components/public/reveal";
 
@@ -117,7 +118,7 @@ export default async function InsightPage({ params }: PageProps) {
           <span className="inline-flex rounded-full bg-bordeaux/10 px-3 py-1 text-xs uppercase tracking-wide text-bordeaux">
             {categoryLabels[item.category] ?? item.category}
           </span>
-          <h1 className="text-5xl leading-tight text-foreground md:text-6xl">{item.title}</h1>
+          <h1 className="text-5xl leading-tight text-foreground md:text-6xl">{frenchTypography(item.title)}</h1>
           <p className="text-sm text-text-secondary">
             {formatDateFr(item.published_at)} · {item.reading_time_minutes} min ·{" "}
             {item.author ? (
@@ -136,10 +137,19 @@ export default async function InsightPage({ params }: PageProps) {
           <div className="prose-alderic prose-lg">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              components={{
+              components={(() => {
+                // Closure variable — resets for each ReactMarkdown render (server-side)
+                let firstParagraph = true;
+                return {
                 p: ({ children }) => {
+                  const isFirst = firstParagraph;
+                  if (firstParagraph) firstParagraph = false;
                   return (
-                    <p className="mb-6 text-lg leading-relaxed text-text-secondary first-letter:float-left first-letter:mr-3 first-letter:pt-1 first-letter:text-6xl first-letter:font-medium first-letter:leading-none first-letter:text-bordeaux">
+                    <p className={`mb-6 text-lg leading-relaxed text-text-secondary${
+                      isFirst
+                        ? " first-letter:float-left first-letter:mr-3 first-letter:pt-1 first-letter:text-6xl first-letter:font-medium first-letter:leading-none first-letter:text-bordeaux"
+                        : ""
+                    }`}>
                       {children}
                     </p>
                   );
@@ -164,7 +174,8 @@ export default async function InsightPage({ params }: PageProps) {
                     {children}
                   </Link>
                 ),
-              }}
+              };
+              })()}
             >
               {item.content}
             </ReactMarkdown>
