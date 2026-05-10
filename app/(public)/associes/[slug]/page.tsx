@@ -167,15 +167,6 @@ export default async function AssociePage({ params }: PageProps) {
             {avocat.bio ??
               "Profil reconnu en conseil transactionnel et contentieux d'affaires, avec une pratique orientée exécution et anticipation du risque."}
           </p>
-          <p className="mb-6">
-            Son approche combine rigueur technique, lisibilite des options juridiques et coordination
-            des parties prenantes dans des contextes sensibles.
-          </p>
-          <p className="mb-6">
-            Il accompagne les dirigeants et investisseurs sur des mandats multi-juridictions en
-            priorisant la clarté contractuelle et la maîtrise du calendrier.
-          </p>
-
           <h3 className="mb-4 mt-12 text-2xl text-foreground">Formation</h3>
           <ul className="mb-6 list-disc space-y-2 pl-6">
             <li>LL.M. en droit des affaires internationales</li>
