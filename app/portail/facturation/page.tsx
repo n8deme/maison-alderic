@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDateFrLong } from "@/lib/format-date";
 import { Receipt, AlertCircle, CheckCircle2, Clock, Ban } from "lucide-react";
 import { computeDisplayStatus, type InvoiceStatusKey } from "@/lib/invoice-status";
-import { PayButton } from "@/components/portail/facturation/pay-button";
+import { PayButton } from "@/app/portail/facturation/[id]/pay-button";
 
 export const metadata: Metadata = { title: "Facturation" };
 
@@ -227,10 +227,23 @@ export default async function FacturationPage({
                 </div>
               </div>
 
-              {(computeDisplayStatus({ status: selected.status, due_at: selected.due_at }) === "sent" ||
-                computeDisplayStatus({ status: selected.status, due_at: selected.due_at }) === "overdue") && (
-                <PayButton invoiceNumber={selected.invoice_number} />
-              )}
+              {(() => {
+                const ds = computeDisplayStatus({ status: selected.status, due_at: selected.due_at });
+                if (ds === "sent" || ds === "overdue") {
+                  return <PayButton invoiceId={selected.id} />;
+                }
+                if (ds === "paid" && selected.paid_at) {
+                  return (
+                    <div className="flex items-center gap-2 rounded-sm border border-green-200 bg-green-50 px-3 py-2.5">
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" />
+                      <p className="text-xs text-green-800" style={{ fontFamily: "var(--font-body)" }}>
+                        Payée le {formatDateFrLong(selected.paid_at)}
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
           ) : (
             <div className="bg-surface border border-border rounded-sm p-5">
