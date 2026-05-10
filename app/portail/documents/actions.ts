@@ -1,14 +1,41 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 export async function getSignedUrl(filePath: string): Promise<string> {
   const supabase = await createClient();
-  const { data, error } = await supabase.storage
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Non authentifié");
+  }
+
+  const { data: doc, error: docError } = await supabase
+    .from("documents")
+    .select("id")
+    .eq("file_path", filePath)
+    .single();
+
+  if (docError || !doc) {
+    throw new Error("Document introuvable ou accès refusé");
+  }
+
+  const adminClient = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+
+  const { data, error } = await adminClient.storage
     .from("documents")
     .createSignedUrl(filePath, 3600);
-  if (error || !data?.signedUrl) throw new Error("Impossible de générer le lien de téléchargement.");
+
+  if (error || !data?.signedUrl) {
+    console.error("[getSignedUrl] Storage error:", error);
+    throw new Error("Impossible de générer le lien de téléchargement.");
+  }
+
   return data.signedUrl;
 }
 
