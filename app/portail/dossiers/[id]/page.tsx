@@ -5,7 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { ArrowLeft, FileText, MessageSquare, Euro } from "lucide-react";
 import { TimelineDossierPremium } from "@/components/portail/timeline-dossier-premium";
 import { completeStep } from "./actions";
+import { generateTimelinePDF } from "./pdf-actions";
 import { getDossierProgress } from "@/lib/dossiers";
+import { DownloadPdfButton } from "@/components/pdf/download-pdf-button";
 
 export const metadata: Metadata = { title: "Dossier" };
 
@@ -120,12 +122,20 @@ export default async function DossierDetailPage({ params }: { params: Promise<{ 
             {STATUS_LABELS[d.status as DossierStatus] ?? d.status}
           </span>
         </div>
-        <h1
-          className="text-2xl md:text-3xl font-medium"
-          style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}
-        >
-          {d.title}
-        </h1>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <h1
+            className="text-2xl md:text-3xl font-medium"
+            style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}
+          >
+            {d.title}
+          </h1>
+          <DownloadPdfButton
+            action={generateTimelinePDF.bind(null, id)}
+            fileName={`timeline-${d.reference}.pdf`}
+            label="Récapitulatif PDF"
+            variant="outline"
+          />
+        </div>
         {d.description && (
           <p className="mt-2 text-sm text-text-secondary max-w-2xl" style={{ fontFamily: "var(--font-body)" }}>
             {d.description}
