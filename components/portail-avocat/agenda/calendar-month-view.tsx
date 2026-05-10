@@ -175,17 +175,17 @@ export function CalendarMonthView({ appointments }: { appointments: Appointment[
                 <div
                   key={key + "-" + i}
                   className={[
-                    "min-h-24 p-2",
+                    "min-h-24 p-1.5",
                     "border-t border-border",
                     !isLastInRow ? "border-r border-border" : "",
                     !isCurrentMonth ? "bg-surface-alt/60" : "",
                   ].join(" ")}
                 >
                   {/* Day number */}
-                  <div className="mb-1 flex justify-end">
+                  <div className="mb-0.5 flex justify-end">
                     <span
                       className={[
-                        "flex h-6 w-6 items-center justify-center rounded-full text-xs",
+                        "flex h-5 w-5 items-center justify-center rounded-full text-[11px]",
                         isToday
                           ? "font-semibold text-white"
                           : isCurrentMonth
