@@ -87,7 +87,7 @@ export default function ExpertisesPage() {
     <>
       {/* Hero */}
       <section
-        className="py-24 md:py-32"
+        className="pt-28 pb-20 md:pt-36 md:pb-28"
         style={{ backgroundColor: "var(--surface-alt)" }}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
@@ -133,7 +133,7 @@ export default function ExpertisesPage() {
         <section
           key={exp.id}
           id={exp.id}
-          className="py-16 md:py-24"
+          className="py-16 md:py-24 scroll-mt-20"
           style={{ backgroundColor: exp.bg }}
         >
           <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">

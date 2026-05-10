@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ArrowLeft, FileText, MessageSquare, Euro } from "lucide-react";
 import { TimelineDossierPremium } from "@/components/portail/timeline-dossier-premium";
 import { completeStep } from "./actions";
+import { getDossierProgress } from "@/lib/dossiers";
 
 export const metadata: Metadata = { title: "Dossier" };
 
@@ -87,10 +88,7 @@ export default async function DossierDetailPage({ params }: { params: Promise<{ 
   const msgsCount   = msgsRes.count   ?? 0;
   const doneSteps   = timeline.filter((s) => s.status === "completed").length;
 
-  const budgetPct =
-    d.budget_estimated && Number(d.budget_estimated) > 0
-      ? Math.min(100, Math.round((Number(d.budget_consumed) / Number(d.budget_estimated)) * 100))
-      : null;
+  const budgetPct = getDossierProgress(d, timeline);
 
   const s = STATUS_STYLE[d.status as DossierStatus] ?? STATUS_STYLE.pending;
 
