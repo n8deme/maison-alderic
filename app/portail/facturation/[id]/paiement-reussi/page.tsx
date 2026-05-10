@@ -3,7 +3,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe/server";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Paiement confirmé" };
 
@@ -44,17 +47,21 @@ export default async function PaiementReussiPage({ params, searchParams }: PageP
     try {
       const session = await stripe.checkout.sessions.retrieve(session_id);
       if (session.payment_status === "paid") {
-        await supabase
+        const admin = createAdminClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        );
+        const { error } = await admin
           .from("invoices")
-          .update({
-            status: "paid",
-            paid_at: new Date().toISOString(),
-          })
+          .update({ status: "paid", paid_at: new Date().toISOString() })
           .eq("id", invoiceId)
           .neq("status", "paid");
+        if (error) {
+          console.error("[paiement-reussi] DB update échoué:", error);
+        }
       }
     } catch (err) {
-      console.error("[paiement-reussi] Retrieve session Stripe échoué:", err);
+      console.error("[paiement-reussi] Fallback échoué:", err);
     }
   }
 
