@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { generateInvoicePDF } from "./pdf-actions";
+import { DownloadPdfButton } from "@/components/pdf/download-pdf-button";
 
 export const metadata: Metadata = { title: "Détail facture" };
 
@@ -140,10 +142,11 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
       )}
 
       <div className="mt-6 flex gap-3">
-        <button className="inline-flex items-center gap-2 rounded-sm bg-foreground px-4 py-2 text-sm text-background hover:bg-foreground/90">
-          <Download className="h-4 w-4" />
-          Télécharger PDF
-        </button>
+        <DownloadPdfButton
+          action={generateInvoicePDF.bind(null, id)}
+          fileName={`facture-${invoice.invoice_number}.pdf`}
+          label="Télécharger PDF"
+        />
       </div>
     </div>
   );
