@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Dossiers" };
@@ -65,9 +66,19 @@ export default async function AvocatDossiersPage({
 
   return (
     <div className="max-w-7xl p-6 md:p-8">
-      <div className="mb-6">
-        <h1 className="text-3xl" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>Dossiers cabinet</h1>
-        <p className="mt-1 text-sm text-text-secondary">Tous les dossiers du cabinet, filtrables par statut, type et avocat assigné.</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>Dossiers cabinet</h1>
+          <p className="mt-1 text-sm text-text-secondary">Tous les dossiers du cabinet, filtrables par statut, type et avocat assigné.</p>
+        </div>
+        <Link
+          href="/portail-avocat/dossiers/nouveau"
+          className="inline-flex shrink-0 items-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+          style={{ backgroundColor: "var(--foreground)", color: "var(--background)" }}
+        >
+          <Plus className="h-4 w-4" />
+          Nouveau dossier
+        </Link>
       </div>
 
       <form className="mb-4 grid grid-cols-1 gap-2 rounded-sm border border-border bg-surface p-3 md:grid-cols-5">

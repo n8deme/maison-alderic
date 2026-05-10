@@ -1,32 +1,52 @@
 "use client";
 
 import { useState } from "react";
+import { EditDossierModal } from "./edit-dossier-modal";
 
-export function EditDossierButton() {
-  const [show, setShow] = useState(false);
+type Avocat = { id: string; full_name: string; title: string };
 
-  function handleClick() {
-    setShow(true);
-    setTimeout(() => setShow(false), 3000);
-  }
+interface EditDossierButtonProps {
+  dossierId: string;
+  reference: string;
+  defaultValues: {
+    title: string;
+    description?: string;
+    status: "active" | "pending" | "archived" | "won" | "lost";
+    type: "M&A" | "Litigation" | "Tax" | "Corporate" | "PE" | "Restructuring";
+    lead_avocat_id: string;
+    team_avocat_ids: string[];
+    budget_estimated?: number | null;
+  };
+  avocats: Avocat[];
+}
+
+export function EditDossierButton({
+  dossierId,
+  reference,
+  defaultValues,
+  avocats,
+}: EditDossierButtonProps) {
+  const [open, setOpen] = useState(false);
 
   return (
     <>
       <button
-        onClick={handleClick}
-        className="ml-auto rounded-sm border px-3 py-1 text-sm transition-colors hover:bg-slate-50"
+        type="button"
+        onClick={() => setOpen(true)}
+        className="ml-auto rounded-sm border px-3 py-1 text-sm transition-colors hover:bg-surface-alt"
         style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
       >
         Modifier
       </button>
 
-      {show && (
-        <div
-          className="fixed bottom-4 right-4 z-50 rounded-sm px-4 py-2.5 text-sm text-white shadow-lg"
-          style={{ backgroundColor: "var(--foreground)" }}
-        >
-          Édition de dossier à venir
-        </div>
+      {open && (
+        <EditDossierModal
+          dossierId={dossierId}
+          reference={reference}
+          defaultValues={defaultValues}
+          avocats={avocats}
+          onClose={() => setOpen(false)}
+        />
       )}
     </>
   );

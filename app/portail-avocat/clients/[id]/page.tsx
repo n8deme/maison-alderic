@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Mail, Building2, Calendar } from "lucide-react";
+import { ArrowLeft, Mail, Building2, Calendar, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { dossierStatusLabel } from "@/lib/dossier-status";
 import { NewDossierButton } from "@/components/portail-avocat/clients/new-dossier-button";
@@ -117,7 +117,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
 
           {/* Actions rapides */}
           <div className="space-y-2">
-            <NewDossierButton />
+            <NewDossierButton clientId={client.id} />
             <Link
               href={`/portail-avocat/agenda?client=${client.id}`}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm transition hover:bg-surface-alt"

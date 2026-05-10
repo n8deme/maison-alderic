@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 import PortailAvocatShell from "@/components/portail/portail-avocat-shell";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: {
@@ -33,6 +34,7 @@ export default async function PortailAvocatLayout({ children }: { children: Reac
       signOutAction={signOut}
     >
       {children}
+      <Toaster position="bottom-right" richColors />
     </PortailAvocatShell>
   );
 }
