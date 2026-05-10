@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ArrowLeft, Building2, Calendar, CheckCircle2, Circle, Clock, FileText, Mail, Phone, User, AlertCircle } from 'lucide-react'
 import { EditDossierButton } from '@/components/portail-avocat/dossiers/edit-dossier-button'
+import { getDossierProgress } from '@/lib/dossiers'
 
 type PageProps = {
   params: Promise<{ reference: string }>
@@ -71,7 +72,7 @@ export default async function DossierDetailAvocatPage({ params }: PageProps) {
 
   const completedCount = (timeline ?? []).filter((e: any) => e.status === 'completed').length
   const totalCount = timeline?.length ?? 0
-  const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+  const progressPct = getDossierProgress(dossier, timeline ?? []) ?? 0
 
   return (
     <div className="space-y-6 p-6 md:p-8">

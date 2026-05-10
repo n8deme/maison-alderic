@@ -21,16 +21,20 @@ type AvocatRef = {
   slug: string | null;
 };
 
+const TZ = "Europe/Brussels";
+
 function fmtTime(iso: string) {
-  return new Intl.DateTimeFormat("fr-BE", { hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("fr-BE", { hour: "2-digit", minute: "2-digit", timeZone: TZ }).format(new Date(iso));
 }
 
 function fmtDay(iso: string) {
-  return new Intl.DateTimeFormat("fr-BE", { weekday: "long", day: "numeric", month: "long" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("fr-BE", { weekday: "long", day: "numeric", month: "long", timeZone: TZ }).format(new Date(iso));
 }
 
 function isSameDay(a: string, b: string) {
-  return new Date(a).toDateString() === new Date(b).toDateString();
+  const opts: Intl.DateTimeFormatOptions = { year: "numeric", month: "2-digit", day: "2-digit", timeZone: TZ };
+  const fmt = new Intl.DateTimeFormat("fr-BE", opts);
+  return fmt.format(new Date(a)) === fmt.format(new Date(b));
 }
 
 export function MessagesClient({
@@ -85,16 +89,7 @@ export function MessagesClient({
     setContent("");
     try {
       await sendMessage(dossierId, text);
-      // Optimistic: the realtime subscription will pick it up from the server
-      // but add it immediately so the sender sees it right away
-      const optimistic: Message = {
-        id:           `opt-${Date.now()}`,
-        content:      text,
-        created_at:   new Date().toISOString(),
-        sender_type:  "client",
-        sender_id:    userId,
-      };
-      setMessages((prev) => [...prev, optimistic]);
+      // Realtime subscription handles adding the message to the list
     } catch {
       setContent(text);
     } finally {

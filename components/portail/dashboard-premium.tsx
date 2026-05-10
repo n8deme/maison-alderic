@@ -143,8 +143,7 @@ export function DashboardPremium({
               key={card.key}
               className="rounded-lg border border-border bg-surface p-5"
               initial={reduce ? {} : { opacity: 0, y: 12 }}
-              whileInView={reduce ? {} : { opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              animate={reduce ? {} : { opacity: 1, y: 0 }}
               transition={reduce ? {} : { duration: 0.45, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
               whileHover={reduce ? {} : { scale: 1.02 }}
             >
@@ -259,8 +258,7 @@ export function DashboardPremium({
                   key={dossier.id}
                   className="rounded-lg border border-border bg-surface p-5 flex flex-col"
                   initial={reduce ? {} : { opacity: 0, y: 10 }}
-                  whileInView={reduce ? {} : { opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
+                  animate={reduce ? {} : { opacity: 1, y: 0 }}
                   transition={reduce ? {} : { duration: 0.45, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <div className="mb-4 flex items-center justify-between gap-3">
