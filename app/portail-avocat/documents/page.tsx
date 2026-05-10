@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { DownloadButton } from "@/components/portail/documents/download-button";
 
 export const metadata: Metadata = { title: "Documents" };
 
@@ -100,13 +101,7 @@ export default async function AvocatDocumentsPage({
                 <td className="px-3 py-2">{fmtDate(doc.created_at)}</td>
                 <td className="px-3 py-2">{doc.uploader?.full_name ?? "-"}</td>
                 <td className="px-3 py-2">
-                  <a
-                    href={`/api/documents/${doc.id}/download`}
-                    className="text-bordeaux underline"
-                    download={doc.name}
-                  >
-                    ↓ Télécharger
-                  </a>
+                  <DownloadButton filePath={doc.file_path} fileName={doc.name} />
                 </td>
               </tr>
             ))}
