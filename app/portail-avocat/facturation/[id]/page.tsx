@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { ArrowLeft, Download } from "lucide-react";
+import { computeDisplayStatus, invoiceStatusBadgeClass, invoiceStatusLabel } from "@/lib/invoice-status";
 
 export const metadata: Metadata = { title: "Détail facture" };
 
@@ -13,24 +14,6 @@ function fmtDate(iso: string | null) {
 
 function fmtEur(value: number) {
   return new Intl.NumberFormat("fr-BE", { style: "currency", currency: "EUR" }).format(value);
-}
-
-function getStatusBadge(status: string) {
-  const styles = {
-    draft: "bg-gray-100 text-gray-800",
-    sent: "bg-blue-100 text-blue-800",
-    paid: "bg-green-100 text-green-800",
-    overdue: "bg-red-100 text-red-800",
-    cancelled: "bg-gray-100 text-gray-600",
-  };
-  const labels = {
-    draft: "Brouillon",
-    sent: "Envoyée",
-    paid: "Payée",
-    overdue: "En retard",
-    cancelled: "Annulée",
-  };
-  return { style: styles[status as keyof typeof styles] || styles.draft, label: labels[status as keyof typeof labels] || status };
 }
 
 export default async function FactureDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -60,7 +43,7 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
 
   if (!invoice) notFound();
 
-  const badge = getStatusBadge(invoice.status);
+  const displayStatus = computeDisplayStatus({ status: invoice.status, due_at: invoice.due_at });
   const dossier = Array.isArray(invoice.dossier) ? invoice.dossier[0] : invoice.dossier;
   const client = Array.isArray(invoice.client) ? invoice.client[0] : invoice.client;
 
@@ -80,8 +63,8 @@ export default async function FactureDetailPage({ params }: { params: Promise<{ 
             Dossier {dossier?.reference} — {dossier?.title}
           </p>
         </div>
-        <span className={`rounded-sm px-3 py-1 text-xs font-medium ${badge.style}`}>
-          {badge.label}
+        <span className={`rounded-sm px-3 py-1 text-xs font-medium ${invoiceStatusBadgeClass[displayStatus]}`}>
+          {invoiceStatusLabel[displayStatus]}
         </span>
       </div>
 

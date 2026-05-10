@@ -79,12 +79,13 @@ export default async function HomePage({
                 Cabinet d'avocats d'affaires — Bruxelles
               </span>
               <h1
-                className="text-5xl md:text-6xl text-foreground"
+                className="text-5xl md:text-6xl"
                 style={{
                   fontFamily: "var(--font-display)",
                   fontWeight: 500,
                   letterSpacing: "-0.02em",
                   lineHeight: 1.05,
+                  color: "var(--text-primary)",
                 }}
               >
                 Le droit comme architecture stratégique.
@@ -135,11 +136,10 @@ export default async function HomePage({
                   style={{ borderColor: "var(--border)" }}
                 >
                   <p
-                    className="text-4xl mb-1"
+                    className="text-4xl mb-1 text-accent"
                     style={{
                       fontFamily: "var(--font-display)",
                       fontWeight: 500,
-                      color: "var(--bordeaux)",
                     }}
                   >
                     {c.value}

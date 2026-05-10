@@ -11,11 +11,11 @@ export const metadata: Metadata = { title: "Facturation" };
 type InvoiceStatus = InvoiceStatusKey;
 
 const STATUS_CONFIG: Record<InvoiceStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  draft:     { label: "Brouillon",  color: "var(--text-muted)",     bg: "var(--surface-alt)",        icon: <Clock className="w-3 h-3" />         },
-  sent:      { label: "Envoyée",    color: "var(--text-secondary)", bg: "rgba(92,90,85,0.1)",         icon: <Receipt className="w-3 h-3" />       },
-  paid:      { label: "Réglée",     color: "#16a34a",               bg: "rgba(22,163,74,0.08)",       icon: <CheckCircle2 className="w-3 h-3" />  },
-  overdue:   { label: "En retard",  color: "var(--bordeaux)",       bg: "rgba(122,31,43,0.08)",       icon: <AlertCircle className="w-3 h-3" />   },
-  cancelled: { label: "Annulée",    color: "var(--text-muted)",     bg: "var(--surface-alt)",        icon: <Ban className="w-3 h-3" />           },
+  draft:     { label: "Brouillon",  color: "#374151", bg: "#f3f4f6", icon: <Clock className="w-3 h-3" />        },
+  sent:      { label: "Envoyée",    color: "#1d4ed8", bg: "#eff6ff", icon: <Receipt className="w-3 h-3" />      },
+  paid:      { label: "Réglée",     color: "#15803d", bg: "#f0fdf4", icon: <CheckCircle2 className="w-3 h-3" /> },
+  overdue:   { label: "En retard",  color: "#b91c1c", bg: "#fef2f2", icon: <AlertCircle className="w-3 h-3" />  },
+  cancelled: { label: "Annulée",    color: "#6b7280", bg: "#f3f4f6", icon: <Ban className="w-3 h-3" />          },
 };
 
 function StatusBadge({ status }: { status: InvoiceStatus }) {

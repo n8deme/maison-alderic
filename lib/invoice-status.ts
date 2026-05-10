@@ -17,3 +17,11 @@ export const invoiceStatusLabel: Record<InvoiceStatusKey, string> = {
   overdue:   "En retard",
   cancelled: "Annulée",
 };
+
+export const invoiceStatusBadgeClass: Record<InvoiceStatusKey, string> = {
+  draft:     "bg-gray-100 text-gray-700",
+  sent:      "bg-blue-50 text-blue-700",
+  paid:      "bg-green-50 text-green-700",
+  overdue:   "bg-red-50 text-red-700",
+  cancelled: "bg-gray-100 text-gray-500",
+};

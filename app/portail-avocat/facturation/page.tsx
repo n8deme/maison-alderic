@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { NewInvoiceButton } from "@/components/portail-avocat/facturation/new-invoice-button";
+import { computeDisplayStatus, invoiceStatusBadgeClass, invoiceStatusLabel } from "@/lib/invoice-status";
 
 export const metadata: Metadata = { title: "Facturation" };
 
@@ -77,11 +78,14 @@ export default async function AvocatFacturationPage() {
                 <td className="px-3 py-2">{inv.dossier?.reference ?? "-"}</td>
                 <td className="px-3 py-2">{fmtEur(Number(inv.amount_ttc))}</td>
                 <td className="px-3 py-2">
-                  {inv.status === "draft" ? "Brouillon" :
-                   inv.status === "sent" ? "Envoyée" :
-                   inv.status === "paid" ? "Payée" :
-                   inv.status === "overdue" ? "En retard" :
-                   inv.status === "cancelled" ? "Annulée" : inv.status}
+                  {(() => {
+                    const ds = computeDisplayStatus({ status: inv.status, due_at: inv.due_at });
+                    return (
+                      <span className={`inline-block rounded-sm px-2 py-0.5 text-xs font-medium ${invoiceStatusBadgeClass[ds]}`}>
+                        {invoiceStatusLabel[ds]}
+                      </span>
+                    );
+                  })()}
                 </td>
                 <td className="px-3 py-2">{fmtDate(inv.issued_at)}</td>
                 <td className="px-3 py-2">{fmtDate(inv.due_at)}</td>
