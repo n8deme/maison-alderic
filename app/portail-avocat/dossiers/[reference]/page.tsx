@@ -72,6 +72,11 @@ export default async function DossierDetailAvocatPage({ params }: PageProps) {
   const leadAvocat = dossier.dossier_avocats?.find((da: any) => da.role === 'lead')?.avocats
   const otherAvocats = (dossier.dossier_avocats ?? []).filter((da: any) => da.role !== 'lead')
 
+  const { data: allAvocats } = await supabase
+    .from('avocats')
+    .select('id, full_name, title')
+    .order('display_order')
+
   const completedCount = (timeline ?? []).filter((e: any) => e.status === 'completed').length
   const totalCount = timeline?.length ?? 0
   const progressPct = getDossierProgress(dossier, timeline ?? []) ?? 0
@@ -98,7 +103,23 @@ export default async function DossierDetailAvocatPage({ params }: PageProps) {
           >
             {STATUS_LABELS[dossier.status] ?? dossier.status}
           </span>
-          <EditDossierButton />
+          <EditDossierButton
+            dossierId={dossier.id}
+            reference={dossier.reference}
+            defaultValues={{
+              title: dossier.title,
+              description: dossier.description ?? undefined,
+              status: dossier.status,
+              type: dossier.type,
+              lead_avocat_id: leadAvocat?.id ?? '',
+              team_avocat_ids: (dossier.dossier_avocats ?? [])
+                .filter((da: any) => da.role !== 'lead')
+                .map((da: any) => da.avocats?.id)
+                .filter(Boolean),
+              budget_estimated: dossier.budget_estimated ?? null,
+            }}
+            avocats={allAvocats ?? []}
+          />
           <DownloadPdfButton
             action={generateTimelinePDF.bind(null, dossier.id)}
             fileName={`timeline-${dossier.reference}.pdf`}
