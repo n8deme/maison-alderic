@@ -24,7 +24,7 @@ export function HomeInsightsMagazine({ insights }: { insights: InsightItem[] }) 
             <span className="text-xs font-medium uppercase tracking-widest text-text-muted">
               Analyses & perspectives
             </span>
-            <h2 className="text-4xl text-foreground md:text-5xl">Insights recents</h2>
+            <h2 className="text-4xl text-foreground md:text-5xl">Insights récents</h2>
           </div>
           <Link href="/insights" className="hidden text-sm text-bordeaux md:inline">
             Voir tous →
