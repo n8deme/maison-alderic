@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ArrowLeft, Building2, Calendar, CheckCircle2, Circle, Clock, FileText, Mail, Phone, User, AlertCircle } from 'lucide-react'
 import { EditDossierButton } from '@/components/portail-avocat/dossiers/edit-dossier-button'
+import { GenerateMandatButton } from '@/components/portail-avocat/dossiers/generate-mandat-button'
 import { getDossierProgress } from '@/lib/dossiers'
 import { generateTimelinePDF } from './pdf-actions'
 import { DownloadPdfButton } from '@/components/pdf/download-pdf-button'
@@ -103,6 +104,7 @@ export default async function DossierDetailAvocatPage({ params }: PageProps) {
           >
             {STATUS_LABELS[dossier.status] ?? dossier.status}
           </span>
+          <GenerateMandatButton dossierId={dossier.id} />
           <EditDossierButton
             dossierId={dossier.id}
             reference={dossier.reference}
