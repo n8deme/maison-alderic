@@ -54,6 +54,7 @@ export async function generateMandat(dossierId: string): Promise<GenerateMandatR
     }
 
     const payload = {
+      dossier_id: dossier.id,
       client_id: client.id,
       client_nom: client.full_name,
       client_email: client.email,
