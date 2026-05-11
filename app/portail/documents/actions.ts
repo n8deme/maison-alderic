@@ -5,18 +5,43 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 export async function getSignedUrl(filePath: string, fileName: string): Promise<string> {
+  console.log("[DBG] === getSignedUrl ===");
+  console.log("[DBG] filePath received:", filePath);
+  console.log("[DBG] fileName received:", fileName);
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  console.log("[DBG] user:", user?.id, user?.email);
 
   if (!user) {
     throw new Error("Non authentifié");
   }
 
+  // Test 1 : SELECT avec RLS (code actuel)
   const { data: doc, error: docError } = await supabase
     .from("documents")
-    .select("id")
+    .select("id, name, file_path, dossier_id")
     .eq("file_path", filePath)
     .single();
+
+  console.log("[DBG] SELECT with RLS — doc:", doc);
+  console.log("[DBG] SELECT with RLS — error:", docError);
+
+  // Test 2 : SELECT sans .single() pour voir si plusieurs lignes
+  const { data: docsAll, error: allError } = await supabase
+    .from("documents")
+    .select("id, name, file_path")
+    .eq("file_path", filePath);
+
+  console.log("[DBG] SELECT all matching — count:", docsAll?.length);
+  console.log("[DBG] SELECT all matching — error:", allError);
+
+  // Test 3 : count total visible pour ce user
+  const { count } = await supabase
+    .from("documents")
+    .select("*", { count: "exact", head: true });
+
+  console.log("[DBG] Total docs visible to user (count):", count);
 
   if (docError || !doc) {
     throw new Error("Document introuvable ou accès refusé");
@@ -26,16 +51,13 @@ export async function getSignedUrl(filePath: string, fileName: string): Promise<
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
-
   const { data, error } = await adminClient.storage
     .from("documents")
     .createSignedUrl(filePath, 3600, { download: fileName });
-
   if (error || !data?.signedUrl) {
     console.error("[getSignedUrl] Storage error:", error);
     throw new Error("Impossible de générer le lien de téléchargement.");
   }
-
   return data.signedUrl;
 }
 
