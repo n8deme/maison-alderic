@@ -10,13 +10,8 @@ export function DownloadButton({ filePath, fileName }: { filePath: string; fileN
   async function handleClick() {
     setLoading(true);
     try {
-      const url = await getSignedUrl(filePath);
-      const a   = document.createElement("a");
-      a.href     = url;
-      a.download  = fileName;
-      a.target   = "_blank";
-      a.rel      = "noopener noreferrer";
-      a.click();
+      const url = await getSignedUrl(filePath, fileName);
+      window.location.href = url;
     } catch (err) {
       console.error(err);
       alert("Impossible de télécharger ce document.");

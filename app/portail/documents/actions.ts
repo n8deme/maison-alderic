@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
-export async function getSignedUrl(filePath: string): Promise<string> {
+export async function getSignedUrl(filePath: string, fileName: string): Promise<string> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -29,7 +29,7 @@ export async function getSignedUrl(filePath: string): Promise<string> {
 
   const { data, error } = await adminClient.storage
     .from("documents")
-    .createSignedUrl(filePath, 3600);
+    .createSignedUrl(filePath, 3600, { download: fileName });
 
   if (error || !data?.signedUrl) {
     console.error("[getSignedUrl] Storage error:", error);
