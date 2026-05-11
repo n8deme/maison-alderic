@@ -31,7 +31,7 @@ export async function generateMandat(dossierId: string): Promise<GenerateMandatR
         reference,
         type,
         client:profiles!client_id(id, full_name, email),
-        dossier_avocats(role, avocats(id, full_name))
+        dossier_avocats(role, avocats(id, full_name, email))
       `)
       .eq("id", dossierId)
       .single();
@@ -41,7 +41,7 @@ export async function generateMandat(dossierId: string): Promise<GenerateMandatR
     }
 
     const client = dossier.client as unknown as { id: string; full_name: string; email: string } | null;
-    const leadEntry = (dossier.dossier_avocats as unknown as Array<{ role: string; avocats: { id: string; full_name: string } | null }>)
+    const leadEntry = (dossier.dossier_avocats as unknown as Array<{ role: string; avocats: { id: string; full_name: string; email: string } | null }>)
       ?.find((da) => da.role === "lead");
     const avocat = leadEntry?.avocats ?? null;
 
@@ -60,6 +60,7 @@ export async function generateMandat(dossierId: string): Promise<GenerateMandatR
       client_email: client.email,
       avocat_id: avocat.id,
       avocat_nom: avocat.full_name,
+      avocat_email: avocat.email,
       type_dossier: dossier.type,
     };
 
