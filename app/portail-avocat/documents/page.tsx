@@ -101,7 +101,7 @@ export default async function AvocatDocumentsPage({
                 <td className="px-3 py-2">{fmtDate(doc.created_at)}</td>
                 <td className="px-3 py-2">{doc.uploader?.full_name ?? "-"}</td>
                 <td className="px-3 py-2">
-                  <DownloadButton filePath={doc.file_path} fileName={doc.name} />
+                  <DownloadButton documentId={doc.id} />
                 </td>
               </tr>
             ))}

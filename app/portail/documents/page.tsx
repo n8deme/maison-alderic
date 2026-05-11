@@ -135,7 +135,7 @@ export default async function DocumentsPage() {
                       )}
                     </div>
                     <div className="shrink-0">
-                      <DownloadButton filePath={doc.file_path} fileName={doc.name} />
+                      <DownloadButton documentId={doc.id} />
                     </div>
                   </div>
                 );
