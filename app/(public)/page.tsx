@@ -6,6 +6,7 @@ import { HomeExpertisesGrid } from "@/components/public/home-expertises-grid";
 import { HomeDealsSticky } from "@/components/public/home-deals-sticky";
 import { HomeAssociesReveal } from "@/components/public/home-associes-reveal";
 import { HomeInsightsMagazine } from "@/components/public/home-insights-magazine";
+import { HomeNotreApproche } from "@/components/public/home-notre-approche";
 import { Reveal } from "@/components/public/reveal";
 import { RotatingWord } from "@/components/public/rotating-word";
 import { ScrollIndicator } from "@/components/public/scroll-indicator";
@@ -160,6 +161,9 @@ export default async function HomePage({
           </div>
         </section>
       </Reveal>
+
+      {/* ── Notre approche ───────────────────────────────────── */}
+      <HomeNotreApproche />
 
       {/* ── Expertises ───────────────────────────────────────── */}
       <HomeExpertisesGrid />
