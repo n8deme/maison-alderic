@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import { LenisProvider } from "@/components/providers/lenis-provider";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -87,7 +88,9 @@ export default function RootLayout({
       lang="fr-BE"
       className={`${fraunces.variable} ${inter.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <LenisProvider>{children}</LenisProvider>
+      </body>
     </html>
   );
 }
