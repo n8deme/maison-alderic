@@ -25,11 +25,15 @@ interface Avocat {
 export default async function AssociesPage() {
   const supabase = await createClient();
 
-  const { data: avocats } = await supabase
+  const { data: avocats, error } = await supabase
     .from("avocats")
     .select("id, slug, full_name, title, bio, expertises, is_founding_partner, bar_admission")
     .order("is_founding_partner", { ascending: false })
     .order("full_name");
+
+  console.log("[DBG-ASSOCIES] avocats data:", avocats?.length, "rows");
+  console.log("[DBG-ASSOCIES] error:", error);
+  console.log("[DBG-ASSOCIES] first row:", avocats?.[0]);
 
   const fondateurs = (avocats ?? []).filter((a: Avocat) => a.is_founding_partner);
   const counsels = (avocats ?? []).filter((a: Avocat) => !a.is_founding_partner);
