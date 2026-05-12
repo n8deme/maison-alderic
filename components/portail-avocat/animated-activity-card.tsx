@@ -49,7 +49,7 @@ function ActivityCardSurface({
       className="relative overflow-hidden rounded-sm border border-border-subtle p-3"
       initial="rest"
       animate="rest"
-      whileHover={reduceMotion ? false : "hover"}
+      whileHover={reduceMotion ? undefined : "hover"}
       variants={surfaceVariants}
     >
       <motion.span
@@ -66,7 +66,7 @@ function ActivityCardSurface({
 }
 
 export function AnimatedActivityCard({ title, subtitle, href, index }: AnimatedActivityCardProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReducedMotion() ?? false;
 
   const entrance = reduceMotion
     ? { duration: 0.01 }
