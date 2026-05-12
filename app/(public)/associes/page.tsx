@@ -31,10 +31,6 @@ export default async function AssociesPage() {
     .order("is_founding_partner", { ascending: false })
     .order("full_name");
 
-  console.log("[DBG-ASSOCIES] avocats data:", avocats?.length, "rows");
-  console.log("[DBG-ASSOCIES] error:", error);
-  console.log("[DBG-ASSOCIES] first row:", avocats?.[0]);
-
   const fondateurs = (avocats ?? []).filter((a: Avocat) => a.is_founding_partner);
   const counsels = (avocats ?? []).filter((a: Avocat) => !a.is_founding_partner);
 
