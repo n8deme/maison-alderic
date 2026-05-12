@@ -8,6 +8,7 @@ import { HomeAssociesReveal } from "@/components/public/home-associes-reveal";
 import { HomeInsightsMagazine } from "@/components/public/home-insights-magazine";
 import { Reveal } from "@/components/public/reveal";
 import { RotatingWord } from "@/components/public/rotating-word";
+import { ScrollIndicator } from "@/components/public/scroll-indicator";
 
 export const metadata: Metadata = {
   title: "Maison Aldéric & Associés — Cabinet d'avocats d'affaires, Bruxelles",
@@ -155,6 +156,7 @@ export default async function HomePage({
               ))}
             </div>
           </div>
+          <ScrollIndicator />
           </div>
         </section>
       </Reveal>
