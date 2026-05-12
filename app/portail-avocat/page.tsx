@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertCircle, CalendarDays, FolderOpen, UserPlus, Euro, Clock3, AlertTriangle } from "lucide-react";
-import { AnimatedKPICard } from "@/components/portail-avocat/animated-kpi-card";
-import { AnimatedActivityCard } from "@/components/portail-avocat/animated-activity-card";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -121,20 +119,24 @@ export default async function PortailAvocatDashboardPage() {
           { label: "RDV semaine",            value: rdvWeekRes.count ?? 0,     icon: CalendarDays,  href: "/portail-avocat/agenda", sublabel: undefined },
           { label: "CA du mois",             value: fmtEur(caMonth),           icon: Euro,          href: "/portail-avocat/facturation?status=paid", sublabel: undefined },
           { label: "Factures en retard",     value: overdueCount,              icon: AlertTriangle, href: "/portail-avocat/facturation?status=overdue", sublabel: overdueCount > 0 ? fmtEur(overdueAmount) : undefined },
-        ].map((card, index) => {
-          const isFacturesRetard = card.label === "Factures en retard";
+        ].map((card) => {
+          const Icon = card.icon;
+          const isOverdue = card.label === "Factures en retard" && Number(card.value) > 0;
           return (
-            <AnimatedKPICard
+            <Link
               key={card.label}
-              icon={card.icon}
-              value={card.value}
-              label={card.label}
               href={card.href}
-              sublabel={card.sublabel}
-              index={index}
-              isAlert={isFacturesRetard}
-              alertActive={isFacturesRetard && overdueCount > 0}
-            />
+              className="rounded-lg border border-border bg-surface p-5 cursor-pointer transition-colors hover:bg-surface-alt"
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <Icon className={`h-4 w-4 ${isOverdue ? "text-bordeaux" : "text-bordeaux"}`} />
+              </div>
+              <p className={`text-3xl ${isOverdue ? "text-bordeaux" : "text-foreground"}`}>{card.value}</p>
+              <p className="mt-1 text-xs text-text-muted">{card.label}</p>
+              {card.sublabel && (
+                <p className="mt-0.5 text-xs text-text-secondary">{card.sublabel}</p>
+              )}
+            </Link>
           );
         })}
       </section>
@@ -149,18 +151,13 @@ export default async function PortailAvocatDashboardPage() {
             {(activityRes.data ?? []).length === 0 ? (
               <p className="text-sm text-text-muted">Aucune activité récente.</p>
             ) : (
-              (activityRes.data ?? []).map((item: any, idx: number) => (
-                <AnimatedActivityCard
-                  key={item.id}
-                  title={item.title}
-                  subtitle={`${item.dossier?.reference ?? "Dossier"} - ${fmtDateTime(item.created_at)}`}
-                  href={
-                    item.dossier?.reference
-                      ? `/portail-avocat/dossiers/${encodeURIComponent(item.dossier.reference)}`
-                      : null
-                  }
-                  index={idx}
-                />
+              (activityRes.data ?? []).map((item: any) => (
+                <div key={item.id} className="rounded-sm border border-border-subtle p-3">
+                  <p className="text-sm text-foreground">{item.title}</p>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    {item.dossier?.reference ?? "Dossier"} - {fmtDateTime(item.created_at)}
+                  </p>
+                </div>
               ))
             )}
           </div>
