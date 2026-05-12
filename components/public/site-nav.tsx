@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import { motion } from "framer-motion";
 
 const navLinks = [
   { href: "/expertises", label: "Expertises" },
@@ -13,21 +14,42 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
+const SCROLL_THRESHOLD_PX = 80;
+
+function useScrolled(threshold: number = SCROLL_THRESHOLD_PX) {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > threshold);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [threshold]);
+
+  return scrolled;
+}
+
 export function SiteNav() {
   const [open, setOpen] = useState(false);
+  const scrolled = useScrolled();
   const pathname = usePathname();
 
   return (
-    <header
-      className="sticky top-0 z-50 border-b"
+    <motion.header
+      className="sticky top-0 z-50"
       style={{
-        backgroundColor: "rgba(248,247,244,0.95)",
-        backdropFilter: "blur(8px)",
-        borderColor: "var(--border)",
+        backgroundColor: scrolled ? "rgba(248,247,244,0.72)" : "rgba(248,247,244,0)",
+        backdropFilter: scrolled ? "blur(12px)" : "blur(0px)",
+        WebkitBackdropFilter: scrolled ? "blur(12px)" : "blur(0px)",
+        borderBottomWidth: scrolled ? 1 : 0,
+        borderBottomStyle: "solid",
+        borderColor: "var(--border-subtle)",
+        transition: "background-color 300ms ease, backdrop-filter 300ms ease, border-bottom-width 300ms ease",
       }}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-12 lg:px-20">
-        {/* Logo */}
         <Link
           href="/"
           className="transition-colors hover:text-bordeaux"
@@ -42,7 +64,6 @@ export function SiteNav() {
           Maison Aldéric &amp; Associés
         </Link>
 
-        {/* Desktop nav */}
         <nav className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
             <Link
@@ -63,7 +84,6 @@ export function SiteNav() {
           ))}
         </nav>
 
-        {/* CTA + burger */}
         <div className="flex items-center gap-4">
           <Link
             href="/portail"
@@ -88,7 +108,6 @@ export function SiteNav() {
         </div>
       </div>
 
-      {/* Mobile menu */}
       {open && (
         <div
           className="md:hidden border-t px-6 py-6 flex flex-col gap-5"
@@ -126,6 +145,6 @@ export function SiteNav() {
           </Link>
         </div>
       )}
-    </header>
+    </motion.header>
   );
 }
