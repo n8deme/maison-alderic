@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * Helper centralisé pour fetcher des dossiers avec leurs avocats assignés.
@@ -10,6 +10,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Évite les anciennes références à `lead_avocat_id` / `team_avocat_ids` qui
  * N'EXISTENT PAS dans la DB actuelle.
  */
+
+// Type du client Supabase exact tel que retourné par createClient() de notre projet.
+// On utilise Awaited<ReturnType<...>> pour rester aligné avec le SSR client de Next.js.
+type SupabaseClientType = Awaited<ReturnType<typeof createClient>>;
 
 export type AvocatAssignment = {
   avocat_id: string;
@@ -42,9 +46,7 @@ export type DossierWithAvocats = {
 /**
  * Extrait l'avocat lead d'un dossier (peut être null si aucun lead assigné).
  */
-export function getLeadAvocat(
-  dossier: { dossier_avocats?: AvocatAssignment[] | null }
-): AvocatAssignment["avocat"] | null {
+export function getLeadAvocat(dossier: { dossier_avocats?: AvocatAssignment[] | null }): AvocatAssignment["avocat"] | null {
   const lead = dossier.dossier_avocats?.find((da) => da.role === "lead");
   return lead?.avocat ?? null;
 }
@@ -52,12 +54,8 @@ export function getLeadAvocat(
 /**
  * Extrait les avocats "support" d'un dossier (équipe).
  */
-export function getSupportAvocats(
-  dossier: { dossier_avocats?: AvocatAssignment[] | null }
-): AvocatAssignment["avocat"][] {
-  return (dossier.dossier_avocats ?? [])
-    .filter((da) => da.role === "support")
-    .map((da) => da.avocat);
+export function getSupportAvocats(dossier: { dossier_avocats?: AvocatAssignment[] | null }): AvocatAssignment["avocat"][] {
+  return (dossier.dossier_avocats ?? []).filter((da) => da.role === "support").map((da) => da.avocat);
 }
 
 /**
@@ -94,20 +92,10 @@ export const DOSSIER_WITH_AVOCATS_SELECT = `
  * Récupère un client avec tous ses dossiers + avocats assignés à chaque dossier.
  * Utilisé par la page profil client côté avocat.
  */
-export async function getClientWithDossiers(
-  supabase: SupabaseClient,
-  clientId: string
-) {
+export async function getClientWithDossiers(supabase: SupabaseClientType, clientId: string) {
   return await supabase
     .from("profiles")
-    .select(
-      `
-      *,
-      dossiers:dossiers!client_id (
-        ${DOSSIER_WITH_AVOCATS_SELECT}
-      )
-    `
-    )
+    .select(`*, dossiers:dossiers!client_id (${DOSSIER_WITH_AVOCATS_SELECT})`)
     .eq("id", clientId)
     .eq("role", "client")
     .single();
@@ -117,25 +105,18 @@ export async function getClientWithDossiers(
  * Récupère tous les dossiers visibles pour l'avocat connecté
  * (où il est lead OU support). Utilisé par le dashboard avocat.
  */
-export async function getDossiersForAvocat(
-  supabase: SupabaseClient,
-  avocatId: string
-) {
-  // 1. Récupérer les IDs des dossiers où cet avocat est assigné
+export async function getDossiersForAvocat(supabase: SupabaseClientType, avocatId: string) {
   const { data: assignments } = await supabase
     .from("dossier_avocats")
     .select("dossier_id")
     .eq("avocat_id", avocatId);
 
-  const dossierIds: string[] =
-    assignments?.map((da: { dossier_id: string }) => da.dossier_id) ?? [];
+  const dossierIds: string[] = assignments?.map((da: { dossier_id: string }) => da.dossier_id) ?? [];
 
-  // 2. Si aucun dossier assigné, retourner un résultat vide propre
   if (dossierIds.length === 0) {
     return { data: [], error: null };
   }
 
-  // 3. Récupérer les dossiers complets avec leurs avocats
   return await supabase
     .from("dossiers")
     .select(DOSSIER_WITH_AVOCATS_SELECT)
@@ -146,10 +127,7 @@ export async function getDossiersForAvocat(
 /**
  * Récupère un dossier par sa référence (ex : "MA-2026-0001") avec avocats.
  */
-export async function getDossierByReference(
-  supabase: SupabaseClient,
-  reference: string
-) {
+export async function getDossierByReference(supabase: SupabaseClientType, reference: string) {
   return await supabase
     .from("dossiers")
     .select(DOSSIER_WITH_AVOCATS_SELECT)
