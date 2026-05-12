@@ -29,7 +29,6 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
     redirect("/portail-avocat/clients");
   }
 
-  
   const dossiers: DossierWithAvocats[] = client.dossiers ?? [];
   const dossiersActifs = dossiers.filter((d) => d.status === "active" || d.status === "pending");
 

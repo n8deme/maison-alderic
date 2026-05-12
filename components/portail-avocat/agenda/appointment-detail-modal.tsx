@@ -3,11 +3,13 @@
 import { X, Clock, MapPin, User, Briefcase } from "lucide-react";
 import type { Appointment } from "./calendar-month-view";
 
-const STATUS_LABELS: Record<string, string> = {
-  confirmed: "Confirmé",
-  pending:   "En attente",
-  cancelled: "Annulé",
-  done:      "Effectué",
+// Labels FR + couleurs par statut, alignés sur les vraies valeurs DB
+// (scheduled | confirmed | completed | cancelled).
+const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
+  scheduled: { label: "Planifié",  color: "var(--text-secondary)", bg: "var(--surface-alt)"        },
+  confirmed: { label: "Confirmé",  color: "#16a34a",               bg: "rgba(22, 163, 74, 0.08)"   },
+  completed: { label: "Terminé",   color: "var(--text-muted)",     bg: "var(--surface-alt)"        },
+  cancelled: { label: "Annulé",    color: "#b91c1c",               bg: "rgba(185, 28, 28, 0.08)"   },
 };
 
 function fmtDateLong(iso: string) {
@@ -30,6 +32,8 @@ export function AppointmentDetailModal({
   appointment: Appointment;
   onClose: () => void;
 }) {
+  const statusConfig = STATUS_CONFIG[appt.status] ?? STATUS_CONFIG.scheduled;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
@@ -105,14 +109,14 @@ export function AppointmentDetailModal({
 
           <div className="pt-1">
             <span
-              className="inline-flex items-center rounded-sm px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider"
+              className="inline-flex items-center rounded-sm px-2 py-0.5 text-[10px] font-medium tracking-wider"
               style={{
-                color:           "var(--text-secondary)",
-                backgroundColor: "var(--surface-alt)",
+                color:           statusConfig.color,
+                backgroundColor: statusConfig.bg,
                 fontFamily:      "var(--font-body)",
               }}
             >
-              {STATUS_LABELS[appt.status] ?? appt.status}
+              {statusConfig.label}
             </span>
           </div>
 
