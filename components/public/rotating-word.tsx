@@ -6,18 +6,16 @@ import { motion, AnimatePresence } from "framer-motion";
 const WORDS = ["stratégique", "décisif", "précis", "architecturé"];
 
 const ROTATION_INTERVAL_MS = 4000;
-const LETTER_STAGGER_S = 0.04;
-const TRANSITION_DURATION_S = 0.6;
+const TRANSITION_DURATION_S = 0.7;
 const EASING = [0.22, 1, 0.36, 1] as const;
 
 /**
  * RotatingWord — anime un mot qui change toutes les 4 secondes.
  *
- * Animation letter-by-letter : chaque lettre apparaît du bas en stagger,
- * disparaît vers le haut. Couleur bordeaux pour accentuer.
+ * Animation "magazine éditorial" : le mot disparaît en fade vers le haut,
+ * le nouveau apparaît en fade depuis le bas. Sobre, institutionnel.
  *
- * Usage : <RotatingWord /> au sein d'un h1.
- * Le composant gère son propre cycle, pas de props nécessaires.
+ * Inspiration : Stibbe, Sullivan & Cromwell.
  */
 export function RotatingWord() {
   const [index, setIndex] = useState(0);
@@ -46,24 +44,15 @@ export function RotatingWord() {
         <motion.span
           key={currentWord}
           className="inline-block whitespace-nowrap"
-          aria-hidden="true"
+          initial={{ y: "0.4em", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: "-0.4em", opacity: 0 }}
+          transition={{
+            duration: TRANSITION_DURATION_S,
+            ease: EASING,
+          }}
         >
-          {currentWord.split("").map((letter, letterIndex) => (
-            <motion.span
-              key={`${currentWord}-${letterIndex}`}
-              className="inline-block"
-              initial={{ y: "0.5em", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "-0.5em", opacity: 0 }}
-              transition={{
-                duration: TRANSITION_DURATION_S,
-                ease: EASING,
-                delay: letterIndex * LETTER_STAGGER_S,
-              }}
-            >
-              {letter}
-            </motion.span>
-          ))}
+          {currentWord}
         </motion.span>
       </AnimatePresence>
     </span>
