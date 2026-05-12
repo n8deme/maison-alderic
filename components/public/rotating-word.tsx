@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const WORDS = ["stratégique", "décisif", "précis", "architecturé"];
+const WORDS = ["stratégique", "décisif", "précis", "calibré"];
 
 const ROTATION_INTERVAL_MS = 4000;
 const TRANSITION_DURATION_S = 0.7;
@@ -12,8 +12,10 @@ const EASING = [0.22, 1, 0.36, 1] as const;
 /**
  * RotatingWord — anime un mot qui change toutes les 4 secondes.
  *
- * Animation "magazine éditorial" : le mot disparaît en fade vers le haut,
- * le nouveau apparaît en fade depuis le bas. Sobre, institutionnel.
+ * Animation "magazine éditorial" : le mot (avec son point final) disparaît
+ * en fade vers le haut, le nouveau apparaît en fade depuis le bas.
+ * Le point est inclus dans l'animation pour éviter qu'il "flotte seul"
+ * pendant la transition.
  *
  * Inspiration : Stibbe, Sullivan & Cromwell.
  */
@@ -38,7 +40,7 @@ export function RotatingWord() {
         minWidth: "0.3em",
       }}
       aria-live="polite"
-      aria-label={currentWord}
+      aria-label={`${currentWord}.`}
     >
       <AnimatePresence mode="wait">
         <motion.span
@@ -52,7 +54,7 @@ export function RotatingWord() {
             ease: EASING,
           }}
         >
-          {currentWord}
+          {currentWord}.
         </motion.span>
       </AnimatePresence>
     </span>

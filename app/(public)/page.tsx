@@ -88,7 +88,7 @@ export default async function HomePage({
                   lineHeight: 1.05,
                 }}
               >
-                Le droit comme architecture <RotatingWord />.
+                Le droit comme architecture <RotatingWord />
               </h1>
               <p
                 className="text-lg max-w-lg"
