@@ -29,9 +29,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
     redirect("/portail-avocat/clients");
   }
 
-  // DEBUG TEMPORAIRE — à virer une fois bug #3 fix complet
-  console.log("[clients/[id] DEBUG] First dossier raw:", JSON.stringify(client.dossiers?.[0], null, 2));
-
+  
   const dossiers: DossierWithAvocats[] = client.dossiers ?? [];
   const dossiersActifs = dossiers.filter((d) => d.status === "active" || d.status === "pending");
 
