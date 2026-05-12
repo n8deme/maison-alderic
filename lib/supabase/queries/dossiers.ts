@@ -9,6 +9,10 @@ import { createClient } from "@/lib/supabase/server";
  * IMPORTANT : utilise ce helper partout au lieu de réécrire le pattern.
  * Évite les anciennes références à `lead_avocat_id` / `team_avocat_ids` qui
  * N'EXISTENT PAS dans la DB actuelle.
+ *
+ * Les hints FK explicites (!dossier_avocats_dossier_id_fkey et !dossier_avocats_avocat_id_fkey)
+ * forcent Supabase à utiliser la bonne FK pour le join, évitant les ambiguïtés
+ * qui causaient des résultats null sur les avocats nested.
  */
 
 // Type du client Supabase exact tel que retourné par createClient() de notre projet.
@@ -61,6 +65,9 @@ export function getSupportAvocats(dossier: { dossier_avocats?: AvocatAssignment[
 /**
  * Le SELECT à utiliser dans les queries Supabase pour récupérer un dossier
  * avec ses avocats. À spread dans les .select().
+ *
+ * NOTE : les hints !dossier_avocats_dossier_id_fkey et !dossier_avocats_avocat_id_fkey
+ * forcent l'utilisation de la bonne FK pour résoudre le nested select.
  */
 export const DOSSIER_WITH_AVOCATS_SELECT = `
   id,
@@ -76,10 +83,10 @@ export const DOSSIER_WITH_AVOCATS_SELECT = `
   closed_at,
   created_at,
   updated_at,
-  dossier_avocats (
+  dossier_avocats!dossier_avocats_dossier_id_fkey (
     avocat_id,
     role,
-    avocat:avocats (
+    avocat:avocats!dossier_avocats_avocat_id_fkey (
       id,
       full_name,
       slug,
