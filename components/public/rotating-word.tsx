@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const WORDS = ["stratégique", "décisif", "précis", "calibré"];
+const WORDS = ["décisif", "précis", "calibré", "affûté"];
 
 const ROTATION_INTERVAL_MS = 4000;
 const TRANSITION_DURATION_S = 0.7;
