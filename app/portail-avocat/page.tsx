@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertCircle, CalendarDays, FolderOpen, UserPlus, Euro, Clock3, AlertTriangle } from "lucide-react";
+import { AlertCircle, CalendarDays, FolderOpen, UserPlus, Euro, Clock3, AlertTriangle, Activity, CalendarX, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AnimatedKPICard } from "@/components/portail-avocat/animated-kpi-card";
 import { AnimatedActivityCard } from "@/components/portail-avocat/animated-activity-card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -143,7 +144,12 @@ export default async function PortailAvocatDashboardPage() {
           </div>
           <div className="space-y-2">
             {(activityRes.data ?? []).length === 0 ? (
-              <p className="text-sm text-text-muted">Aucune activité récente.</p>
+              <EmptyState
+                icon={Activity}
+                title="Aucune activité"
+                description="Les nouvelles étapes des dossiers apparaîtront ici dès qu'elles seront créées."
+                size="compact"
+              />
             ) : (
               (activityRes.data ?? []).map((item: any, index: number) => {
                 const ref = item.dossier?.reference;
@@ -169,7 +175,13 @@ export default async function PortailAvocatDashboardPage() {
           </div>
           <div className="space-y-2">
             {(todayRdvRes.data ?? []).length === 0 ? (
-              <p className="text-sm text-text-muted">Aucun rendez-vous aujourd&apos;hui.</p>
+              <EmptyState
+                icon={CalendarX}
+                title="Journée libre"
+                description="Aucun rendez-vous prévu aujourd'hui."
+                action={{ label: "Voir l'agenda complet", href: "/portail-avocat/agenda" }}
+                size="compact"
+              />
             ) : (
               (todayRdvRes.data ?? []).map((rdv: any) => (
                 <div key={rdv.id} className="rounded-sm border border-border-subtle p-3">
@@ -191,7 +203,12 @@ export default async function PortailAvocatDashboardPage() {
         </div>
         <div className="rounded-lg border border-border bg-surface">
           {urgentRows.length === 0 ? (
-            <p className="p-6 text-sm text-text-muted">Aucune urgence cette semaine.</p>
+            <EmptyState
+              icon={ShieldCheck}
+              title="Tout est sous contrôle"
+              description="Aucune échéance critique cette semaine. Vous pouvez avancer sereinement sur les dossiers en cours."
+              size="default"
+            />
           ) : (
             urgentRows.map((item: any, index: number) => (
               <div key={item.id} className={`px-5 py-4 ${index !== 0 ? "border-t border-border-subtle" : ""}`}>
