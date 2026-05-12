@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertCircle, CalendarDays, FolderOpen, UserPlus, Euro, Clock3 } from "lucide-react";
+import { AlertCircle, CalendarDays, FolderOpen, UserPlus, Euro, Clock3, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -34,27 +34,53 @@ export default async function PortailAvocatDashboardPage() {
   const weekEnd = new Date(todayStart);
   weekEnd.setDate(weekEnd.getDate() + 7);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const nowIso = now.toISOString();
 
-  const [activeRes, newClientsRes, rdvWeekRes, caRes, activityRes, todayRdvRes, urgentRes] = await Promise.all([
+  const [activeRes, newClientsRes, rdvWeekRes, caRes, overdueRes, activityRes, todayRdvRes, urgentRes] = await Promise.all([
+    // Dossiers actifs (active OU pending)
     supabase.from("dossiers").select("id", { count: "exact", head: true }).in("status", ["active", "pending"]),
+
+    // Nouveaux clients du mois
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "client").gte("created_at", monthStart),
+
+    // RDV à venir cette semaine
     supabase
       .from("appointments")
       .select("id", { count: "exact", head: true })
       .gte("starts_at", todayStart.toISOString())
       .lt("starts_at", weekEnd.toISOString()),
-    supabase.from("invoices").select("amount_ttc, status, issued_at").gte("issued_at", monthStart).neq("status", "cancelled"),
+
+    // CA du mois — FIX : filtrer sur paid_at (et status=paid), pas issued_at
+    supabase
+      .from("invoices")
+      .select("amount_ttc, paid_at")
+      .eq("status", "paid")
+      .gte("paid_at", monthStart)
+      .lt("paid_at", nowIso),
+
+    // Factures en retard — sent OU overdue avec due_at dépassée
+    supabase
+      .from("invoices")
+      .select("id, amount_ttc", { count: "exact" })
+      .in("status", ["sent", "overdue"])
+      .lt("due_at", nowIso),
+
+    // Activité récente
     supabase
       .from("dossier_timeline")
       .select("id, title, status, created_at, dossier:dossiers(id, reference, title)")
       .order("created_at", { ascending: false })
       .limit(10),
+
+    // RDV aujourd'hui
     supabase
       .from("appointments")
       .select("id, title, starts_at, ends_at, location, avocat:avocats(full_name), client:profiles!client_id(full_name)")
       .gte("starts_at", todayStart.toISOString())
       .lt("starts_at", todayEnd.toISOString())
       .order("starts_at", { ascending: true }),
+
+    // Dossiers urgents (deadline < 7j)
     supabase
       .from("dossier_timeline")
       .select("id, title, due_date, dossier:dossiers(id, reference, title, status)")
@@ -64,7 +90,15 @@ export default async function PortailAvocatDashboardPage() {
       .limit(10),
   ]);
 
-  const caMonth = (caRes.data ?? []).reduce((sum, item) => sum + Number(item.amount_ttc), 0);
+  const caMonth = (caRes.data ?? []).reduce(
+    (sum: number, item: { amount_ttc: number | string }) => sum + Number(item.amount_ttc),
+    0
+  );
+  const overdueCount = overdueRes.count ?? 0;
+  const overdueAmount = (overdueRes.data ?? []).reduce(
+    (sum: number, item: { amount_ttc: number | string }) => sum + Number(item.amount_ttc),
+    0
+  );
   const urgentRows = (urgentRes.data ?? []).filter((item: any) =>
     item.dossier && item.dossier.status !== "won" && item.dossier.status !== "archived"
   );
@@ -78,14 +112,16 @@ export default async function PortailAvocatDashboardPage() {
         <p className="mt-1 text-sm text-text-secondary">Vue globale cabinet - dossiers, clients, agenda et facturation.</p>
       </div>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {[
-          { label: "Dossiers actifs",        value: activeRes.count ?? 0,     icon: FolderOpen,  href: "/portail-avocat/dossiers?status=active" },
-          { label: "Nouveaux clients (mois)", value: newClientsRes.count ?? 0, icon: UserPlus,    href: "/portail-avocat/clients" },
-          { label: "RDV semaine",            value: rdvWeekRes.count ?? 0,     icon: CalendarDays, href: "/portail-avocat/agenda" },
-          { label: "CA du mois",             value: fmtEur(caMonth),           icon: Euro,        href: "/portail-avocat/facturation" },
+          { label: "Dossiers actifs",        value: activeRes.count ?? 0,      icon: FolderOpen,    href: "/portail-avocat/dossiers?status=active", sublabel: undefined },
+          { label: "Nouveaux clients (mois)", value: newClientsRes.count ?? 0, icon: UserPlus,      href: "/portail-avocat/clients", sublabel: undefined },
+          { label: "RDV semaine",            value: rdvWeekRes.count ?? 0,     icon: CalendarDays,  href: "/portail-avocat/agenda", sublabel: undefined },
+          { label: "CA du mois",             value: fmtEur(caMonth),           icon: Euro,          href: "/portail-avocat/facturation?status=paid", sublabel: undefined },
+          { label: "Factures en retard",     value: overdueCount,              icon: AlertTriangle, href: "/portail-avocat/facturation?status=overdue", sublabel: overdueCount > 0 ? fmtEur(overdueAmount) : undefined },
         ].map((card) => {
           const Icon = card.icon;
+          const isOverdue = card.label === "Factures en retard" && Number(card.value) > 0;
           return (
             <Link
               key={card.label}
@@ -93,10 +129,13 @@ export default async function PortailAvocatDashboardPage() {
               className="rounded-lg border border-border bg-surface p-5 cursor-pointer transition-colors hover:bg-surface-alt"
             >
               <div className="mb-2 flex items-center justify-between">
-                <Icon className="h-4 w-4 text-bordeaux" />
+                <Icon className={`h-4 w-4 ${isOverdue ? "text-bordeaux" : "text-bordeaux"}`} />
               </div>
-              <p className="text-3xl text-foreground">{card.value}</p>
+              <p className={`text-3xl ${isOverdue ? "text-bordeaux" : "text-foreground"}`}>{card.value}</p>
               <p className="mt-1 text-xs text-text-muted">{card.label}</p>
+              {card.sublabel && (
+                <p className="mt-0.5 text-xs text-text-secondary">{card.sublabel}</p>
+              )}
             </Link>
           );
         })}
