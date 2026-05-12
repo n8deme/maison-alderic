@@ -3,8 +3,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertCircle, CalendarDays, FolderOpen, UserPlus, Euro, Clock3, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { AnimatedKPICard } from "@/components/portail-avocat/animated-kpi-card";
-import { AnimatedActivityCard } from "@/components/portail-avocat/animated-activity-card";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -39,16 +37,20 @@ export default async function PortailAvocatDashboardPage() {
   const nowIso = now.toISOString();
 
   const [activeRes, newClientsRes, rdvWeekRes, caRes, overdueRes, activityRes, todayRdvRes, urgentRes] = await Promise.all([
+    // Dossiers actifs (active OU pending)
     supabase.from("dossiers").select("id", { count: "exact", head: true }).in("status", ["active", "pending"]),
 
+    // Nouveaux clients du mois
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "client").gte("created_at", monthStart),
 
+    // RDV à venir cette semaine
     supabase
       .from("appointments")
       .select("id", { count: "exact", head: true })
       .gte("starts_at", todayStart.toISOString())
       .lt("starts_at", weekEnd.toISOString()),
 
+    // CA du mois — FIX : filtrer sur paid_at (et status=paid), pas issued_at
     supabase
       .from("invoices")
       .select("amount_ttc, paid_at")
@@ -56,18 +58,21 @@ export default async function PortailAvocatDashboardPage() {
       .gte("paid_at", monthStart)
       .lt("paid_at", nowIso),
 
+    // Factures en retard — sent OU overdue avec due_at dépassée
     supabase
       .from("invoices")
       .select("id, amount_ttc", { count: "exact" })
       .in("status", ["sent", "overdue"])
       .lt("due_at", nowIso),
 
+    // Activité récente
     supabase
       .from("dossier_timeline")
       .select("id, title, status, created_at, dossier:dossiers(id, reference, title)")
       .order("created_at", { ascending: false })
       .limit(10),
 
+    // RDV aujourd'hui
     supabase
       .from("appointments")
       .select("id, title, starts_at, ends_at, location, avocat:avocats(full_name), client:profiles!client_id(full_name)")
@@ -75,6 +80,7 @@ export default async function PortailAvocatDashboardPage() {
       .lt("starts_at", todayEnd.toISOString())
       .order("starts_at", { ascending: true }),
 
+    // Dossiers urgents (deadline < 7j)
     supabase
       .from("dossier_timeline")
       .select("id, title, due_date, dossier:dossiers(id, reference, title, status)")
@@ -97,14 +103,6 @@ export default async function PortailAvocatDashboardPage() {
     item.dossier && item.dossier.status !== "won" && item.dossier.status !== "archived"
   );
 
-  const kpiCards = [
-    { label: "Dossiers actifs",         value: activeRes.count ?? 0,      icon: FolderOpen,    href: "/portail-avocat/dossiers?status=active",   sublabel: undefined,                                          isAlert: false, alertActive: false },
-    { label: "Nouveaux clients (mois)", value: newClientsRes.count ?? 0,  icon: UserPlus,      href: "/portail-avocat/clients",                  sublabel: undefined,                                          isAlert: false, alertActive: false },
-    { label: "RDV semaine",             value: rdvWeekRes.count ?? 0,     icon: CalendarDays,  href: "/portail-avocat/agenda",                   sublabel: undefined,                                          isAlert: false, alertActive: false },
-    { label: "CA du mois",              value: fmtEur(caMonth),           icon: Euro,          href: "/portail-avocat/facturation?status=paid",  sublabel: undefined,                                          isAlert: false, alertActive: false },
-    { label: "Factures en retard",      value: overdueCount,              icon: AlertTriangle, href: "/portail-avocat/facturation?status=overdue", sublabel: overdueCount > 0 ? fmtEur(overdueAmount) : undefined, isAlert: true,  alertActive: overdueCount > 0 },
-  ];
-
   return (
     <div className="max-w-7xl p-6 md:p-8">
       <div className="mb-8">
@@ -115,19 +113,32 @@ export default async function PortailAvocatDashboardPage() {
       </div>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {kpiCards.map((card, index) => (
-          <AnimatedKPICard
-            key={card.label}
-            icon={card.icon}
-            value={card.value}
-            label={card.label}
-            href={card.href}
-            sublabel={card.sublabel}
-            index={index}
-            isAlert={card.isAlert}
-            alertActive={card.alertActive}
-          />
-        ))}
+        {[
+          { label: "Dossiers actifs",        value: activeRes.count ?? 0,      icon: FolderOpen,    href: "/portail-avocat/dossiers?status=active", sublabel: undefined },
+          { label: "Nouveaux clients (mois)", value: newClientsRes.count ?? 0, icon: UserPlus,      href: "/portail-avocat/clients", sublabel: undefined },
+          { label: "RDV semaine",            value: rdvWeekRes.count ?? 0,     icon: CalendarDays,  href: "/portail-avocat/agenda", sublabel: undefined },
+          { label: "CA du mois",             value: fmtEur(caMonth),           icon: Euro,          href: "/portail-avocat/facturation?status=paid", sublabel: undefined },
+          { label: "Factures en retard",     value: overdueCount,              icon: AlertTriangle, href: "/portail-avocat/facturation?status=overdue", sublabel: overdueCount > 0 ? fmtEur(overdueAmount) : undefined },
+        ].map((card) => {
+          const Icon = card.icon;
+          const isOverdue = card.label === "Factures en retard" && Number(card.value) > 0;
+          return (
+            <Link
+              key={card.label}
+              href={card.href}
+              className="rounded-lg border border-border bg-surface p-5 cursor-pointer transition-colors hover:bg-surface-alt"
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <Icon className={`h-4 w-4 ${isOverdue ? "text-bordeaux" : "text-bordeaux"}`} />
+              </div>
+              <p className={`text-3xl ${isOverdue ? "text-bordeaux" : "text-foreground"}`}>{card.value}</p>
+              <p className="mt-1 text-xs text-text-muted">{card.label}</p>
+              {card.sublabel && (
+                <p className="mt-0.5 text-xs text-text-secondary">{card.sublabel}</p>
+              )}
+            </Link>
+          );
+        })}
       </section>
 
       <section className="mt-8 grid grid-cols-1 gap-4 xl:grid-cols-12">
@@ -140,19 +151,14 @@ export default async function PortailAvocatDashboardPage() {
             {(activityRes.data ?? []).length === 0 ? (
               <p className="text-sm text-text-muted">Aucune activité récente.</p>
             ) : (
-              (activityRes.data ?? []).map((item: any, index: number) => {
-                const ref = item.dossier?.reference;
-                const href = ref ? `/portail-avocat/dossiers/${encodeURIComponent(ref)}` : null;
-                return (
-                  <AnimatedActivityCard
-                    key={item.id}
-                    title={item.title}
-                    subtitle={`${ref ?? "Dossier"} - ${fmtDateTime(item.created_at)}`}
-                    href={href}
-                    index={index}
-                  />
-                );
-              })
+              (activityRes.data ?? []).map((item: any) => (
+                <div key={item.id} className="rounded-sm border border-border-subtle p-3">
+                  <p className="text-sm text-foreground">{item.title}</p>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    {item.dossier?.reference ?? "Dossier"} - {fmtDateTime(item.created_at)}
+                  </p>
+                </div>
+              ))
             )}
           </div>
         </article>
