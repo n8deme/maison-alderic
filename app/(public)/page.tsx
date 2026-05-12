@@ -7,6 +7,7 @@ import { HomeDealsSticky } from "@/components/public/home-deals-sticky";
 import { HomeAssociesReveal } from "@/components/public/home-associes-reveal";
 import { HomeInsightsMagazine } from "@/components/public/home-insights-magazine";
 import { Reveal } from "@/components/public/reveal";
+import { RotatingWord } from "@/components/public/rotating-word";
 
 export const metadata: Metadata = {
   title: "Maison Aldéric & Associés — Cabinet d'avocats d'affaires, Bruxelles",
@@ -87,7 +88,7 @@ export default async function HomePage({
                   lineHeight: 1.05,
                 }}
               >
-                Le droit comme architecture stratégique.
+                Le droit comme architecture <RotatingWord />.
               </h1>
               <p
                 className="text-lg max-w-lg"
