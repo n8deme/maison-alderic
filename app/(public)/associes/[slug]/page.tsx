@@ -1,17 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createStaticClient } from "@/lib/supabase/static";
 import { getAvocatPhoto } from "@/lib/avocats-photos";
 import type { AssocieDealItem } from "./associes-deals-section";
-
-const AssociesDealsSection = dynamic(
-  () => import("./associes-deals-section").then((m) => m.AssociesDealsSection),
-  { ssr: false }
-);
+import { AssociesDealsSectionClient } from "./associes-deals-client";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -205,7 +200,7 @@ export default async function AssociePage({ params }: PageProps) {
         </div>
       </section>
 
-      <AssociesDealsSection deals={deals} />
+      <AssociesDealsSectionClient deals={deals} />
 
       <section className="px-6 pb-24 md:px-12 lg:px-20">
         <div className="mx-auto max-w-4xl rounded-sm border border-border bg-surface-alt p-8 text-center md:p-12">
