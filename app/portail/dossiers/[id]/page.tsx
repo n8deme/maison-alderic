@@ -81,6 +81,14 @@ export default async function DossierDetailPage({ params }: { params: Promise<{ 
       .eq("dossier_id", id),
   ]);
 
+  console.log("[DEBUG timeline]", {
+    userId: user.id,
+    timelineData: timelineRes.data,
+    timelineError: timelineRes.error,
+    dossierData: dossierRes.data?.id,
+    dossierError: dossierRes.error,
+  });
+
   if (!dossierRes.data) notFound();
 
   const d           = dossierRes.data;
