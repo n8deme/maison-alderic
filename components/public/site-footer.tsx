@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/brand/logo";
 
 const expertisesLinks = [
   { href: "/expertises#ma", label: "Fusions & Acquisitions" },
@@ -26,16 +27,9 @@ export function SiteFooter() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Col 1 — Logo + tagline + adresse */}
           <div className="space-y-5">
-            <p
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 500,
-                fontSize: "1rem",
-                color: "var(--text-primary)",
-              }}
-            >
-              Maison Aldéric<br />&amp; Associés
-            </p>
+            <div className="text-[var(--text-primary)]">
+              <Logo variant="wordmark" className="h-8 w-auto" />
+            </div>
             <p
               style={{
                 fontFamily: "var(--font-body)",

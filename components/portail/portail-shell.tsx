@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/brand/logo";
 import {
   LayoutDashboard, FolderOpen, FileText, MessageSquare,
   Receipt, Calendar, User, Menu, X,
@@ -48,12 +49,9 @@ function PortailSidebar({
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-5 border-b border-border">
         <div>
-          <p
-            className="text-sm font-medium leading-tight"
-            style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}
-          >
-            Maison Aldéric
-          </p>
+          <div className="text-foreground">
+            <Logo variant="wordmark" className="h-6 w-auto" />
+          </div>
           <p
             className="text-[10px] uppercase tracking-widest mt-0.5"
             style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}
@@ -207,11 +205,8 @@ export default function PortailShell({
           >
             <Menu className="w-5 h-5 text-text-muted" />
           </button>
-          <span
-            className="text-sm font-medium"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Maison Aldéric
+          <span className="text-foreground">
+            <Logo variant="wordmark" className="h-6 w-auto" />
           </span>
         </header>
 

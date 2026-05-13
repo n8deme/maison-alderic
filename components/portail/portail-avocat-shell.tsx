@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/brand/logo";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -51,9 +52,9 @@ function Sidebar({
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-5 py-5">
-        <p className="text-sm font-medium leading-tight" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}>
-          Maison Aldéric
-        </p>
+        <div className="text-foreground">
+          <Logo variant="wordmark" className="h-6 w-auto" />
+        </div>
         <div className="mt-1 flex items-center gap-2">
           <p className="text-[10px] uppercase tracking-widest text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
             Portail avocat
@@ -151,8 +152,8 @@ export default function PortailAvocatShell({
           <button onClick={() => setMobileOpen(true)} className="rounded-sm p-1 -ml-1 transition-colors hover:bg-surface-alt">
             <Menu className="h-5 w-5 text-text-muted" />
           </button>
-          <span className="text-sm font-medium" style={{ fontFamily: "var(--font-display)" }}>
-            Maison Aldéric
+          <span className="text-foreground">
+            <Logo variant="wordmark" className="h-6 w-auto" />
           </span>
           <span
             className="rounded-sm px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider"

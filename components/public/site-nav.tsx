@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { Logo } from "@/components/brand/logo";
 
 const navLinks = [
   { href: "/expertises", label: "Expertises" },
@@ -52,16 +53,9 @@ export function SiteNav() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-12 lg:px-20">
         <Link
           href="/"
-          className="transition-colors hover:text-bordeaux"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 500,
-            fontSize: "1rem",
-            letterSpacing: "-0.01em",
-            color: "var(--text-primary)",
-          }}
+          className="block shrink-0 text-[var(--text-primary)] transition-opacity hover:opacity-80"
         >
-          Maison Aldéric &amp; Associés
+          <Logo variant="wordmark" className="h-7 w-auto" />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
