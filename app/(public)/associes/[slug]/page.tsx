@@ -1,11 +1,17 @@
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createStaticClient } from "@/lib/supabase/static";
-import { Reveal } from "@/components/public/reveal";
 import { getAvocatPhoto } from "@/lib/avocats-photos";
+import type { AssocieDealItem } from "./associes-deals-section";
+
+const AssociesDealsSection = dynamic(
+  () => import("./associes-deals-section").then((m) => m.AssociesDealsSection),
+  { ssr: false }
+);
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -100,23 +106,15 @@ export default async function AssociePage({ params }: PageProps) {
     .eq("avocat_id", avocat.id)
     .limit(3);
 
-  const deals = ((dealLinks ?? [])
-    .map((item: any) => item.deals)
-    .filter(Boolean) as Array<{
-    id: string;
-    title: string;
-    client_name: string;
-    amount_label: string | null;
-    year: number;
-    category: string;
-    slug: string;
-  }>).slice(0, 3);
+  const deals: AssocieDealItem[] = ((dealLinks ?? [])
+    .map((item: { deals: AssocieDealItem | null }) => item.deals)
+    .filter(Boolean) as AssocieDealItem[]).slice(0, 3);
 
   return (
     <>
       <section className="px-6 py-24 md:px-12 md:py-32 lg:px-20">
         <div className="mx-auto max-w-7xl space-y-10">
-          <Reveal className="grid grid-cols-1 gap-10 lg:grid-cols-[0.4fr_0.6fr]">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[0.4fr_0.6fr]">
             <div className="space-y-4">
               <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-surface-alt">
                 <Image
@@ -124,6 +122,7 @@ export default async function AssociePage({ params }: PageProps) {
                   alt={avocat.full_name}
                   width={600}
                   height={600}
+                  priority
                   className="h-full w-full rounded-lg object-cover grayscale"
                 />
               </div>
@@ -156,7 +155,7 @@ export default async function AssociePage({ params }: PageProps) {
                 <p className="text-sm text-text-secondary">Langues: {avocat.languages.join(", ")}</p>
               ) : null}
             </div>
-          </Reveal>
+          </div>
         </div>
       </section>
 
@@ -206,23 +205,7 @@ export default async function AssociePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="px-6 py-16 md:px-12 md:py-24 lg:px-20">
-        <div className="mx-auto max-w-7xl space-y-8">
-          <h2 className="text-3xl text-foreground">Transactions notables</h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {(deals ?? []).map((deal: any, index: number) => (
-              <Reveal key={deal.id} delay={index * 0.05}>
-                <article className="rounded-sm border border-border bg-surface p-6">
-                <p className="text-xs uppercase tracking-wide text-bordeaux">{deal.year}</p>
-                <h3 className="mt-3 text-xl text-foreground">{deal.title}</h3>
-                <p className="mt-2 text-sm text-text-secondary">{deal.client_name}</p>
-                <p className="mt-4 text-lg text-bordeaux">{deal.amount_label ?? "Confidentiel"}</p>
-                </article>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      <AssociesDealsSection deals={deals} />
 
       <section className="px-6 pb-24 md:px-12 lg:px-20">
         <div className="mx-auto max-w-4xl rounded-sm border border-border bg-surface-alt p-8 text-center md:p-12">
