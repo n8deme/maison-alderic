@@ -95,7 +95,7 @@ function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <Logo variant="wordmark" className="block h-8 w-auto mx-auto mb-8" />
+          <Logo variant="wordmark" className="h-14 w-auto mx-auto mb-10" />
           <h1 className="text-3xl font-serif font-semibold text-slate-900">
             Espace Client
           </h1>

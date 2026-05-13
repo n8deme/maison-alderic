@@ -53,7 +53,7 @@ function Sidebar({
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-5 py-5">
         <div className="text-foreground">
-          <Logo variant="wordmark" className="h-6 w-auto" />
+          <Logo variant="wordmark" className="h-9 w-auto" />
         </div>
         <div className="mt-1 flex items-center gap-2">
           <p className="text-[10px] uppercase tracking-widest text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
@@ -153,7 +153,7 @@ export default function PortailAvocatShell({
             <Menu className="h-5 w-5 text-text-muted" />
           </button>
           <span className="text-foreground">
-            <Logo variant="wordmark" className="h-6 w-auto" />
+            <Logo variant="wordmark" className="h-9 w-auto" />
           </span>
           <span
             className="rounded-sm px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider"

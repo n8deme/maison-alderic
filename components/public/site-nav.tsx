@@ -50,12 +50,12 @@ export function SiteNav() {
         transition: "background-color 300ms ease, backdrop-filter 300ms ease, border-bottom-width 300ms ease",
       }}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-12 lg:px-20">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 md:px-12 lg:px-20">
         <Link
           href="/"
           className="block shrink-0 text-[var(--text-primary)] transition-opacity hover:opacity-80"
         >
-          <Logo variant="wordmark" className="h-7 w-auto" />
+          <Logo variant="wordmark" className="h-10 w-auto md:h-12" />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

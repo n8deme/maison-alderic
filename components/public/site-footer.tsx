@@ -28,7 +28,7 @@ export function SiteFooter() {
           {/* Col 1 — Logo + tagline + adresse */}
           <div className="space-y-5">
             <div className="text-[var(--text-primary)]">
-              <Logo variant="wordmark" className="h-8 w-auto" />
+              <Logo variant="wordmark" className="h-12 w-auto" />
             </div>
             <p
               style={{

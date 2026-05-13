@@ -50,7 +50,7 @@ function PortailSidebar({
       <div className="flex items-center justify-between px-5 py-5 border-b border-border">
         <div>
           <div className="text-foreground">
-            <Logo variant="wordmark" className="h-6 w-auto" />
+            <Logo variant="wordmark" className="h-9 w-auto" />
           </div>
           <p
             className="text-[10px] uppercase tracking-widest mt-0.5"
@@ -206,7 +206,7 @@ export default function PortailShell({
             <Menu className="w-5 h-5 text-text-muted" />
           </button>
           <span className="text-foreground">
-            <Logo variant="wordmark" className="h-6 w-auto" />
+            <Logo variant="wordmark" className="h-9 w-auto" />
           </span>
         </header>
 
