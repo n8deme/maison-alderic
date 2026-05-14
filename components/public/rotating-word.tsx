@@ -36,7 +36,7 @@ export function RotatingWord() {
       className="relative inline-block align-baseline"
       style={{
         fontStyle: "italic",
-        color: "var(--bordeaux)",
+        color: "var(--text-primary)",
         minWidth: "0.3em",
       }}
       aria-live="polite"

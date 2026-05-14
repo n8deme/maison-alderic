@@ -67,7 +67,12 @@ function Sidebar({
           </span>
         </div>
         {onClose && (
-          <button onClick={onClose} className="absolute right-3 top-3 rounded-sm p-1 transition-colors hover:bg-surface-alt">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer le menu"
+            className="absolute right-3 top-3 rounded-sm p-1 transition-colors hover:bg-surface-alt"
+          >
             <X className="h-4 w-4 text-text-muted" />
           </button>
         )}
@@ -107,7 +112,7 @@ function Sidebar({
             {profile.full_name ?? profile.email}
           </p>
           <form action={signOutAction}>
-            <button type="submit" className="rounded-sm p-1 transition-colors hover:bg-surface-alt" title="Se deconnecter">
+            <button type="submit" aria-label="Se déconnecter" className="rounded-sm p-1 transition-colors hover:bg-surface-alt" title="Se deconnecter">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--text-muted)" }}>
                 <path d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
               </svg>
@@ -149,7 +154,12 @@ export default function PortailAvocatShell({
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex h-12 shrink-0 items-center gap-3 border-b border-border bg-surface px-4 lg:hidden">
-          <button onClick={() => setMobileOpen(true)} className="rounded-sm p-1 -ml-1 transition-colors hover:bg-surface-alt">
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Ouvrir le menu"
+            className="rounded-sm p-1 -ml-1 transition-colors hover:bg-surface-alt"
+          >
             <Menu className="h-5 w-5 text-text-muted" />
           </button>
           <span className="text-foreground">

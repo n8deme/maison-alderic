@@ -61,7 +61,9 @@ function PortailSidebar({
         </div>
         {onClose && (
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Fermer le menu"
             className="p-1 -mr-1 rounded-sm transition-colors hover:bg-surface-alt"
           >
             <X className="w-4 h-4 text-text-muted" />
@@ -140,6 +142,7 @@ function PortailSidebar({
             <button
               type="submit"
               title="Se déconnecter"
+              aria-label="Se déconnecter"
               className="p-1 rounded-sm transition-colors hover:bg-surface-alt"
             >
               <svg
@@ -200,7 +203,9 @@ export default function PortailShell({
         {/* Mobile topbar */}
         <header className="lg:hidden flex items-center gap-3 h-12 px-4 border-b border-border bg-surface shrink-0">
           <button
+            type="button"
             onClick={() => setMobileOpen(true)}
+            aria-label="Ouvrir le menu"
             className="p-1 -ml-1 rounded-sm transition-colors hover:bg-surface-alt"
           >
             <Menu className="w-5 h-5 text-text-muted" />
