@@ -30,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
 
 # vercel
@@ -40,5 +40,20 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Supabase seed credentials (passwords pour tests locaux)
+# Supabase seed credentials
 supabase/SEED_CREDENTIALS.md
+
+# Lighthouse / Unlighthouse reports
+.unlighthouse/
+unlighthouse-desktop.json/
+lighthouse-results/
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
+# Scripts de seed (contiennent des clés)
+scripts/
+
+# Logs divers
+*.log
