@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getOrganization } from "@/lib/get-organization";
 import { DashboardPremium } from "@/components/portail/dashboard-premium";
 
 export const metadata: Metadata = { title: "Tableau de bord" };
@@ -10,6 +11,9 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
 
+  // Multi-tenant : récupérer l'org depuis les headers du middleware
+  const org = await getOrganization();
+
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
@@ -17,16 +21,23 @@ export default async function DashboardPage() {
   const weekAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
 
   const [profileRes, dossiersRes, invoicesRes] = await Promise.all([
-    supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .eq("organization_id", org.id)
+      .maybeSingle(),
     supabase
       .from("dossiers")
       .select("id, reference, title, status, opened_at")
       .eq("client_id", user.id)
+      .eq("organization_id", org.id)
       .order("opened_at", { ascending: false }),
     supabase
       .from("invoices")
       .select("amount_ttc, issued_at")
       .eq("client_id", user.id)
+      .eq("organization_id", org.id)
       .gte("issued_at", startOfMonth),
   ]);
 
@@ -56,6 +67,7 @@ export default async function DashboardPage() {
         .from("documents")
         .select("id", { count: "exact", head: true })
         .in("dossier_id", dossierIds)
+        .eq("organization_id", org.id)
         .gte("created_at", weekAgo)
     : { count: 0 };
 
@@ -64,11 +76,13 @@ export default async function DashboardPage() {
         supabase
           .from("dossier_timeline")
           .select("id, dossier_id, status, due_date, title, created_at")
-          .in("dossier_id", dossierIds),
+          .in("dossier_id", dossierIds)
+          .eq("organization_id", org.id),
         supabase
           .from("dossier_timeline")
           .select("id, title, status, created_at, dossier:dossiers(id, title, reference)")
           .in("dossier_id", dossierIds)
+          .eq("organization_id", org.id)
           .order("created_at", { ascending: false })
           .limit(5),
         supabase

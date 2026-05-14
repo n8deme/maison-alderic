@@ -1,8 +1,12 @@
+// ============================================================
+// app/portail-avocat/dossiers/page.tsx
+// ============================================================
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getOrganization } from "@/lib/get-organization";
 
 export const metadata: Metadata = { title: "Dossiers" };
 
@@ -11,19 +15,12 @@ function fmtDate(iso: string) {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  active: "Actif",
-  pending: "En attente",
-  archived: "Archivé",
-  won: "Clôturé",
-  lost: "Perdu",
+  active: "Actif", pending: "En attente", archived: "Archivé", won: "Clôturé", lost: "Perdu",
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  active: "bg-green-100 text-green-800",
-  pending: "bg-yellow-100 text-yellow-800",
-  archived: "bg-gray-100 text-gray-800",
-  won: "bg-blue-100 text-blue-800",
-  lost: "bg-red-100 text-red-800",
+  active: "bg-green-100 text-green-800", pending: "bg-yellow-100 text-yellow-800",
+  archived: "bg-gray-100 text-gray-800", won: "bg-blue-100 text-blue-800", lost: "bg-red-100 text-red-800",
 };
 
 export default async function AvocatDossiersPage({
@@ -33,18 +30,15 @@ export default async function AvocatDossiersPage({
 }) {
   const params = await searchParams;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
+
+  const org = await getOrganization();
 
   let query = supabase
     .from("dossiers")
-    .select(`
-      id, reference, title, type, status, opened_at,
-      client:profiles!client_id(full_name),
-      dossier_avocats(role, avocats(id, full_name))
-    `)
+    .select(`id, reference, title, type, status, opened_at, client:profiles!client_id(full_name), dossier_avocats(role, avocats(id, full_name))`)
+    .eq("organization_id", org.id)
     .order("opened_at", { ascending: false });
 
   if (params.status && params.status !== "all") query = query.eq("status", params.status);
@@ -53,10 +47,9 @@ export default async function AvocatDossiersPage({
 
   const [{ data: dossiers }, { data: avocats }] = await Promise.all([
     query,
-    supabase.from("avocats").select("id, full_name").order("full_name"),
+    supabase.from("avocats").select("id, full_name").eq("organization_id", org.id).order("full_name"),
   ]);
 
-  // Filtrer par avocat côté JS (vu que c'est une jointure many-to-many)
   let filteredDossiers = dossiers ?? [];
   if (params.avocat && params.avocat !== "all") {
     filteredDossiers = filteredDossiers.filter((d: any) =>
@@ -69,13 +62,9 @@ export default async function AvocatDossiersPage({
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>Dossiers cabinet</h1>
-          <p className="mt-1 text-sm text-text-secondary">Tous les dossiers du cabinet, filtrables par statut, type et avocat assigné.</p>
+          <p className="mt-1 text-sm text-text-secondary">Tous les dossiers du cabinet.</p>
         </div>
-        <Link
-          href="/portail-avocat/dossiers/nouveau"
-          className="inline-flex shrink-0 items-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "var(--foreground)", color: "var(--background)" }}
-        >
+        <Link href="/portail-avocat/dossiers/nouveau" className="inline-flex shrink-0 items-center gap-2 rounded-sm px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90" style={{ backgroundColor: "var(--foreground)", color: "var(--background)" }}>
           <Plus className="h-4 w-4" />
           Nouveau dossier
         </Link>

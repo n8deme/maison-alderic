@@ -1,6 +1,10 @@
+// ============================================================
+// app/portail-avocat/dossiers/nouveau/actions.ts
+// ============================================================
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getOrganization } from "@/lib/get-organization";
 import { z } from "zod";
 
 const dossierSchema = z.object({
@@ -20,28 +24,30 @@ export async function createDossier(
   data: DossierFormInput,
 ): Promise<{ error?: string; reference?: string }> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Non authentifié" };
+
+  const org = await getOrganization();
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
+    .eq("organization_id", org.id)
     .single();
   if (!profile || profile.role !== "avocat") return { error: "Accès refusé" };
 
   const parsed = dossierSchema.safeParse(data);
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Données invalides" };
-  }
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Données invalides" };
 
+  // Générer la référence avec le slug de l'org (ex: MA-2026-0042 pour maison-alderic)
+  const prefix = org.slug.split("-").map(w => w[0].toUpperCase()).join("").slice(0, 3);
   const year = new Date().getFullYear();
   const { data: last } = await supabase
     .from("dossiers")
     .select("reference")
-    .like("reference", `MA-${year}-%`)
+    .eq("organization_id", org.id)
+    .like("reference", `${prefix}-${year}-%`)
     .order("reference", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -51,12 +57,13 @@ export async function createDossier(
     const lastNum = parseInt(last.reference.split("-").pop() ?? "0");
     if (!isNaN(lastNum)) nextNum = lastNum + 1;
   }
-  const reference = `MA-${year}-${String(nextNum).padStart(4, "0")}`;
+  const reference = `${prefix}-${year}-${String(nextNum).padStart(4, "0")}`;
 
   const { data: dossier, error: insertError } = await supabase
     .from("dossiers")
     .insert({
       reference,
+      organization_id: org.id,
       title: parsed.data.title,
       description: parsed.data.description || null,
       type: parsed.data.type,
@@ -68,9 +75,7 @@ export async function createDossier(
     .select("id, reference")
     .single();
 
-  if (insertError || !dossier) {
-    return { error: insertError?.message ?? "Erreur lors de la création" };
-  }
+  if (insertError || !dossier) return { error: insertError?.message ?? "Erreur lors de la création" };
 
   const avocatRows = [
     { dossier_id: dossier.id, avocat_id: parsed.data.lead_avocat_id, role: "lead" as const },
