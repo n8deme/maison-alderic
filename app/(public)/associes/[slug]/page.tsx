@@ -37,13 +37,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const supabase = createStaticClient();
   const { data: avocat } = await supabase
     .from("avocats")
-    .select("full_name, title")
+    .select("full_name, title, bio")
     .eq("slug", slug)
     .single();
   if (!avocat) return { title: "Associé introuvable" };
   return {
     title: `${avocat.full_name} — Maison Aldéric & Associés`,
-    description: `${avocat.full_name}, ${avocat.title} — Maison Aldéric & Associés, Bruxelles.`,
+    description: avocat.bio
+      ? `${avocat.full_name}, ${avocat.title} chez Maison Aldéric & Associés. ${avocat.bio.slice(0, 100).trim()}…`
+      : `${avocat.full_name}, ${avocat.title} — Cabinet Maison Aldéric & Associés, spécialisé en M&A, private equity et droit des affaires à Bruxelles.`,
   };
 }
 
