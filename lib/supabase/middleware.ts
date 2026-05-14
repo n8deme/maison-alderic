@@ -5,6 +5,10 @@ const PUBLIC_SAAS_ROUTES = [
   "/signup",
   "/onboarding",
   "/pricing",
+  "/admin",
+  "/mentions-legales",
+  "/confidentialite",
+  "/cgv",
   "/api/webhooks/stripe",
 ];
 
@@ -36,6 +40,12 @@ export async function updateSession(request: NextRequest) {
 
   // Routes publiques SaaS — bypass total avant tout
   if (PUBLIC_SAAS_ROUTES.some(route => pathname.startsWith(route))) {
+    return NextResponse.next({ request });
+  }
+
+  // Root domain sans __tenant = site marketing LawyerOS
+  const tenantParam = request.nextUrl.searchParams.get("__tenant");
+  if (!tenantParam && pathname === "/") {
     return NextResponse.next({ request });
   }
 
