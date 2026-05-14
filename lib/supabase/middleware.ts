@@ -1,13 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const PUBLIC_SAAS_ROUTES = [
+  "/signup",
+  "/onboarding",
+  "/pricing",
+  "/api/webhooks/stripe",
+];
+
 const RESERVED_SUBDOMAINS = ["www", "app", "admin", "demo", "api", "mail", "cdn"];
 const DEV_DEFAULT_TENANT = "maison-alderic";
 
 function extractSubdomain(request: NextRequest): string | null {
   const hostname = request.headers.get("host") || "";
 
-  // Dev local
   if (hostname.includes("localhost") || hostname.includes("127.0.0.1")) {
     const tenantParam = request.nextUrl.searchParams.get("__tenant");
     if (tenantParam) return tenantParam;
@@ -18,7 +24,6 @@ function extractSubdomain(request: NextRequest): string | null {
     return DEV_DEFAULT_TENANT;
   }
 
-  // Production
   const parts = hostname.split(".");
   if (parts.length < 3) return null;
   const subdomain = parts[0];
@@ -27,6 +32,13 @@ function extractSubdomain(request: NextRequest): string | null {
 }
 
 export async function updateSession(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Routes publiques SaaS — bypass total avant tout
+  if (PUBLIC_SAAS_ROUTES.some(route => pathname.startsWith(route))) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -51,7 +63,6 @@ export async function updateSession(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-  const { pathname } = request.nextUrl;
 
   // -------------------------------------------------------
   // Multi-tenant : détecter le sous-domaine + injecter org
@@ -65,18 +76,14 @@ export async function updateSession(request: NextRequest) {
       .eq("subdomain", subdomain)
       .single();
 
-    // Sous-domaine inconnu
     if (orgError || !org) {
-      console.log("[middleware] org not found for subdomain:", subdomain, "error:", orgError);
-return NextResponse.rewrite(new URL("/not-found", request.url));
+      return NextResponse.rewrite(new URL("/not-found", request.url));
     }
 
-    // Organisation inactive
     if (!org.is_active && !pathname.startsWith("/suspended")) {
       return NextResponse.redirect(new URL("/suspended", request.url));
     }
 
-    // Trial expiré
     if (
       org.plan === "trial" &&
       org.trial_ends_at &&
@@ -87,7 +94,6 @@ return NextResponse.rewrite(new URL("/not-found", request.url));
       return NextResponse.redirect(new URL("/upgrade", request.url));
     }
 
-    // Injecter les infos org dans les headers
     supabaseResponse.headers.set("x-org-id",     org.id);
     supabaseResponse.headers.set("x-org-slug",   org.slug);
     supabaseResponse.headers.set("x-org-name",   org.name);
@@ -99,7 +105,6 @@ return NextResponse.rewrite(new URL("/not-found", request.url));
     supabaseResponse.headers.set("x-org-feature-ai-summary",   String(org.feature_ai_summary));
     supabaseResponse.headers.set("x-org-feature-intake-forms", String(org.feature_intake_forms));
 
-    // Vérifier membership si route protégée
     if (user && (pathname.startsWith("/portail") || pathname.startsWith("/portail-avocat"))) {
       const { data: membership } = await supabase
         .from("organization_members")
@@ -115,7 +120,7 @@ return NextResponse.rewrite(new URL("/not-found", request.url));
   }
 
   // -------------------------------------------------------
-  // Auth : protection des routes (logique originale)
+  // Auth : protection des routes
   // -------------------------------------------------------
   if (!user && (pathname.startsWith("/portail") || pathname.startsWith("/portail-avocat"))) {
     const url = request.nextUrl.clone();
