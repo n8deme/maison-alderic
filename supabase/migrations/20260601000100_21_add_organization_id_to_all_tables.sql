@@ -10,16 +10,15 @@
 -- profiles
 -- -------------------------------------------------------
 alter table profiles
-  add column organization_id uuid references organizations(id) on delete cascade;
+  add column if not exists organization_id uuid references organizations(id) on delete cascade;
 
--- Migrer les données existantes vers Maison Aldéric
 update profiles set organization_id = 'a0000000-0000-0000-0000-000000000001'
   where organization_id is null;
 
-alter table profiles
-  alter column organization_id set not null;
+-- organization_id reste nullable dans profiles
+-- pour permettre au trigger handle_new_user de créer des profils sans org
 
-create index idx_profiles_org on profiles(organization_id);
+create index if not exists idx_profiles_org on profiles(organization_id);
 
 -- -------------------------------------------------------
 -- avocats
