@@ -102,7 +102,8 @@ export default async function AssociePage({ params }: PageProps) {
     .limit(3);
 
   const deals: AssocieDealItem[] = ((dealLinks ?? [])
-    .map((item: { deals: AssocieDealItem | null }) => item.deals)
+    .map((item: { deals: AssocieDealItem | AssocieDealItem[] | null }) =>
+      Array.isArray(item.deals) ? item.deals[0] ?? null : item.deals)
     .filter(Boolean) as AssocieDealItem[]).slice(0, 3);
 
   return (
