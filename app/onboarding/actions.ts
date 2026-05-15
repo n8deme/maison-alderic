@@ -203,7 +203,12 @@ export async function finalizeOnboarding(
   // Envoyer l'email de bienvenue
   try {
     const { data: org } = await service.from("organizations").select("name").eq("id", orgId).single();
-    await sendWelcomeEmail(user.email!);
+    await sendWelcomeEmail({
+      to: user.email!,
+      ownerName: user.user_metadata?.full_name ?? "Maître",
+      cabinetName: org?.name ?? "votre cabinet",
+      subdomain: tenant,
+    });
   } catch (err) {
     console.error("[onboarding] Email bienvenue échoué:", err);
     // Non bloquant
