@@ -15,6 +15,8 @@ const PUBLIC_SAAS_ROUTES = [
 const RESERVED_SUBDOMAINS = ["www", "app", "admin", "demo", "api", "mail", "cdn"];
 const DEV_DEFAULT_TENANT = "maison-alderic";
 
+const TENANT_COOKIE = "x-tenant-slug";
+
 function extractSubdomain(request: NextRequest): string | null {
   const hostname = request.headers.get("host") || "";
 
@@ -23,16 +25,34 @@ function extractSubdomain(request: NextRequest): string | null {
     if (tenantParam) return tenantParam;
     const tenantHeader = request.headers.get("x-tenant");
     if (tenantHeader) return tenantHeader;
+    const tenantCookie = request.cookies.get(TENANT_COOKIE)?.value;
+    if (tenantCookie) return tenantCookie;
     const parts = hostname.split(".");
     if (parts.length >= 2 && parts[0] !== "localhost") return parts[0];
     return DEV_DEFAULT_TENANT;
   }
+
+  // Production : __tenant param en priorité (déploiements single-domain)
+  const tenantParam = request.nextUrl.searchParams.get("__tenant");
+  if (tenantParam) return tenantParam;
+  const tenantCookie = request.cookies.get(TENANT_COOKIE)?.value;
+  if (tenantCookie) return tenantCookie;
 
   const parts = hostname.split(".");
   if (parts.length < 3) return null;
   const subdomain = parts[0];
   if (RESERVED_SUBDOMAINS.includes(subdomain)) return null;
   return subdomain;
+}
+
+function setTenantCookie(response: NextResponse, slug: string): void {
+  response.cookies.set(TENANT_COOKIE, slug, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
+    // Pas de maxAge → cookie de session (expire à la fermeture du navigateur)
+  });
 }
 
 export async function updateSession(request: NextRequest) {
@@ -91,7 +111,9 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (!org.is_active && !pathname.startsWith("/suspended")) {
-      return NextResponse.redirect(new URL("/suspended", request.url));
+      const res = NextResponse.redirect(new URL("/suspended", request.url));
+      setTenantCookie(res, org.slug);
+      return res;
     }
 
     if (
@@ -101,8 +123,13 @@ export async function updateSession(request: NextRequest) {
       !pathname.startsWith("/upgrade") &&
       !pathname.startsWith("/connexion")
     ) {
-      return NextResponse.redirect(new URL("/upgrade", request.url));
+      const res = NextResponse.redirect(new URL("/upgrade", request.url));
+      setTenantCookie(res, org.slug);
+      return res;
     }
+
+    // Persister le tenant pour la navigation interne (liens sans __tenant)
+    setTenantCookie(supabaseResponse, org.slug);
 
     supabaseResponse.headers.set("x-org-id",     org.id);
     supabaseResponse.headers.set("x-org-slug",   org.slug);
