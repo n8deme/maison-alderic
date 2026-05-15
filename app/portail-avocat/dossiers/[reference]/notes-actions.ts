@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getOrganization } from "@/lib/get-organization";
+import { logAuditEvent } from "@/lib/audit/log";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -45,6 +46,8 @@ export async function addNote(
     .single();
 
   if (error || !note) return { error: error?.message ?? "Erreur lors de l'ajout" };
+
+  await logAuditEvent(orgId, user.id, "note_created", "note", note.id, { dossier_id: dossierId });
 
   const { data: dossier } = await supabase
     .from("dossiers")

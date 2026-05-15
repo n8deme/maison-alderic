@@ -17,6 +17,8 @@ import {
   X,
   ShieldAlert,
   ClipboardList,
+  ScrollText,
+  Settings,
 } from "lucide-react";
 
 type Profile = { full_name: string | null; email: string };
@@ -29,8 +31,10 @@ const NAV = [
   { href: "/portail-avocat/facturation", label: "Facturation",icon: Receipt,         exact: false },
   { href: "/portail-avocat/documents",   label: "Documents",  icon: FileText,        exact: false },
   { href: "/portail-avocat/conflits",    label: "Conflits",   icon: ShieldAlert,     exact: false },
-  { href: "/portail-avocat/intake",      label: "Intake",     icon: ClipboardList,   exact: false },
-  { href: "/portail-avocat/profil",      label: "Mon profil", icon: User,            exact: false },
+  { href: "/portail-avocat/intake",      label: "Intake",       icon: ClipboardList, exact: false },
+  { href: "/portail-avocat/audit",       label: "Audit",        icon: ScrollText,    exact: false },
+  { href: "/portail-avocat/settings",    label: "Paramètres",   icon: Settings,      exact: false },
+  { href: "/portail-avocat/profil",      label: "Mon profil",   icon: User,          exact: false },
 ];
 
 function getInitials(name: string | null, email: string) {

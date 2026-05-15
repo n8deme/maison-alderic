@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { logAuditEvent } from "@/lib/audit/log";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -64,6 +65,8 @@ export async function addTimeEntry(
     .single();
 
   if (error || !entry) return { error: error?.message ?? "Erreur lors de l'ajout" };
+
+  await logAuditEvent(orgId, user.id, "time_entry_created", "time_entry", entry.id, { dossier_id: dossierId });
 
   const { data: dossier } = await supabase
     .from("dossiers")

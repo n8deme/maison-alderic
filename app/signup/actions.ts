@@ -1,7 +1,9 @@
 "use server";
 
 import { z } from "zod";
+import { headers } from "next/headers";
 import { createServiceClient } from "@/lib/supabase/service";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const RESERVED_SUBDOMAINS = new Set([
   "www", "app", "admin", "demo", "api", "mail", "cdn",
@@ -33,6 +35,12 @@ export async function signupAction(
   _prev: SignupState,
   formData: FormData
 ): Promise<SignupState> {
+  const hdrs = await headers();
+  const ip = hdrs.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (!checkRateLimit(`signup:${ip}`, 5, 60 * 60 * 1000)) {
+    return { status: "error", errors: { _: "Trop de tentatives. Réessayez dans une heure." } };
+  }
+
   const raw = {
     full_name:    formData.get("full_name"),
     email:        formData.get("email"),

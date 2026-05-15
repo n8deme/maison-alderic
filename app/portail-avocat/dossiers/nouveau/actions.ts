@@ -5,6 +5,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getOrganization } from "@/lib/get-organization";
+import { logAuditEvent } from "@/lib/audit/log";
 import { z } from "zod";
 
 const dossierSchema = z.object({
@@ -89,6 +90,8 @@ export async function createDossier(
     await supabase.from("dossiers").delete().eq("id", dossier.id);
     return { error: "Erreur lors de l'assignation des avocats" };
   }
+
+  await logAuditEvent(org.id, user.id, "dossier_created", "dossier", dossier.id, { reference: dossier.reference });
 
   return { reference: dossier.reference };
 }

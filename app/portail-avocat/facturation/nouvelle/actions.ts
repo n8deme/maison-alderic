@@ -5,6 +5,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getOrganization } from "@/lib/get-organization";
+import { logAuditEvent } from "@/lib/audit/log";
 import { z } from "zod";
 
 const invoiceLineSchema = z.object({
@@ -100,6 +101,8 @@ export async function createInvoice(
     await supabase.from("invoices").delete().eq("id", invoice.id);
     return { error: "Erreur lors de l'ajout des lignes" };
   }
+
+  await logAuditEvent(org.id, user.id, "invoice_created", "invoice", invoice.id, { invoice_number });
 
   return { id: invoice.id };
 }
