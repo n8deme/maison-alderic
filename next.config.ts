@@ -30,6 +30,5 @@ export default withSentryConfig(nextConfig, {
   // Tunnel Sentry requests through /monitoring to bypass ad-blockers
   tunnelRoute: "/monitoring",
 
-  // Automatically tree-shake Sentry SDK in browser builds
-  disableClientWebpackPlugin: !process.env.NEXT_PUBLIC_SENTRY_DSN,
+  
 });
