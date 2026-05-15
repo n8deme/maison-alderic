@@ -82,7 +82,7 @@ export async function signupAction(
   }
 
   // Supabase local peut retourner user null même en succès — on le récupère par email
-  let userId = authData.user?.id;
+  let userId: string | undefined = authData.user?.id;
   if (!userId) {
     const { data: users } = await service.auth.admin.listUsers();
     const found = users?.users?.find((u) => u.email === email);
