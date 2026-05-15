@@ -1,8 +1,25 @@
-import Stripe from "stripe";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-const key = process.env.STRIPE_SECRET_KEY ?? "sk_test_placeholder";
+export async function createClient() {
+  const cookieStore = await cookies();
 
-export const stripe = new Stripe(key, {
-  apiVersion: "2026-04-22.dahlia",
-  typescript: true,
-});
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {}
+        },
+      },
+    }
+  );
+}
