@@ -15,18 +15,22 @@ import {
   User,
   Menu,
   X,
+  ShieldAlert,
+  ClipboardList,
 } from "lucide-react";
 
 type Profile = { full_name: string | null; email: string };
 
 const NAV = [
-  { href: "/portail-avocat", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/portail-avocat/dossiers", label: "Dossiers", icon: FolderOpen, exact: false },
-  { href: "/portail-avocat/clients", label: "Clients", icon: Users, exact: false },
-  { href: "/portail-avocat/agenda", label: "Agenda", icon: Calendar, exact: false },
-  { href: "/portail-avocat/facturation", label: "Facturation", icon: Receipt, exact: false },
-  { href: "/portail-avocat/documents", label: "Documents", icon: FileText, exact: false },
-  { href: "/portail-avocat/profil", label: "Mon profil", icon: User, exact: false },
+  { href: "/portail-avocat",             label: "Dashboard",  icon: LayoutDashboard, exact: true  },
+  { href: "/portail-avocat/dossiers",    label: "Dossiers",   icon: FolderOpen,      exact: false },
+  { href: "/portail-avocat/clients",     label: "Clients",    icon: Users,           exact: false },
+  { href: "/portail-avocat/agenda",      label: "Agenda",     icon: Calendar,        exact: false },
+  { href: "/portail-avocat/facturation", label: "Facturation",icon: Receipt,         exact: false },
+  { href: "/portail-avocat/documents",   label: "Documents",  icon: FileText,        exact: false },
+  { href: "/portail-avocat/conflits",    label: "Conflits",   icon: ShieldAlert,     exact: false },
+  { href: "/portail-avocat/intake",      label: "Intake",     icon: ClipboardList,   exact: false },
+  { href: "/portail-avocat/profil",      label: "Mon profil", icon: User,            exact: false },
 ];
 
 function getInitials(name: string | null, email: string) {

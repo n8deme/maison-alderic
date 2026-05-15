@@ -67,7 +67,7 @@ export default async function DossierDetailAvocatPage({ params }: PageProps) {
     notFound()
   }
 
-  const [timelineRes, allAvocatsRes, notesRes] = await Promise.all([
+  const [timelineRes, allAvocatsRes, notesRes, entriesRes] = await Promise.all([
     supabase
       .from('dossier_timeline')
       .select('*, author:avocats!created_by(full_name)')
@@ -83,6 +83,12 @@ export default async function DossierDetailAvocatPage({ params }: PageProps) {
       .eq('dossier_id', dossier.id)
       .eq('organization_id', org.id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('time_entries')
+      .select('id, description, duration_minutes, rate_per_hour, total_amount, billed, date, created_at, avocat:avocats!avocat_id(full_name)')
+      .eq('dossier_id', dossier.id)
+      .eq('organization_id', org.id)
+      .order('created_at', { ascending: false }),
   ])
 
   const timeline = timelineRes.data
@@ -94,6 +100,18 @@ export default async function DossierDetailAvocatPage({ params }: PageProps) {
     is_internal: n.is_internal as boolean,
     created_at: n.created_at as string,
     author_full_name: (n.author?.full_name as string | null) ?? 'Avocat',
+  }))
+
+  const initialEntries = (entriesRes.data ?? []).map((e: any) => ({
+    id: e.id as string,
+    description: e.description as string,
+    duration_minutes: e.duration_minutes as number,
+    rate_per_hour: Number(e.rate_per_hour),
+    total_amount: Number(e.total_amount),
+    billed: e.billed as boolean,
+    date: e.date as string,
+    created_at: e.created_at as string,
+    avocat_full_name: (e.avocat?.full_name as string | null) ?? 'Avocat',
   }))
 
   const leadAvocat = dossier.dossier_avocats?.find((da: any) => da.role === 'lead')?.avocats
@@ -284,6 +302,7 @@ export default async function DossierDetailAvocatPage({ params }: PageProps) {
             orgId={org.id}
             reference={reference}
             initialNotes={initialNotes}
+            initialEntries={initialEntries}
             timelineContent={
               !timeline || timeline.length === 0 ? (
                 <div className="text-center py-12">

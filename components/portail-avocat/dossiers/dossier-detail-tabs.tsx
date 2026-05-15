@@ -3,6 +3,8 @@
 import { useState, type ReactNode } from "react";
 import { DossierNotes } from "./dossier-notes";
 import { DossierAISummary } from "./dossier-ai-summary";
+import { DossierTimeTracking } from "./dossier-time-tracking";
+import type { TimeEntryRow } from "@/app/portail-avocat/dossiers/[reference]/time-actions";
 
 type Note = {
   id: string;
@@ -17,29 +19,38 @@ type Props = {
   orgId: string;
   reference: string;
   initialNotes: Note[];
+  initialEntries: TimeEntryRow[];
   timelineContent: ReactNode;
 };
 
-type Tab = "timeline" | "notes" | "ai";
+type Tab = "timeline" | "notes" | "temps" | "ai";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "timeline", label: "Timeline" },
   { id: "notes",    label: "Notes" },
+  { id: "temps",    label: "Temps" },
   { id: "ai",       label: "✨ Résumé IA" },
 ];
 
-export function DossierDetailTabs({ dossierId, orgId, reference, initialNotes, timelineContent }: Props) {
+export function DossierDetailTabs({
+  dossierId,
+  orgId,
+  reference,
+  initialNotes,
+  initialEntries,
+  timelineContent,
+}: Props) {
   const [active, setActive] = useState<Tab>("timeline");
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200">
+    <div className="rounded-lg border border-slate-200 bg-white">
       {/* Tab bar */}
-      <div className="flex border-b border-slate-200 px-6 pt-4 gap-1">
+      <div className="flex gap-1 border-b border-slate-200 px-6 pt-4">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActive(tab.id)}
-            className={`px-4 py-2 text-sm font-medium rounded-t transition-colors -mb-px border-b-2 ${
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors rounded-t ${
               active === tab.id
                 ? "border-amber-700 text-amber-800"
                 : "border-transparent text-slate-500 hover:text-slate-700"
@@ -47,8 +58,13 @@ export function DossierDetailTabs({ dossierId, orgId, reference, initialNotes, t
           >
             {tab.label}
             {tab.id === "notes" && initialNotes.length > 0 && (
-              <span className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-100 text-slate-600 text-[10px] font-medium">
+              <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-100 text-[10px] font-medium text-slate-600">
                 {initialNotes.length}
+              </span>
+            )}
+            {tab.id === "temps" && initialEntries.length > 0 && (
+              <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-amber-100 text-[10px] font-medium text-amber-700">
+                {initialEntries.length}
               </span>
             )}
           </button>
@@ -60,6 +76,13 @@ export function DossierDetailTabs({ dossierId, orgId, reference, initialNotes, t
         {active === "timeline" && timelineContent}
         {active === "notes" && (
           <DossierNotes dossierId={dossierId} orgId={orgId} initialNotes={initialNotes} />
+        )}
+        {active === "temps" && (
+          <DossierTimeTracking
+            dossierId={dossierId}
+            orgId={orgId}
+            initialEntries={initialEntries}
+          />
         )}
         {active === "ai" && (
           <DossierAISummary dossierId={dossierId} orgId={orgId} />
