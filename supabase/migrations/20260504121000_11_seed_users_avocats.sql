@@ -39,7 +39,7 @@ begin
     p_id,
     'authenticated', 'authenticated',
     p_email,
-    crypt(p_password, gen_salt('bf')),
+    extensions.crypt(p_password, extensions.gen_salt('bf')),
     now(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     v_meta,

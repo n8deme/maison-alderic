@@ -840,7 +840,7 @@ function Step5({
               className="w-full text-left rounded-sm border p-5 transition-all"
               style={{
                 borderColor:     selectedPlan === plan.id ? "var(--foreground)" : "var(--border)",
-                backgroundColor: plan.highlight && selectedPlan !== plan.id
+                backgroundColor: ("highlight" in plan plan.highlightplan.highlight plan.highlight) && selectedPlan !== plan.id
                   ? "var(--surface-alt)"
                   : "var(--surface)",
                 boxShadow: selectedPlan === plan.id ? "0 0 0 1px var(--foreground)" : "none",
@@ -864,7 +864,7 @@ function Step5({
                   <span className="font-medium" style={{ color: "var(--foreground)" }}>
                     {plan.name}
                   </span>
-                  {plan.highlight && (
+                  {("highlight" in plan plan.highlightplan.highlight plan.highlight) && (
                     <span
                       className="text-xs px-2 py-0.5 rounded-sm font-medium"
                       style={{ backgroundColor: "var(--accent)", color: "#fff" }}

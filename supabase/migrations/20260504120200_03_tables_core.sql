@@ -7,7 +7,7 @@
 
 create table public.profiles (
   id           uuid primary key references auth.users(id) on delete cascade,
-  email        citext not null unique,
+  email        extensions.citext not null unique,
   full_name    text not null,
   company      text,
   role         user_role not null default 'client',
@@ -27,7 +27,7 @@ create table public.avocats (
   full_name             text not null,
   title                 avocat_title not null,
   expertises            text[] not null default array[]::text[],
-  email                 citext not null unique,
+  email                 extensions.citext not null unique,
   phone                 text,
   bio                   text,
   avatar_url            text,
