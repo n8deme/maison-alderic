@@ -8,6 +8,8 @@ import { GenerateMandatButton } from '@/components/portail-avocat/dossiers/gener
 import { getDossierProgress } from '@/lib/dossiers'
 import { generateTimelinePDF } from './pdf-actions'
 import { DownloadPdfButton } from '@/components/pdf/download-pdf-button'
+import { DossierDetailTabs } from '@/components/portail-avocat/dossiers/dossier-detail-tabs'
+import { getOrganization } from '@/lib/get-organization'
 
 type PageProps = {
   params: Promise<{ reference: string }>
@@ -49,6 +51,7 @@ function fmtDate(iso: string | null) {
 export default async function DossierDetailAvocatPage({ params }: PageProps) {
   const { reference } = await params
   const supabase = await createClient()
+  const org = await getOrganization()
 
   const { data: dossier, error: dossierError } = await supabase
     .from('dossiers')
@@ -64,19 +67,37 @@ export default async function DossierDetailAvocatPage({ params }: PageProps) {
     notFound()
   }
 
-  const { data: timeline } = await supabase
-    .from('dossier_timeline')
-    .select('*, author:avocats!created_by(full_name)')
-    .eq('dossier_id', dossier.id)
-    .order('display_order', { ascending: true })
+  const [timelineRes, allAvocatsRes, notesRes] = await Promise.all([
+    supabase
+      .from('dossier_timeline')
+      .select('*, author:avocats!created_by(full_name)')
+      .eq('dossier_id', dossier.id)
+      .order('display_order', { ascending: true }),
+    supabase
+      .from('avocats')
+      .select('id, full_name, title')
+      .order('display_order'),
+    supabase
+      .from('notes')
+      .select('id, content, is_internal, created_at, author:profiles!author_id(full_name)')
+      .eq('dossier_id', dossier.id)
+      .eq('organization_id', org.id)
+      .order('created_at', { ascending: false }),
+  ])
+
+  const timeline = timelineRes.data
+  const allAvocats = allAvocatsRes.data
+
+  const initialNotes = (notesRes.data ?? []).map((n: any) => ({
+    id: n.id as string,
+    content: n.content as string,
+    is_internal: n.is_internal as boolean,
+    created_at: n.created_at as string,
+    author_full_name: (n.author?.full_name as string | null) ?? 'Avocat',
+  }))
 
   const leadAvocat = dossier.dossier_avocats?.find((da: any) => da.role === 'lead')?.avocats
   const otherAvocats = (dossier.dossier_avocats ?? []).filter((da: any) => da.role !== 'lead')
-
-  const { data: allAvocats } = await supabase
-    .from('avocats')
-    .select('id, full_name, title')
-    .order('display_order')
 
   const completedCount = (timeline ?? []).filter((e: any) => e.status === 'completed').length
   const totalCount = timeline?.length ?? 0
@@ -256,75 +277,71 @@ export default async function DossierDetailAvocatPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Colonne droite : Timeline */}
+        {/* Colonne droite : Tabs (Timeline / Notes / IA) */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg border border-slate-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-serif text-slate-900" style={{ fontFamily: 'var(--font-display)' }}>Timeline du dossier</h2>
-              {totalCount > 0 && (
-                <span className="text-xs text-slate-500">{totalCount} étape{totalCount > 1 ? 's' : ''}</span>
-              )}
-            </div>
-
-            {!timeline || timeline.length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">Aucune étape n&apos;a encore été ajoutée à ce dossier.</p>
-              </div>
-            ) : (
-              <ol className="space-y-5">
-                {timeline.map((event: any, idx: number) => {
-                  const cfg = TIMELINE_STATUS_CONFIG[event.status] ?? TIMELINE_STATUS_CONFIG.pending
-                  const Icon = cfg.icon
-                  const isLast = idx === timeline.length - 1
-                  return (
-                    <li key={event.id} className="flex gap-4 relative">
-                      {/* Indicator */}
-                      <div className="flex flex-col items-center shrink-0">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${cfg.color}`}>
-                          <Icon className="h-4 w-4" />
+          <DossierDetailTabs
+            dossierId={dossier.id}
+            orgId={org.id}
+            reference={reference}
+            initialNotes={initialNotes}
+            timelineContent={
+              !timeline || timeline.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500">Aucune étape n&apos;a encore été ajoutée à ce dossier.</p>
+                </div>
+              ) : (
+                <ol className="space-y-5">
+                  {timeline.map((event: any, idx: number) => {
+                    const cfg = TIMELINE_STATUS_CONFIG[event.status] ?? TIMELINE_STATUS_CONFIG.pending
+                    const Icon = cfg.icon
+                    const isLast = idx === timeline.length - 1
+                    return (
+                      <li key={event.id} className="flex gap-4 relative">
+                        <div className="flex flex-col items-center shrink-0">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${cfg.color}`}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          {!isLast && <div className="w-px flex-1 bg-slate-200 mt-2" />}
                         </div>
-                        {!isLast && <div className="w-px flex-1 bg-slate-200 mt-2" />}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 pb-4">
-                        <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
-                          <h3 className="font-medium text-slate-900">{event.title}</h3>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${cfg.color}`}>
-                            {cfg.label}
-                          </span>
+                        <div className="flex-1 pb-4">
+                          <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
+                            <h3 className="font-medium text-slate-900">{event.title}</h3>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${cfg.color}`}>
+                              {cfg.label}
+                            </span>
+                          </div>
+                          {event.description && (
+                            <p className="text-sm text-slate-600 mb-2">{event.description}</p>
+                          )}
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                            {event.completed_at && (
+                              <div className="flex items-center gap-1">
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                Terminé le {fmtDate(event.completed_at)}
+                              </div>
+                            )}
+                            {!event.completed_at && event.due_date && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3.5 w-3.5" />
+                                Échéance {fmtDate(event.due_date)}
+                              </div>
+                            )}
+                            {event.author?.full_name && (
+                              <div className="flex items-center gap-1">
+                                <User className="h-3.5 w-3.5" />
+                                {event.author.full_name}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        {event.description && (
-                          <p className="text-sm text-slate-600 mb-2">{event.description}</p>
-                        )}
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                          {event.completed_at && (
-                            <div className="flex items-center gap-1">
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                              Terminé le {fmtDate(event.completed_at)}
-                            </div>
-                          )}
-                          {!event.completed_at && event.due_date && (
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5" />
-                              Échéance {fmtDate(event.due_date)}
-                            </div>
-                          )}
-                          {event.author?.full_name && (
-                            <div className="flex items-center gap-1">
-                              <User className="h-3.5 w-3.5" />
-                              {event.author.full_name}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ol>
-            )}
-          </div>
+                      </li>
+                    )
+                  })}
+                </ol>
+              )
+            }
+          />
         </div>
       </div>
     </div>
