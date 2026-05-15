@@ -15,6 +15,7 @@ const PUBLIC_SAAS_ROUTES = [
 
 const RESERVED_SUBDOMAINS = ["www", "app", "admin", "demo", "api", "mail", "cdn"];
 const DEV_DEFAULT_TENANT = "maison-alderic";
+const TENANT_COOKIE = "x-tenant-slug";
 
 function extractSubdomain(request: NextRequest): string | null {
   const hostname = request.headers.get("host") || "";
@@ -24,13 +25,17 @@ function extractSubdomain(request: NextRequest): string | null {
     if (tenantParam) return tenantParam;
     const tenantHeader = request.headers.get("x-tenant");
     if (tenantHeader) return tenantHeader;
+    const tenantCookie = request.cookies.get(TENANT_COOKIE)?.value;
+    if (tenantCookie) return tenantCookie;
     const parts = hostname.split(".");
     if (parts.length >= 2 && parts[0] !== "localhost") return parts[0];
     return DEV_DEFAULT_TENANT;
   }
 
-  // Production — paramètre __tenant OU sous-domaine
+  // Production — __tenant OU cookie OU sous-domaine
   if (tenantParam) return tenantParam;
+  const tenantCookie = request.cookies.get(TENANT_COOKIE)?.value;
+  if (tenantCookie) return tenantCookie;
 
   const parts = hostname.split(".");
   if (parts.length < 3) return null;
@@ -42,14 +47,13 @@ function extractSubdomain(request: NextRequest): string | null {
 export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Routes publiques SaaS — bypass total avant tout
   if (PUBLIC_SAAS_ROUTES.some(route => pathname.startsWith(route))) {
     return NextResponse.next({ request });
   }
 
-  // Root domain sans __tenant = site marketing LawyerOS
   const tenantParam = request.nextUrl.searchParams.get("__tenant");
-  if (!tenantParam && pathname === "/") {
+  const tenantCookie = request.cookies.get(TENANT_COOKIE)?.value;
+  if (!tenantParam && !tenantCookie && pathname === "/") {
     return NextResponse.next({ request });
   }
 
@@ -60,17 +64,11 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
+        getAll() { return request.cookies.getAll(); },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
+          cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options));
         },
       },
     }
@@ -78,9 +76,6 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // -------------------------------------------------------
-  // Multi-tenant : détecter le sous-domaine + injecter org
-  // -------------------------------------------------------
   const subdomain = extractSubdomain(request);
 
   if (subdomain) {
@@ -108,6 +103,13 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(new URL("/upgrade", request.url));
     }
 
+    // Persister le tenant dans un cookie session
+    supabaseResponse.cookies.set(TENANT_COOKIE, subdomain, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+    });
+
     supabaseResponse.headers.set("x-org-id",     org.id);
     supabaseResponse.headers.set("x-org-slug",   org.slug);
     supabaseResponse.headers.set("x-org-name",   org.name);
@@ -133,9 +135,6 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // -------------------------------------------------------
-  // Auth : protection des routes
-  // -------------------------------------------------------
   if (!user && (pathname.startsWith("/portail") || pathname.startsWith("/portail-avocat"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/connexion";
