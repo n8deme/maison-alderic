@@ -6,6 +6,7 @@ const PUBLIC_SAAS_ROUTES = [
   "/onboarding",
   "/pricing",
   "/admin",
+  "/connexion",
   "/mentions-legales",
   "/confidentialite",
   "/cgv",
