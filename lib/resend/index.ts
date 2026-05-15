@@ -18,143 +18,255 @@ export async function sendWelcomeEmail({
   cabinetName: string;
   subdomain:   string;
 }) {
-  const isProd = process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_APP_DOMAIN;
-  const domain = process.env.NEXT_PUBLIC_APP_DOMAIN || "localhost:3000";
+  // Toujours pointer vers lawyeros.vercel.app en production
+  const portalUrl = process.env.NODE_ENV === "production"
+    ? `https://lawyeros.vercel.app/portail-avocat?__tenant=${subdomain}`
+    : `http://localhost:3000/portail-avocat?__tenant=${subdomain}`;
 
-  const portalUrl = isProd
-    ? `https://${subdomain}.${domain}`
-    : `http://localhost:3000/portail?__tenant=${subdomain}`;
+  const avocatUrl = process.env.NODE_ENV === "production"
+    ? `https://lawyeros.vercel.app/portail-avocat?__tenant=${subdomain}`
+    : `http://localhost:3000/portail-avocat?__tenant=${subdomain}`;
+
+  const connexionUrl = process.env.NODE_ENV === "production"
+    ? `https://lawyeros.vercel.app/connexion`
+    : `http://localhost:3000/connexion`;
 
   await resend.emails.send({
     from:    FROM,
     to,
-    subject: `Bienvenue sur LawyerOS — ${cabinetName}`,
-    html: welcomeHtml({ ownerName, cabinetName, subdomain, portalUrl }),
+    subject: `Votre cabinet ${cabinetName} est actif sur LawyerOS`,
+    html: welcomeHtml({ ownerName, cabinetName, subdomain, portalUrl, avocatUrl, connexionUrl, email: to }),
   });
 }
 
 // ---------------------------------------------------------------------------
-// Template HTML inline (pas de dépendance React Email pour rester léger)
+// Template HTML inline — aucune dépendance externe
+// Table-based layout pour compatibilité maximale email clients
 // ---------------------------------------------------------------------------
 function welcomeHtml({
   ownerName,
   cabinetName,
   subdomain,
   portalUrl,
+  avocatUrl,
+  connexionUrl,
+  email,
 }: {
-  ownerName:   string;
-  cabinetName: string;
-  subdomain:   string;
-  portalUrl:   string;
+  ownerName:    string;
+  cabinetName:  string;
+  subdomain:    string;
+  portalUrl:    string;
+  avocatUrl:    string;
+  connexionUrl: string;
+  email:        string;
 }): string {
+  const firstName = escHtml(ownerName).split(" ")[0];
+
   return /* html */ `
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bienvenue sur LawyerOS</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Bienvenue sur LawyerOS — ${escHtml(cabinetName)}</title>
+  <!--[if mso]>
+  <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+  <![endif]-->
 </head>
-<body style="margin:0;padding:0;background:#F8F7F4;font-family:Inter,Helvetica,Arial,sans-serif;color:#1A1A1A;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8F7F4;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+<body style="margin:0;padding:0;background-color:#F8F7F4;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
 
-          <!-- Logo / Marque -->
-          <tr>
-            <td style="padding-bottom:32px;text-align:center;">
-              <span style="font-size:18px;font-weight:600;letter-spacing:-0.02em;color:#1A1A1A;">
-                LawyerOS
-              </span>
-            </td>
-          </tr>
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#F8F7F4;padding:40px 16px 48px;">
+  <tr>
+    <td align="center">
+      <table width="580" cellpadding="0" cellspacing="0" role="presentation" style="max-width:580px;width:100%;">
 
-          <!-- Carte principale -->
-          <tr>
-            <td style="background:#FFFFFF;border:1px solid #E5E2DB;border-radius:2px;padding:40px;">
+        <!-- ══ LOGO ══ -->
+        <tr>
+          <td style="padding-bottom:28px;text-align:center;">
+            <span style="font-size:20px;font-weight:600;letter-spacing:-0.03em;color:#1A1A1A;">
+              Lawyer<span style="color:#7A1F2B;">OS</span>
+            </span>
+            <div style="width:32px;height:2px;background:#7A1F2B;margin:6px auto 0;border-radius:1px;"></div>
+          </td>
+        </tr>
 
-              <p style="margin:0 0 8px;font-size:22px;font-weight:500;letter-spacing:-0.02em;color:#1A1A1A;">
-                Votre portail est prêt,&nbsp;${escHtml(ownerName).split(" ")[0]}.
-              </p>
-              <p style="margin:0 0 28px;font-size:14px;color:#5C5A55;font-style:italic;">
-                ${escHtml(cabinetName)} est maintenant actif sur LawyerOS.
-              </p>
+        <!-- ══ CARTE PRINCIPALE ══ -->
+        <tr>
+          <td style="background:#FFFFFF;border:1px solid #E5E2DB;border-radius:3px;padding:0;overflow:hidden;">
 
-              <!-- Lien portail -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-                <tr>
-                  <td style="background:#F2F0EB;border:1px solid #EFEDE6;border-radius:2px;padding:12px 16px;">
-                    <span style="font-size:12px;color:#8B887F;display:block;margin-bottom:4px;font-family:monospace;">
-                      Votre portail client
-                    </span>
-                    <a href="${escHtml(portalUrl)}" style="font-size:13px;color:#7A1F2B;font-family:monospace;text-decoration:none;">
-                      ${escHtml(portalUrl)}
-                    </a>
-                  </td>
-                </tr>
-              </table>
+            <!-- Bande bordeaux top -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+              <tr>
+                <td style="background:#7A1F2B;padding:20px 40px;">
+                  <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.7);">
+                    Cabinet activé
+                  </p>
+                  <p style="margin:4px 0 0;font-size:18px;font-weight:500;letter-spacing:-0.02em;color:#FFFFFF;">
+                    ${escHtml(cabinetName)}
+                  </p>
+                </td>
+              </tr>
+            </table>
 
-              <!-- CTA -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
-                <tr>
-                  <td align="center">
-                    <a
-                      href="${escHtml(portalUrl)}"
-                      style="display:inline-block;background:#7A1F2B;color:#ffffff;font-size:14px;font-weight:500;text-decoration:none;padding:12px 32px;border-radius:2px;"
-                    >
-                      Accéder à mon portail
-                    </a>
-                  </td>
-                </tr>
-              </table>
+            <!-- Corps -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:32px 40px 0;">
+              <tr>
+                <td>
+                  <p style="margin:0 0 6px;font-size:22px;font-weight:500;letter-spacing:-0.02em;color:#1A1A1A;">
+                    Bonjour ${firstName},
+                  </p>
+                  <p style="margin:0 0 28px;font-size:15px;line-height:1.6;color:#5C5A55;">
+                    Votre portail LawyerOS est opérationnel. Vos clients peuvent dès maintenant accéder à leurs dossiers, documents et messages depuis leur espace dédié.
+                  </p>
+                </td>
+              </tr>
+            </table>
 
-              <!-- Prochaines étapes -->
-              <p style="margin:0 0 12px;font-size:13px;font-weight:500;color:#1A1A1A;">Prochaines étapes</p>
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding:0 0 8px;">
-                    <p style="margin:0;font-size:13px;color:#5C5A55;">
-                      <span style="color:#7A1F2B;margin-right:8px;">·</span>
-                      Créez votre premier dossier depuis le portail avocat
-                    </p>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:0 0 8px;">
-                    <p style="margin:0;font-size:13px;color:#5C5A55;">
-                      <span style="color:#7A1F2B;margin-right:8px;">·</span>
-                      Invitez vos collaborateurs si ce n'est pas encore fait
-                    </p>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <p style="margin:0;font-size:13px;color:#5C5A55;">
-                      <span style="color:#7A1F2B;margin-right:8px;">·</span>
-                      Partagez votre portail à vos clients pour qu'ils créent leur espace
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
+            <!-- Bloc accès portail -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:0 40px;">
+              <tr>
+                <td style="background:#F8F7F4;border:1px solid #EFEDE6;border-radius:2px;padding:16px 20px;margin-bottom:24px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                    <tr>
+                      <td style="padding-bottom:10px;">
+                        <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B887F;">
+                          Portail avocat
+                        </p>
+                        <a href="${escHtml(avocatUrl)}" style="font-size:13px;color:#7A1F2B;font-family:monospace;text-decoration:none;word-break:break-all;">
+                          ${escHtml(avocatUrl)}
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="border-top:1px solid #E5E2DB;padding-top:10px;">
+                        <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B887F;">
+                          Identifiant de connexion
+                        </p>
+                        <p style="margin:2px 0 0;font-size:13px;color:#1A1A1A;font-family:monospace;">
+                          ${escHtml(email)}
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="border-top:1px solid #E5E2DB;padding-top:10px;">
+                        <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B887F;">
+                          Identifiant cabinet
+                        </p>
+                        <p style="margin:2px 0 0;font-size:13px;color:#1A1A1A;font-family:monospace;">
+                          ${escHtml(subdomain)}
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
 
-          <!-- Footer -->
-          <tr>
-            <td style="padding-top:24px;text-align:center;">
-              <p style="margin:0;font-size:12px;color:#8B887F;">
-                Vous recevez cet email car vous avez créé un compte LawyerOS.
-                <br />
-                Votre période d'essai de 14 jours est active.
-              </p>
-            </td>
-          </tr>
+            <!-- CTA principal -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:24px 40px 0;">
+              <tr>
+                <td align="center">
+                  <a
+                    href="${escHtml(avocatUrl)}"
+                    style="display:inline-block;background:#7A1F2B;color:#FFFFFF;font-size:14px;font-weight:500;letter-spacing:0.01em;text-decoration:none;padding:13px 36px;border-radius:2px;"
+                  >
+                    Accéder à mon portail avocat
+                  </a>
+                </td>
+              </tr>
+            </table>
 
-        </table>
-      </td>
-    </tr>
-  </table>
+            <!-- Divider -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:28px 40px 0;">
+              <tr>
+                <td style="border-top:1px solid #F2F0EB;"></td>
+              </tr>
+            </table>
+
+            <!-- Prochaines étapes -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:24px 40px 0;">
+              <tr>
+                <td>
+                  <p style="margin:0 0 14px;font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#8B887F;">
+                    Prochaines étapes
+                  </p>
+                </td>
+              </tr>
+              ${[
+                {
+                  num: "1",
+                  title: "Créez votre premier dossier",
+                  desc: "Ouvrez un dossier depuis le tableau de bord avocat et invitez un client.",
+                },
+                {
+                  num: "2",
+                  title: "Partagez le portail client",
+                  desc: `Vos clients accèdent à leurs dossiers sur <a href="${escHtml(portalUrl)}" style="color:#7A1F2B;text-decoration:none;">${escHtml(portalUrl)}</a>.`,
+                },
+                {
+                  num: "3",
+                  title: "Émettez votre première facture",
+                  desc: "La facturation Stripe est préconfigurée. TVA belge et française incluse.",
+                },
+              ].map(step => `
+              <tr>
+                <td style="padding-bottom:14px;">
+                  <table cellpadding="0" cellspacing="0" role="presentation">
+                    <tr>
+                      <td style="vertical-align:top;padding-right:12px;">
+                        <div style="width:24px;height:24px;background:#F2F0EB;border-radius:2px;text-align:center;line-height:24px;">
+                          <span style="font-size:12px;font-weight:600;color:#7A1F2B;">${step.num}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <p style="margin:0 0 2px;font-size:13px;font-weight:500;color:#1A1A1A;">${step.title}</p>
+                        <p style="margin:0;font-size:13px;line-height:1.5;color:#5C5A55;">${step.desc}</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              `).join("")}
+            </table>
+
+            <!-- CTA secondaire connexion -->
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="padding:8px 40px 36px;">
+              <tr>
+                <td align="center">
+                  <a
+                    href="${escHtml(connexionUrl)}"
+                    style="display:inline-block;border:1px solid #E5E2DB;color:#1A1A1A;font-size:13px;font-weight:500;text-decoration:none;padding:10px 28px;border-radius:2px;"
+                  >
+                    Se connecter →
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+        <!-- ══ FOOTER ══ -->
+        <tr>
+          <td style="padding-top:24px;text-align:center;">
+            <p style="margin:0 0 6px;font-size:12px;color:#8B887F;line-height:1.6;">
+              Vous recevez cet email car vous avez créé un compte LawyerOS.<br />
+              Votre période d'essai gratuite de 14 jours est maintenant active.
+            </p>
+            <p style="margin:0;font-size:11px;color:#B5B2AB;">
+              © 2026 LawyerOS by Kayo Agency ·
+              <a href="https://lawyeros.vercel.app/confidentialite" style="color:#B5B2AB;text-decoration:underline;">Confidentialité</a> ·
+              <a href="https://lawyeros.vercel.app/cgv" style="color:#B5B2AB;text-decoration:underline;">CGV</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
 </body>
 </html>
   `.trim();

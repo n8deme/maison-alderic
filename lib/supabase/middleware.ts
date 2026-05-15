@@ -11,6 +11,7 @@ const PUBLIC_SAAS_ROUTES = [
   "/mentions-legales",
   "/confidentialite",
   "/cgv",
+  "/api/health",
   "/api/webhooks/stripe",
 ];
 
