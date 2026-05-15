@@ -18,9 +18,9 @@ const DEV_DEFAULT_TENANT = "maison-alderic";
 
 function extractSubdomain(request: NextRequest): string | null {
   const hostname = request.headers.get("host") || "";
+  const tenantParam = request.nextUrl.searchParams.get("__tenant");
 
   if (hostname.includes("localhost") || hostname.includes("127.0.0.1")) {
-    const tenantParam = request.nextUrl.searchParams.get("__tenant");
     if (tenantParam) return tenantParam;
     const tenantHeader = request.headers.get("x-tenant");
     if (tenantHeader) return tenantHeader;
@@ -28,6 +28,9 @@ function extractSubdomain(request: NextRequest): string | null {
     if (parts.length >= 2 && parts[0] !== "localhost") return parts[0];
     return DEV_DEFAULT_TENANT;
   }
+
+  // Production — paramètre __tenant OU sous-domaine
+  if (tenantParam) return tenantParam;
 
   const parts = hostname.split(".");
   if (parts.length < 3) return null;
