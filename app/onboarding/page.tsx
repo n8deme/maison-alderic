@@ -15,6 +15,7 @@ import {
   sendTeamInvites,
   importClients,
   finalizeOnboarding,
+  createCheckoutSession,
 } from "./actions";
 
 type Step1Data = { address: string; phone: string; website_url: string };
@@ -112,7 +113,24 @@ function OnboardingWizard() {
     });
   }
 
-  async function handleStep5() {
+  async function handleStripeCheckout(plan: string, billing: "monthly" | "yearly") {
+    if (!orgId) return;
+    startTransition(async () => {
+      const result = await createCheckoutSession(orgId, plan, billing, tenant);
+      if ("error" in result) {
+        if (result.error === "STRIPE_NOT_CONFIGURED") {
+          // Fallback trial
+          await handleTrialSubmit();
+          return;
+        }
+        setError("Erreur lors de la redirection vers le paiement. Réessayez.");
+        return;
+      }
+      window.location.href = result.url;
+    });
+  }
+
+  async function handleTrialSubmit() {
     if (!orgId) return;
     startTransition(async () => {
       const result = await finalizeOnboarding(orgId, tenant);
@@ -137,7 +155,15 @@ function OnboardingWizard() {
         {step === 2 && <Step2 initial={wizard.step2} onSubmit={handleStep2} onBack={back} isPending={isPending} />}
         {step === 3 && <Step3 initial={wizard.step3} onSubmit={handleStep3} onBack={back} isPending={isPending} />}
         {step === 4 && <Step4 initial={wizard.step4} onSubmit={handleStep4} onBack={back} isPending={isPending} />}
-        {step === 5 && <Step5 subdomain={tenant} onSubmit={handleStep5} onBack={back} isPending={isPending} />}
+        {step === 5 && (
+          <Step5
+            subdomain={tenant}
+            onStripeCheckout={handleStripeCheckout}
+            onTrialSubmit={handleTrialSubmit}
+            onBack={back}
+            isPending={isPending}
+          />
+        )}
       </main>
     </div>
   );
@@ -244,7 +270,6 @@ function Step3({ initial, onSubmit, onBack, isPending }: { initial?: Invite[]; o
   function removeRow(i: number) { setInvites((prev) => prev.filter((_, idx) => idx !== i)); }
   function updateRow(i: number, field: keyof Invite, value: string) { setInvites((prev) => prev.map((row, idx) => idx === i ? { ...row, [field]: value } : row)); }
   function handleSubmit(e: React.FormEvent) { e.preventDefault(); onSubmit(invites.filter((r) => r.email.trim()) as Invite[]); }
-
   return (
     <StepShell step={3} title="Inviter votre équipe" subtitle="Ajoutez vos collaborateurs. Ils recevront un email de connexion." optional>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -272,7 +297,6 @@ function Step4({ initial, onSubmit, onBack, isPending }: { initial?: Client[]; o
   const [clients, setClients] = useState<Client[]>(initial ?? [{ name: "", email: "" }]);
   const [csvMode, setCsvMode] = useState(false);
   const [csvText, setCsvText] = useState("");
-
   function addRow() { setClients((prev) => [...prev, { name: "", email: "" }]); }
   function removeRow(i: number) { setClients((prev) => prev.filter((_, idx) => idx !== i)); }
   function updateRow(i: number, field: keyof Client, value: string) { setClients((prev) => prev.map((row, idx) => idx === i ? { ...row, [field]: value } : row)); }
@@ -282,7 +306,6 @@ function Step4({ initial, onSubmit, onBack, isPending }: { initial?: Client[]; o
       .filter((c) => c.name && c.email);
   }
   function handleSubmit(e: React.FormEvent) { e.preventDefault(); onSubmit(csvMode ? parseCsv(csvText) : clients.filter((c) => c.name && c.email)); }
-
   return (
     <StepShell step={4} title="Importer vos premiers clients" subtitle="Créez les comptes de vos clients existants. Ils recevront un email d'accès." optional>
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -296,12 +319,9 @@ function Step4({ initial, onSubmit, onBack, isPending }: { initial?: Client[]; o
           ))}
         </div>
         {csvMode ? (
-          <div className="space-y-2">
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Format : <code>Nom Prénom, email@exemple.com</code></p>
-            <textarea rows={8} value={csvText} onChange={(e) => setCsvText(e.target.value)}
-              className="w-full rounded-sm border px-3.5 py-2.5 text-sm font-mono outline-none resize-none"
-              style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--foreground)" }} />
-          </div>
+          <textarea rows={8} value={csvText} onChange={(e) => setCsvText(e.target.value)}
+            className="w-full rounded-sm border px-3.5 py-2.5 text-sm font-mono outline-none resize-none"
+            style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--foreground)" }} />
         ) : (
           <div className="space-y-3">
             {clients.map((row, i) => (
@@ -324,58 +344,100 @@ function Step4({ initial, onSubmit, onBack, isPending }: { initial?: Client[]; o
   );
 }
 
-// Type explicite pour éviter l'erreur TypeScript sur plan.highlight
-type Plan = { id: string; name: string; price: string; features: string[]; highlight?: boolean };
+type Plan = { id: string; name: string; monthlyPrice: number; yearlyPrice: number; features: string[]; highlight?: boolean };
 
 const PLANS: Plan[] = [
-  { id: "solo",    name: "Solo",    price: "79 €/mois",  features: ["1 avocat", "10 dossiers actifs", "Portail client", "Messagerie sécurisée"] },
-  { id: "cabinet", name: "Cabinet", price: "199 €/mois", features: ["Jusqu'à 5 avocats", "Dossiers illimités", "Signature électronique", "Formulaires intake"], highlight: true },
-  { id: "premium", name: "Premium", price: "399 €/mois", features: ["Avocats illimités", "IA résumés dossiers", "Domaine personnalisé", "Support prioritaire"] },
+  { id: "solo",    name: "Solo",    monthlyPrice: 79,  yearlyPrice: 758,  features: ["1 avocat", "10 dossiers actifs", "Portail client", "Messagerie sécurisée"] },
+  { id: "cabinet", name: "Cabinet", monthlyPrice: 199, yearlyPrice: 1910, features: ["Jusqu'à 5 avocats", "Dossiers illimités", "Signature électronique", "Formulaires intake"], highlight: true },
+  { id: "premium", name: "Premium", monthlyPrice: 399, yearlyPrice: 3830, features: ["Avocats illimités", "IA résumés dossiers", "Domaine personnalisé", "Support prioritaire"] },
 ];
 
-function Step5({ subdomain: _subdomain, onSubmit, onBack, isPending }: { subdomain: string; onSubmit: () => void; onBack: () => void; isPending: boolean }) {
+function Step5({
+  subdomain: _subdomain,
+  onStripeCheckout,
+  onTrialSubmit,
+  onBack,
+  isPending,
+}: {
+  subdomain: string;
+  onStripeCheckout: (plan: string, billing: "monthly" | "yearly") => void;
+  onTrialSubmit: () => void;
+  onBack: () => void;
+  isPending: boolean;
+}) {
   const [selectedPlan, setSelectedPlan] = useState<string>("cabinet");
+  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
 
   return (
-    <StepShell step={5} title="Choisissez votre formule" subtitle="Vous êtes en période d'essai de 14 jours. Aucun paiement avant la fin de l'essai.">
-      <div className="space-y-8">
+    <StepShell step={5} title="Choisissez votre formule" subtitle="Essai gratuit 14 jours inclus — aucun paiement avant la fin de l'essai.">
+      <div className="space-y-6">
+
+        {/* Toggle mensuel / annuel */}
+        <div className="flex items-center justify-center gap-3">
+          <button type="button" onClick={() => setBilling("monthly")}
+            className="text-sm px-4 py-1.5 rounded-sm border transition-colors"
+            style={{ backgroundColor: billing === "monthly" ? "var(--foreground)" : "transparent", borderColor: "var(--border)", color: billing === "monthly" ? "#fff" : "var(--text-secondary)" }}>
+            Mensuel
+          </button>
+          <button type="button" onClick={() => setBilling("yearly")}
+            className="text-sm px-4 py-1.5 rounded-sm border transition-colors"
+            style={{ backgroundColor: billing === "yearly" ? "var(--foreground)" : "transparent", borderColor: "var(--border)", color: billing === "yearly" ? "#fff" : "var(--text-secondary)" }}>
+            Annuel <span style={{ color: billing === "yearly" ? "#86efac" : "var(--accent)" }} className="text-xs font-medium">−20%</span>
+          </button>
+        </div>
+
+        {/* Plans */}
         <div className="grid gap-4">
-          {PLANS.map((plan) => (
-            <button key={plan.id} type="button" onClick={() => setSelectedPlan(plan.id)}
-              className="w-full text-left rounded-sm border p-5 transition-all"
-              style={{
-                borderColor:     selectedPlan === plan.id ? "var(--foreground)" : "var(--border)",
-                backgroundColor: plan.highlight && selectedPlan !== plan.id ? "var(--surface-alt)" : "var(--surface)",
-                boxShadow:       selectedPlan === plan.id ? "0 0 0 1px var(--foreground)" : "none",
-              }}>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-3">
-                  <div className="h-4 w-4 rounded-full border-2 flex items-center justify-center" style={{ borderColor: selectedPlan === plan.id ? "var(--foreground)" : "var(--border)" }}>
-                    {selectedPlan === plan.id && <div className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--foreground)" }} />}
+          {PLANS.map((plan) => {
+            const price = billing === "monthly" ? plan.monthlyPrice : Math.round(plan.yearlyPrice / 12);
+            return (
+              <button key={plan.id} type="button" onClick={() => setSelectedPlan(plan.id)}
+                className="w-full text-left rounded-sm border p-5 transition-all"
+                style={{
+                  borderColor:     selectedPlan === plan.id ? "var(--foreground)" : "var(--border)",
+                  backgroundColor: plan.highlight && selectedPlan !== plan.id ? "var(--surface-alt)" : "var(--surface)",
+                  boxShadow:       selectedPlan === plan.id ? "0 0 0 1px var(--foreground)" : "none",
+                }}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="h-4 w-4 rounded-full border-2 flex items-center justify-center"
+                      style={{ borderColor: selectedPlan === plan.id ? "var(--foreground)" : "var(--border)" }}>
+                      {selectedPlan === plan.id && <div className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--foreground)" }} />}
+                    </div>
+                    <span className="font-medium" style={{ color: "var(--foreground)" }}>{plan.name}</span>
+                    {plan.highlight && <span className="text-xs px-2 py-0.5 rounded-sm font-medium" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>Recommandé</span>}
                   </div>
-                  <span className="font-medium" style={{ color: "var(--foreground)" }}>{plan.name}</span>
-                  {plan.highlight && <span className="text-xs px-2 py-0.5 rounded-sm font-medium" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>Recommandé</span>}
+                  <div className="text-right">
+                    <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>{price} €/mois</span>
+                    {billing === "yearly" && <p className="text-xs" style={{ color: "var(--text-muted)" }}>facturé {plan.yearlyPrice} €/an</p>}
+                  </div>
                 </div>
-                <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>{plan.price}</span>
-              </div>
-              <ul className="space-y-1 ml-7">
-                {plan.features.map((f) => <li key={f} className="text-sm" style={{ color: "var(--text-secondary)" }}>{f}</li>)}
-              </ul>
-            </button>
-          ))}
+                <ul className="space-y-1 ml-7">
+                  {plan.features.map((f) => <li key={f} className="text-sm" style={{ color: "var(--text-secondary)" }}>{f}</li>)}
+                </ul>
+              </button>
+            );
+          })}
         </div>
-        <div className="rounded-sm border p-5 text-center space-y-3" style={{ borderColor: "var(--border-subtle)", backgroundColor: "var(--surface-alt)" }}>
-          <p className="text-sm font-medium" style={{ color: "var(--foreground)" }}>Configuration Stripe en cours</p>
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>Le paiement en ligne sera disponible très prochainement.<br />Votre période d&apos;essai de 14 jours est active dès maintenant.</p>
-        </div>
+
+        {/* CTA Stripe */}
         <div className="flex flex-col gap-3">
-          <button type="button" onClick={onSubmit} disabled={isPending}
+          <button type="button" onClick={() => onStripeCheckout(selectedPlan, billing)} disabled={isPending}
             className="w-full py-3 px-4 rounded-sm text-sm font-medium transition-colors disabled:opacity-60"
             style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}>
-            {isPending ? "Finalisation..." : "Accéder à mon portail en trial"}
+            {isPending ? "Redirection..." : `Commencer avec ${PLANS.find(p => p.id === selectedPlan)?.name} — 14 jours gratuits`}
           </button>
-          <button type="button" onClick={onBack} disabled={isPending} className="text-sm" style={{ color: "var(--text-muted)" }}>Retour</button>
+          <button type="button" onClick={onTrialSubmit} disabled={isPending}
+            className="w-full py-2 px-4 rounded-sm text-sm transition-colors disabled:opacity-60"
+            style={{ color: "var(--text-muted)", border: "1px solid var(--border)" }}>
+            Commencer sans CB — payer plus tard
+          </button>
+          <button type="button" onClick={onBack} disabled={isPending} className="text-sm text-center" style={{ color: "var(--text-muted)" }}>Retour</button>
         </div>
+
+        <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
+          Aucun paiement avant la fin de l&apos;essai. Annulation possible à tout moment.
+        </p>
       </div>
     </StepShell>
   );

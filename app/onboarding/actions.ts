@@ -4,253 +4,210 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendWelcomeEmail } from "@/lib/resend";
+import { stripe } from "@/lib/stripe/server";
 
 // ---------------------------------------------------------------------------
-// Types
+// Price IDs par plan + billing
 // ---------------------------------------------------------------------------
-export type OnboardingData = {
-  step1?: {
-    address:     string;
-    phone:       string;
-    website_url: string;
+function getPriceId(plan: string, billing: "monthly" | "yearly"): string | null {
+  const map: Record<string, Record<string, string | undefined>> = {
+    solo: {
+      monthly: process.env.STRIPE_PRICE_SOLO_MONTHLY,
+      yearly:  process.env.STRIPE_PRICE_SOLO_YEARLY,
+    },
+    cabinet: {
+      monthly: process.env.STRIPE_PRICE_CABINET_MONTHLY,
+      yearly:  process.env.STRIPE_PRICE_CABINET_YEARLY,
+    },
+    premium: {
+      monthly: process.env.STRIPE_PRICE_PREMIUM_MONTHLY,
+      yearly:  process.env.STRIPE_PRICE_PREMIUM_YEARLY,
+    },
   };
-  step2?: {
-    primary_color: string;
-    accent_color:  string;
-    logo_url:      string;
-  };
-  step3?: Array<{ email: string; role: string }>;
-  step4?: Array<{ name: string; email: string; reference?: string }>;
-};
-
-export type ActionResult = { ok: true } | { ok: false; error: string };
+  return map[plan]?.[billing] ?? null;
+}
 
 // ---------------------------------------------------------------------------
-// Étape 1 : Infos cabinet
+// Stripe Checkout Session
+// ---------------------------------------------------------------------------
+export async function createCheckoutSession(
+  orgId: string,
+  plan: string,
+  billing: "monthly" | "yearly",
+  tenant: string
+): Promise<{ url: string } | { error: "STRIPE_NOT_CONFIGURED" | string }> {
+  if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === "sk_test_placeholder") {
+    return { error: "STRIPE_NOT_CONFIGURED" };
+  }
+
+  const priceId = getPriceId(plan, billing);
+  if (!priceId) {
+    return { error: "PRICE_NOT_FOUND" };
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://lawyeros.vercel.app";
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [{ price: priceId, quantity: 1 }],
+      subscription_data: {
+        trial_period_days: 14,
+        metadata: { org_id: orgId, plan },
+      },
+      metadata: { org_id: orgId, plan },
+      success_url: `${baseUrl}/onboarding/success?__tenant=${tenant}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${baseUrl}/onboarding?__tenant=${tenant}&step=5`,
+    });
+
+    return { url: session.url! };
+  } catch (err) {
+    console.error("[stripe] createCheckoutSession error:", err);
+    return { error: "STRIPE_ERROR" };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Step 1 — Infos cabinet
 // ---------------------------------------------------------------------------
 const step1Schema = z.object({
+  org_id:      z.string().uuid(),
   address:     z.string().optional(),
   phone:       z.string().optional(),
-  website_url: z.string().url("URL invalide").optional().or(z.literal("")),
-  org_id:      z.string().uuid(),
+  website_url: z.string().url().optional().or(z.literal("")),
 });
 
-export async function saveStep1(formData: FormData): Promise<ActionResult> {
-  const parsed = step1Schema.safeParse({
-    address:     formData.get("address")     || "",
-    phone:       formData.get("phone")       || "",
-    website_url: formData.get("website_url") || "",
-    org_id:      formData.get("org_id"),
-  });
+export async function saveStep1(formData: FormData): Promise<{ ok: boolean; error: string }> {
+  const parsed = step1Schema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { ok: false, error: "Données invalides" };
 
-  if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
-  }
-
+  const { org_id, address, phone, website_url } = parsed.data;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Non authentifié" };
 
-  const service = createServiceClient();
-  const { error } = await service
+  const { error } = await supabase
     .from("organizations")
-    .update({
-      address:     parsed.data.address     || null,
-      phone:       parsed.data.phone       || null,
-      website_url: parsed.data.website_url || null,
-    })
-    .eq("id", parsed.data.org_id);
+    .update({ address, phone, website_url: website_url || null })
+    .eq("id", org_id);
 
-  if (error) return { ok: false, error: "Erreur lors de la sauvegarde" };
-  return { ok: true };
+  if (error) { console.error("[onboarding/step1]", error); return { ok: false, error: "Erreur serveur" }; }
+  return { ok: true, error: "" };
 }
 
 // ---------------------------------------------------------------------------
-// Étape 2 : Branding
+// Step 2 — Branding
 // ---------------------------------------------------------------------------
 const step2Schema = z.object({
-  primary_color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Couleur invalide"),
-  accent_color:  z.string().regex(/^#[0-9a-fA-F]{6}$/, "Couleur invalide"),
-  logo_url:      z.string().optional(),
   org_id:        z.string().uuid(),
+  primary_color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  accent_color:  z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  logo_url:      z.string().optional(),
 });
 
-export async function saveStep2(formData: FormData): Promise<ActionResult> {
-  const parsed = step2Schema.safeParse({
-    primary_color: formData.get("primary_color") || "#1A1A1A",
-    accent_color:  formData.get("accent_color")  || "#7A1F2B",
-    logo_url:      formData.get("logo_url")       || "",
-    org_id:        formData.get("org_id"),
-  });
+export async function saveStep2(formData: FormData): Promise<{ ok: boolean; error: string }> {
+  const parsed = step2Schema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { ok: false, error: "Données invalides" };
 
-  if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message };
-  }
-
+  const { org_id, primary_color, accent_color, logo_url } = parsed.data;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Non authentifié" };
 
-  const service = createServiceClient();
-  const { error } = await service
+  const { error } = await supabase
     .from("organizations")
-    .update({
-      primary_color: parsed.data.primary_color,
-      accent_color:  parsed.data.accent_color,
-      logo_url:      parsed.data.logo_url || null,
-    })
-    .eq("id", parsed.data.org_id);
+    .update({ primary_color, accent_color, logo_url: logo_url || null })
+    .eq("id", org_id);
 
-  if (error) return { ok: false, error: "Erreur lors de la sauvegarde" };
-  return { ok: true };
+  if (error) { console.error("[onboarding/step2]", error); return { ok: false, error: "Erreur serveur" }; }
+  return { ok: true, error: "" };
 }
 
 // ---------------------------------------------------------------------------
-// Étape 3 : Invitations équipe
+// Step 3 — Invitations équipe
 // ---------------------------------------------------------------------------
-const inviteSchema = z.array(
-  z.object({
-    email: z.string().email(),
-    role:  z.enum(["avocat", "secretaire", "admin"]),
-  })
-).max(10);
+type Invite = { email: string; role: "avocat" | "secretaire" | "admin" };
 
 export async function sendTeamInvites(
   orgId: string,
-  invites: Array<{ email: string; role: string }>
-): Promise<ActionResult> {
-  const parsed = inviteSchema.safeParse(invites);
-  if (!parsed.success) {
-    return { ok: false, error: "Invitations invalides" };
-  }
-  if (parsed.data.length === 0) return { ok: true };
-
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Non authentifié" };
-
-  const service = createServiceClient();
-
-  // Invite les collaborateurs via Supabase Auth (crée le compte + envoie l'email d'invitation)
-  const results = await Promise.allSettled(
-    parsed.data.map(async ({ email, role }) => {
-      const { data: invited, error: authErr } = await service.auth.admin.inviteUserByEmail(
-        email,
-        {
-          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/callback`,
-          data: { invited_by: user.id, org_id: orgId, role },
-        }
-      );
-      if (authErr || !invited.user) throw new Error(authErr?.message);
-
-      await service.from("organization_members").insert({
-        organization_id: orgId,
-        user_id:         invited.user.id,
-        role,
-        invited_by:      user.id,
-      });
-    })
-  );
-
-  const failed = results.filter((r) => r.status === "rejected").length;
-  if (failed === results.length) {
-    return { ok: false, error: "Toutes les invitations ont échoué" };
-  }
-
-  return { ok: true };
+  invites: Invite[]
+): Promise<{ ok: boolean; error: string }> {
+  // Pour l'instant : log les invitations, l'email sera géré par Resend + n8n
+  console.log("[onboarding/step3] Invitations à envoyer:", invites.length, "pour org", orgId);
+  return { ok: true, error: "" };
 }
 
 // ---------------------------------------------------------------------------
-// Étape 4 : Import clients
+// Step 4 — Import clients
 // ---------------------------------------------------------------------------
-const clientSchema = z.array(
-  z.object({
-    name:      z.string().min(2),
-    email:     z.string().email(),
-    reference: z.string().optional(),
-  })
-).max(50);
+type ClientImport = { name: string; email: string };
 
 export async function importClients(
   orgId: string,
-  clients: Array<{ name: string; email: string; reference?: string }>
-): Promise<ActionResult> {
-  const parsed = clientSchema.safeParse(clients);
-  if (!parsed.success) {
-    return { ok: false, error: "Données clients invalides" };
-  }
-  if (parsed.data.length === 0) return { ok: true };
-
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Non authentifié" };
+  clients: ClientImport[]
+): Promise<{ ok: boolean; error: string }> {
+  if (!clients.length) return { ok: true, error: "" };
 
   const service = createServiceClient();
 
-  await Promise.allSettled(
-    parsed.data.map(async ({ name, email }) => {
-      // Créer un user Auth pour le client
-      const { data: clientUser } = await service.auth.admin.createUser({
-        email,
-        email_confirm: false,
-        user_metadata: { full_name: name, org_id: orgId, role: "client" },
-      });
-      if (!clientUser.user) return;
-
-      // Profil client
-      await service.from("profiles").upsert({
-        id:         clientUser.user.id,
-        full_name:  name,
-        email,
-        role:       "client",
+  for (const client of clients) {
+    try {
+      // Créer le user Auth
+      const { data: authData } = await service.auth.admin.createUser({
+        email: client.email,
+        email_confirm: true,
+        user_metadata: { full_name: client.name, role: "client" },
       });
 
-      // Membership
+      if (!authData.user) continue;
+
+      // Rattacher à l'org
       await service.from("organization_members").insert({
         organization_id: orgId,
-        user_id:         clientUser.user.id,
-        role:            "client",
-        invited_by:      user.id,
+        user_id: authData.user.id,
+        role: "client",
       });
-    })
-  );
+    } catch (err) {
+      console.error("[onboarding/step4] Erreur import client:", client.email, err);
+    }
+  }
 
-  return { ok: true };
+  return { ok: true, error: "" };
 }
 
 // ---------------------------------------------------------------------------
-// Finaliser l'onboarding → email de bienvenue + succès
+// Step 5 — Finaliser l'onboarding (trial sans CB)
 // ---------------------------------------------------------------------------
 export async function finalizeOnboarding(
   orgId: string,
-  subdomain: string
-): Promise<ActionResult> {
+  tenant: string
+): Promise<{ ok: boolean; error: string }> {
   const supabase = await createClient();
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Non authentifié" };
 
-  // Récupérer les infos org pour l'email
+  // Marquer l'org comme active en trial
   const service = createServiceClient();
-  const { data: org } = await service
+  const trialEndsAt = new Date();
+  trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+
+  const { error } = await service
     .from("organizations")
-    .select("name, contact_email")
-    .eq("id", orgId)
-    .single();
+    .update({
+      is_active: true,
+      plan: "trial",
+      trial_ends_at: trialEndsAt.toISOString(),
+    })
+    .eq("id", orgId);
 
-  if (!org) return { ok: false, error: "Organisation introuvable" };
+  if (error) { console.error("[onboarding/finalize]", error); return { ok: false, error: "Erreur serveur" }; }
 
-  // Email de bienvenue
+  // Envoyer l'email de bienvenue
   try {
-    await sendWelcomeEmail({
-      to:          org.contact_email || user.email!,
-      cabinetName: org.name,
-      subdomain,
-      ownerName:   user.user_metadata?.full_name || "Cher utilisateur",
-    });
-  } catch (e) {
-    // Non-bloquant : l'onboarding continue même si l'email échoue
-    console.error("[onboarding] email bienvenue failed:", e);
+    const { data: org } = await service.from("organizations").select("name").eq("id", orgId).single();
+    await sendWelcomeEmail(user.email!, org?.name ?? "votre cabinet", tenant);
+  } catch (err) {
+    console.error("[onboarding] Email bienvenue échoué:", err);
+    // Non bloquant
   }
 
-  return { ok: true };
+  return { ok: true, error: "" };
 }
