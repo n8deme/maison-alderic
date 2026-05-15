@@ -86,7 +86,7 @@ export async function signupAction(
   if (!userId) {
     const { data: users } = await service.auth.admin.listUsers();
     const found = users?.users?.find((u) => u.email === email);
-    userId = found?.id;
+    userId = found?.id ?? undefined;
   }
 
   if (!userId) {
