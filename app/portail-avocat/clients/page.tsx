@@ -15,36 +15,37 @@ export default async function AvocatClientsPage() {
 
   const org = await getOrganization();
 
-  // Récupérer les user_ids appartenant à cet org — filtre tenant explicite
-  // (défense en profondeur : ne pas compter que sur RLS)
-  const { data: members } = await supabase
-    .from("organization_members")
-    .select("user_id")
+  // Les clients d'une org sont ceux qui ont au moins un dossier dans cette org.
+  // On ne passe pas par organization_members car les clients n'y sont pas enregistrés.
+  const { data: orgDossiers } = await supabase
+    .from("dossiers")
+    .select("client_id")
     .eq("organization_id", org.id);
 
-  const memberIds = (members ?? []).map((m) => m.user_id);
+  const clientIds = [...new Set((orgDossiers ?? []).map((d) => d.client_id))];
 
-  // Si l'org n'a aucun membre (ne devrait pas arriver) → liste vide sans requête DB
-  const { data: raw } = memberIds.length > 0
+  const { data: raw } = clientIds.length > 0
     ? await supabase
         .from("profiles")
         .select(`
           id, full_name, email,
           dossiers:dossiers!client_id (
-            id, reference, title, status, opened_at
+            id, reference, title, status, opened_at, organization_id
           )
         `)
         .eq("role", "client")
-        .in("id", memberIds)
+        .in("id", clientIds)
         .order("full_name")
     : { data: [] };
 
   const clients = (raw ?? []).map((c) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const list = (Array.isArray((c as any).dossiers) ? (c as any).dossiers : []) as {
-      id: string; reference: string; title: string; status: string; opened_at: string;
+    const allDossiers = (Array.isArray((c as any).dossiers) ? (c as any).dossiers : []) as {
+      id: string; reference: string; title: string; status: string; opened_at: string; organization_id: string;
     }[];
-    const sorted     = [...list].sort((a, b) => b.opened_at.localeCompare(a.opened_at));
+    // Ne comptabiliser que les dossiers de cet org (un client peut exister sur plusieurs orgs)
+    const list        = allDossiers.filter((d) => d.organization_id === org.id);
+    const sorted      = [...list].sort((a, b) => b.opened_at.localeCompare(a.opened_at));
     const activeCount = list.filter((d) => d.status === "active" || d.status === "pending").length;
     const lastDossier = sorted[0] ?? null;
     return { id: c.id, full_name: c.full_name, email: c.email, activeCount, lastDossier };
@@ -58,6 +59,12 @@ export default async function AvocatClientsPage() {
           Vue globale des clients et de leur activité dossier.
         </p>
       </div>
+
+      {clients.length === 0 && (
+        <p className="text-sm text-text-muted py-12 text-center" style={{ fontFamily: "var(--font-body)" }}>
+          Aucun client pour l&apos;instant. Créez un dossier pour voir apparaître un client ici.
+        </p>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {clients.map((client) => (
