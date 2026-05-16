@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
-const CYCLING_WORDS = ["méritent", "exigent", "attendent", "réclament"] as const;
+const CYCLING_WORDS = ["méritent.", "exigent.", "attendent.", "réclament."] as const;
 const WORD_INTERVAL_MS = 4000;
 const WORD_EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -20,17 +20,29 @@ function CyclingWord() {
   }, []);
 
   const word = CYCLING_WORDS[index];
+  const ariaWord = word.replace(/\.$/, "");
 
   return (
-    <span className="inline-block relative align-baseline overflow-hidden" aria-live="polite" aria-label={`vos clients ${word}`}>
+    <span
+      className="relative inline-block align-baseline overflow-hidden"
+      style={{ minWidth: "auto" }}
+      aria-live="polite"
+      aria-label={`vos clients ${ariaWord}`}
+    >
+      <span
+        className="pointer-events-none inline-block select-none font-heading font-medium italic invisible"
+        aria-hidden
+      >
+        attendent.
+      </span>
       <AnimatePresence mode="wait">
         <motion.span
           key={word}
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -20, opacity: 0 }}
+          initial={{ y: "100%", opacity: 0 }}
+          animate={{ y: "0%", opacity: 1 }}
+          exit={{ y: "-100%", opacity: 0 }}
           transition={{ duration: 0.5, ease: WORD_EASE }}
-          className="inline-block font-heading font-medium italic"
+          className="absolute left-0 top-0 inline-block font-heading font-medium italic"
           style={{ color: "var(--accent)" }}
         >
           {word}
@@ -100,7 +112,6 @@ export function LawyerosHero() {
             style={{ color: "var(--foreground)" }}
           >
             Le portail client que vos clients <CyclingWord />
-            <span style={{ color: "var(--foreground)" }}>.</span>
           </h1>
 
           <p
