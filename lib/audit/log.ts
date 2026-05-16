@@ -18,7 +18,7 @@ export async function logAuditEvent(
       resource_id: resourceId,
       metadata: metadata ?? {},
     });
-  } catch {
-    // Audit failures must never break the main flow
+  } catch (err) {
+    console.error("[audit] logAuditEvent failed:", err);
   }
 }
