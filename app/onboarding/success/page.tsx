@@ -20,7 +20,7 @@ async function SuccessContent({
   const { href, display } = portalUrl(subdomain);
 
   const hdrs = await headers();
-  const orgName = hdrs.get("x-org-name") || "votre cabinet";
+  const orgName = decodeURIComponent(hdrs.get("x-org-name") || "") || "votre cabinet";
   const isPaid = !!sessionId;
 
   return (

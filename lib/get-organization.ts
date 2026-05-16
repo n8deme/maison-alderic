@@ -16,7 +16,7 @@ export async function getOrganization(): Promise<Organization> {
 
   const id           = headersList.get('x-org-id')
   const slug         = headersList.get('x-org-slug')
-  const name         = headersList.get('x-org-name')
+  const name         = decodeURIComponent(headersList.get('x-org-name') || '')
   const plan         = headersList.get('x-org-plan') as OrgPlan
   const primaryColor = headersList.get('x-org-color')
   const accentColor  = headersList.get('x-org-accent')
