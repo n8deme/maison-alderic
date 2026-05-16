@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { signupAction, checkSubdomainAction, type SignupState } from "./actions";
-import { Logo } from "@/components/brand/logo";
 
 const SLUG_RE = /^[a-z0-9-]+$/;
 
@@ -94,8 +93,10 @@ export default function SignupPage() {
     >
       {/* Header */}
       <div className="w-full max-w-md mb-10 text-center">
-        <Link href="/" className="inline-block mb-8">
-          <Logo variant="wordmark" className="h-12 w-auto mx-auto" />
+        <Link href="/lawyeros" className="inline-block mb-8">
+          <span className="text-2xl font-heading font-medium" style={{ color: "var(--foreground)" }}>
+            Lawyer<span style={{ color: "var(--accent)" }}>OS</span>
+          </span>
         </Link>
         <h1
           className="text-3xl font-heading font-medium tracking-tight"
