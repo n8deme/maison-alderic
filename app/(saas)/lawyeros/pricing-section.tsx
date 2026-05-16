@@ -131,7 +131,7 @@ export function PricingSection() {
           {PLANS.map((plan) => (
             <div
               key={plan.name}
-              className="relative rounded-sm border flex flex-col"
+              className={`relative rounded-sm border flex flex-col${plan.highlighted ? " mt-4" : ""}`}
               style={{
                 borderColor: plan.highlighted ? "var(--accent)" : "var(--border)",
                 backgroundColor: plan.highlighted ? "var(--foreground)" : "var(--surface)",
@@ -140,7 +140,7 @@ export function PricingSection() {
             >
               {plan.highlighted && (
                 <div
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-sm px-3 py-1 text-[11px] font-semibold uppercase tracking-wider"
+                  className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-sm px-3 py-1 text-[11px] font-semibold uppercase tracking-wider"
                   style={{ backgroundColor: "var(--accent)", color: "#ffffff", fontFamily: "var(--font-body)" }}
                 >
                   Recommandé
