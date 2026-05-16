@@ -323,7 +323,7 @@ export async function notifyNewMessage({
       .eq("role", "lead")
       .single();
 
-    const avocatRow = leadRow?.avocats as { user_id: string; full_name: string } | null;
+      const avocatRow = (leadRow?.avocats as unknown) as { user_id: string; full_name: string } | null;
     if (!avocatRow) return;
 
     const { data: avocatProfile } = await service
