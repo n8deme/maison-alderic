@@ -93,6 +93,7 @@ export default function LawyerOSPage() {
                 { href: "#fonctionnalites", label: "Fonctionnalités" },
                 { href: "#tarifs", label: "Tarifs" },
                 { href: "#demo", label: "Démo" },
+                { href: "/lawyeros/docs", label: "Documentation" },
               ].map((item) => (
                 <a key={item.href} href={item.href} className="los-nav-link text-sm" style={{ fontFamily: "var(--font-body)" }}>
                   {item.label}

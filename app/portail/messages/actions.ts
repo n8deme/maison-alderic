@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { notifyNewMessage } from "@/lib/resend";
 
 export async function sendMessage(dossierId: string, content: string): Promise<void> {
   const supabase = await createClient();
@@ -16,6 +17,13 @@ export async function sendMessage(dossierId: string, content: string): Promise<v
   });
 
   if (error) throw new Error(error.message);
+
+  // Notification fire-and-forget — n'affecte pas la réponse client
+  void notifyNewMessage({
+    dossierId,
+    senderId: user.id,
+    preview:  content.trim().slice(0, 200),
+  });
 }
 
 export async function markThreadAsRead(dossierId: string): Promise<void> {

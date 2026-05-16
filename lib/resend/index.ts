@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { createServiceClient } from "@/lib/supabase/service";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -278,4 +279,168 @@ function escHtml(str: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+// ---------------------------------------------------------------------------
+// Notification email — nouveau message dans un dossier (client → avocat lead)
+// Fire-and-forget : ne lance jamais d'exception vers l'appelant
+// ---------------------------------------------------------------------------
+export async function notifyNewMessage({
+  dossierId,
+  senderId,
+  preview,
+}: {
+  dossierId: string;
+  senderId:  string;
+  preview:   string;
+}): Promise<void> {
+  try {
+    const service = createServiceClient();
+    const base = process.env.NODE_ENV === "production"
+      ? "https://lawyeros.vercel.app"
+      : "http://localhost:3000";
+
+    // 1. Récupérer le dossier
+    const { data: dossier } = await service
+      .from("dossiers")
+      .select("title, reference, organization_id")
+      .eq("id", dossierId)
+      .single();
+    if (!dossier) return;
+
+    // 2. Trouver le profil du client (sender)
+    const { data: senderProfile } = await service
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", senderId)
+      .single();
+
+    // 3. Trouver l'avocat lead via dossier_avocats → avocats → profiles
+    const { data: leadRow } = await service
+      .from("dossier_avocats")
+      .select("avocats(user_id, full_name)")
+      .eq("dossier_id", dossierId)
+      .eq("role", "lead")
+      .single();
+
+    const avocatRow = leadRow?.avocats as { user_id: string; full_name: string } | null;
+    if (!avocatRow) return;
+
+    const { data: avocatProfile } = await service
+      .from("profiles")
+      .select("email")
+      .eq("id", avocatRow.user_id)
+      .single();
+    if (!avocatProfile?.email) return;
+
+    const clientName  = senderProfile?.full_name ?? senderProfile?.email ?? "Un client";
+    const avocatName  = avocatRow.full_name ?? "Maître";
+    const dossierUrl  = `${base}/portail-avocat/dossiers/${dossier.reference}`;
+    const safePreview = preview.slice(0, 200);
+
+    await resend.emails.send({
+      from:    FROM,
+      to:      avocatProfile.email,
+      subject: `Nouveau message — ${escHtml(dossier.title)}`,
+      html: messageNotifHtml({
+        recipientName: avocatName,
+        senderName:    clientName,
+        dossierTitle:  dossier.title,
+        dossierRef:    dossier.reference,
+        preview:       safePreview,
+        linkUrl:       dossierUrl,
+        linkLabel:     "Voir le dossier",
+      }),
+    });
+  } catch {
+    // Silencieux — une notification ratée ne doit pas bloquer le workflow
+  }
+}
+
+function messageNotifHtml({
+  recipientName,
+  senderName,
+  dossierTitle,
+  dossierRef,
+  preview,
+  linkUrl,
+  linkLabel,
+}: {
+  recipientName: string;
+  senderName:    string;
+  dossierTitle:  string;
+  dossierRef:    string;
+  preview:       string;
+  linkUrl:       string;
+  linkLabel:     string;
+}): string {
+  return /* html */ `
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+<body style="margin:0;padding:0;background:#F8F7F4;font-family:Inter,Helvetica,Arial,sans-serif;color:#1A1A1A;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F8F7F4;padding:40px 16px;">
+  <tr><td align="center">
+    <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
+
+      <!-- Logo -->
+      <tr><td style="padding-bottom:24px;text-align:center;">
+        <span style="font-size:18px;font-weight:600;letter-spacing:-0.02em;color:#1A1A1A;">
+          Lawyer<span style="color:#7A1F2B;">OS</span>
+        </span>
+      </td></tr>
+
+      <!-- Carte -->
+      <tr><td style="background:#FFFFFF;border:1px solid #E5E2DB;border-radius:2px;overflow:hidden;">
+
+        <!-- Bande top -->
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="background:#7A1F2B;padding:16px 32px;">
+            <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.7);">Nouveau message</p>
+            <p style="margin:4px 0 0;font-size:16px;font-weight:500;color:#fff;">${escHtml(dossierTitle)}</p>
+            <p style="margin:2px 0 0;font-size:11px;color:rgba(255,255,255,.55);font-family:monospace;">${escHtml(dossierRef)}</p>
+          </td></tr>
+        </table>
+
+        <!-- Corps -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 32px;">
+          <tr><td>
+            <p style="margin:0 0 16px;font-size:15px;color:#1A1A1A;">
+              Bonjour ${escHtml(recipientName)},
+            </p>
+            <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#5C5A55;">
+              <strong style="color:#1A1A1A;">${escHtml(senderName)}</strong> a envoyé un nouveau message dans le dossier <strong style="color:#1A1A1A;">${escHtml(dossierTitle)}</strong>.
+            </p>
+
+            <!-- Aperçu du message -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <tr><td style="background:#F8F7F4;border-left:3px solid #7A1F2B;padding:12px 16px;border-radius:0 2px 2px 0;">
+                <p style="margin:0;font-size:13px;line-height:1.6;color:#5C5A55;font-style:italic;">"${escHtml(preview)}${preview.length >= 200 ? "…" : ""}"</p>
+              </td></tr>
+            </table>
+
+            <!-- CTA -->
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr><td align="center">
+                <a href="${escHtml(linkUrl)}" style="display:inline-block;background:#7A1F2B;color:#fff;font-size:14px;font-weight:500;text-decoration:none;padding:12px 28px;border-radius:2px;">
+                  ${escHtml(linkLabel)} →
+                </a>
+              </td></tr>
+            </table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Footer -->
+      <tr><td style="padding-top:20px;text-align:center;">
+        <p style="margin:0;font-size:11px;color:#B5B2AB;">
+          © 2026 LawyerOS by Kayo Agency
+        </p>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`.trim();
 }

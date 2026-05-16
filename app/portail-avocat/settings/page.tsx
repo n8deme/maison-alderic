@@ -1,6 +1,7 @@
 import { getOrganization } from "@/lib/get-organization";
 import DangerZone from "./danger-zone";
 import { TwoFactorSetup } from "./two-factor-setup";
+import { BillingButton } from "./billing-button";
 
 export default async function SettingsPage() {
   const org = await getOrganization();
@@ -56,6 +57,31 @@ export default async function SettingsPage() {
               </dd>
             </div>
           </dl>
+        </section>
+
+        <section
+          className="rounded-sm border px-6 py-5"
+          style={{ borderColor: "var(--border)" }}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2
+                className="text-base font-medium"
+                style={{ color: "var(--foreground)", fontFamily: "var(--font-body)" }}
+              >
+                Abonnement
+              </h2>
+              <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
+                Gérez votre plan, vos factures et vos informations de paiement.
+              </p>
+              <p className="mt-1 text-sm font-medium capitalize" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
+                Plan actuel : {org.plan}
+              </p>
+            </div>
+            <div className="shrink-0 pt-1">
+              <BillingButton orgId={org.id} />
+            </div>
+          </div>
         </section>
 
         <section>
