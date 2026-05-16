@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { logAuditEvent } from "@/lib/audit/log";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -61,6 +62,8 @@ export async function createIntakeForm(
     .single();
 
   if (error || !form) return { error: error?.message ?? "Erreur lors de la création" };
+
+  await logAuditEvent(orgId, user.id, "intake_form_created", "intake_form", form.id, { title });
 
   revalidatePath("/portail-avocat/intake");
   return { formId: form.id };

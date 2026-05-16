@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getOrganization } from "@/lib/get-organization";
+import { logAuditEvent } from "@/lib/audit/log";
 import { revalidatePath } from "next/cache";
 
 type GenerateMandatResult =
@@ -13,6 +15,8 @@ export async function generateMandat(dossierId: string): Promise<GenerateMandatR
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: "Non authentifié" };
+
+    const org = await getOrganization();
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -78,6 +82,11 @@ export async function generateMandat(dossierId: string): Promise<GenerateMandatR
         error: `N8N a renvoyé une erreur (${response.status}). Si tu es en mode test, clique d'abord "Execute workflow" dans N8N.`,
       };
     }
+
+    await logAuditEvent(org.id, user.id, "mandat_generated", "dossier", dossierId, {
+      reference: dossier.reference,
+      client_email: client.email,
+    });
 
     revalidatePath(`/portail-avocat/dossiers/${dossier.reference}`);
 

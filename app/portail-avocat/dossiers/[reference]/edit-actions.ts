@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getOrganization } from "@/lib/get-organization";
+import { logAuditEvent } from "@/lib/audit/log";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -26,6 +28,8 @@ export async function updateDossier(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Non authentifié" };
+
+  const org = await getOrganization();
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -64,6 +68,8 @@ export async function updateDossier(
 
   const { error: avocatError } = await supabase.from("dossier_avocats").insert(avocatRows);
   if (avocatError) return { error: "Erreur mise à jour équipe avocats" };
+
+  await logAuditEvent(org.id, user.id, "dossier_updated", "dossier", dossierId, { reference });
 
   revalidatePath(`/portail-avocat/dossiers/${reference}`);
   return { success: true };

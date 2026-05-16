@@ -3,18 +3,22 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 const ACTION_LABELS: Record<string, string> = {
-  note_created: "Note créée",
-  time_entry_created: "Temps enregistré",
-  dossier_created: "Dossier créé",
-  invoice_created: "Facture créée",
-  organization_deleted: "Cabinet supprimé",
+  dossier_created:       "Dossier créé",
+  dossier_updated:       "Dossier modifié",
+  note_created:          "Note créée",
+  time_entry_created:    "Temps enregistré",
+  invoice_created:       "Facture créée",
+  mandat_generated:      "Mandat généré",
+  intake_form_created:   "Formulaire intake créé",
+  organization_deleted:  "Cabinet supprimé",
 };
 
 const RESOURCE_LABELS: Record<string, string> = {
-  note: "Note",
-  time_entry: "Temps",
-  dossier: "Dossier",
-  invoice: "Facture",
+  dossier:      "Dossier",
+  note:         "Note",
+  time_entry:   "Temps",
+  invoice:      "Facture",
+  intake_form:  "Formulaire",
   organization: "Cabinet",
 };
 
