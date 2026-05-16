@@ -70,7 +70,7 @@ export default async function AvocatDossiersPage({
         </Link>
       </div>
 
-      <form className="mb-4 grid grid-cols-1 gap-2 rounded-sm border border-border bg-surface p-3 md:grid-cols-5">
+      <form method="GET" className="mb-4 grid grid-cols-1 gap-2 rounded-sm border border-border bg-surface p-3 md:grid-cols-5">
         <select name="status" defaultValue={params.status ?? "all"} className="rounded-sm border border-border px-2 py-2 text-xs">
           <option value="all">Statut : tous</option>
           <option value="active">Actif</option>
