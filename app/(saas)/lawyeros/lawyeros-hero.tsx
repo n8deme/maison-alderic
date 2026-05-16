@@ -17,19 +17,15 @@ function CyclingWord() {
 
   return (
     <span
-      className="font-heading font-medium italic"
       style={{
         position: "relative",
         display: "inline-block",
-        verticalAlign: "baseline",
         width: "5.5em",
         height: "1em",
-        lineHeight: "1",
+        verticalAlign: "baseline",
         overflow: "hidden",
-        color: "var(--accent)",
+        lineHeight: "1",
       }}
-      aria-live="polite"
-      aria-label={`vos clients ${words[index].replace(/\.$/, "")}`}
     >
       <AnimatePresence mode="wait">
         <motion.span
@@ -38,13 +34,15 @@ function CyclingWord() {
           animate={{ y: "0%", opacity: 1 }}
           exit={{ y: "-100%", opacity: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="font-heading font-medium italic"
           style={{
             position: "absolute",
             left: 0,
-            bottom: 0,
+            bottom: "-0.18em",
             display: "inline-block",
             whiteSpace: "nowrap",
             lineHeight: "1",
+            color: "var(--accent)",
           }}
         >
           {words[index]}
