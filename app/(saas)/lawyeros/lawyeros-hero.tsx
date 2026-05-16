@@ -24,26 +24,25 @@ function CyclingWord() {
 
   return (
     <span
-      className="relative inline-block align-baseline overflow-hidden"
-      style={{ minWidth: "auto" }}
+      className="relative inline-block align-baseline"
+      style={{
+        width: "5.5em",
+        height: "1em",
+        verticalAlign: "baseline",
+        overflow: "hidden",
+      }}
       aria-live="polite"
       aria-label={`vos clients ${ariaWord}`}
     >
-      <span
-        className="pointer-events-none inline-block select-none font-heading font-medium italic invisible"
-        aria-hidden
-      >
-        attendent.
-      </span>
       <AnimatePresence mode="wait">
         <motion.span
           key={word}
-          initial={{ y: "100%", opacity: 0 }}
-          animate={{ y: "0%", opacity: 1 }}
-          exit={{ y: "-100%", opacity: 0 }}
+          initial={{ y: "0.4em", opacity: 0 }}
+          animate={{ y: "0em", opacity: 1 }}
+          exit={{ y: "-0.4em", opacity: 0 }}
           transition={{ duration: 0.5, ease: WORD_EASE }}
-          className="absolute left-0 top-0 inline-block font-heading font-medium italic"
-          style={{ color: "var(--accent)" }}
+          className="absolute bottom-0 left-0 inline-block whitespace-nowrap font-heading font-medium italic"
+          style={{ lineHeight: 1, color: "var(--accent)" }}
         >
           {word}
         </motion.span>
