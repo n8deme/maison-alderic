@@ -56,4 +56,4 @@ supabase/.temp
 scripts/
 
 # Logs divers
-*.log
+*.log.claude/worktrees/

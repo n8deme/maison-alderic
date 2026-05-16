@@ -1,0 +1,337 @@
+{
+  "name": "Workflow 4 - Onboarding Client",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "onboarding-client",
+        "options": {}
+      },
+      "id": "webhook-onboarding",
+      "name": "Webhook Onboarding Client",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "onboarding-client"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  p.id,\n  p.email,\n  p.full_name,\n  p.company,\n  p.phone,\n  a.id as avocat_id,\n  a.full_name as avocat_name,\n  a.email as avocat_email\nFROM profiles p\nLEFT JOIN avocats a ON a.id = '{{ $json.body.lead_avocat_id }}'::uuid\nWHERE p.id = '{{ $json.body.profile_id }}'::uuid\nLIMIT 1;"
+      },
+      "id": "get-client-data",
+      "name": "Récupérer données client + avocat",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO dossiers (\n  reference,\n  title,\n  description,\n  status,\n  type,\n  client_id,\n  lead_avocat_id,\n  opened_at\n)\nVALUES (\n  'MA-' || TO_CHAR(NOW(), 'YYYY') || '-' || LPAD(NEXTVAL('dossier_ref_seq')::text, 4, '0'),\n  'Onboarding — {{ $json.full_name }}',\n  'Dossier d''onboarding automatique créé lors de l''inscription du client.',\n  'active',\n  'Corporate',\n  '{{ $json.id }}'::uuid,\n  '{{ $json.avocat_id }}'::uuid,\n  NOW()\n)\nRETURNING id, reference, title;"
+      },
+      "id": "create-dossier",
+      "name": "Créer dossier Onboarding",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO dossier_timeline (dossier_id, title, description, status, due_date, display_order)\nVALUES\n  ('{{ $json.id }}'::uuid, 'Vérification identité', 'Validation des documents d''identité et des justificatifs de société.', 'pending', NOW() + INTERVAL '3 days', 1),\n  ('{{ $json.id }}'::uuid, 'Signature mandat', 'Signature électronique du mandat d''avocat.', 'pending', NOW() + INTERVAL '7 days', 2),\n  ('{{ $json.id }}'::uuid, 'RDV kick-off', 'Premier rendez-vous avec l''avocat référent.', 'pending', NOW() + INTERVAL '7 days', 3),\n  ('{{ $json.id }}'::uuid, 'Mise en place portail', 'Configuration complète de votre espace client sécurisé.', 'pending', NOW() + INTERVAL '14 days', 4)\nRETURNING id, title;"
+      },
+      "id": "create-timeline",
+      "name": "Créer timeline standard (4 étapes)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [850, 300],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.html2pdf.app/v1/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "html",
+              "value": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <style>\n    @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500&family=Inter:wght@400;500&display=swap');\n    body { font-family: 'Inter', sans-serif; color: #1A1A1A; margin: 40px; }\n    h1 { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 500; margin-bottom: 8px; }\n    h2 { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 500; margin-top: 40px; margin-bottom: 16px; border-bottom: 2px solid #E5E2DB; padding-bottom: 8px; }\n    .subtitle { color: #5C5A55; font-size: 16px; margin-bottom: 40px; }\n    .section { margin-bottom: 32px; }\n    .highlight { background: #F2F0EB; padding: 20px; border-radius: 4px; margin: 20px 0; }\n    .contact { margin-top: 60px; padding-top: 20px; border-top: 2px solid #E5E2DB; color: #5C5A55; font-size: 14px; }\n    ul { line-height: 1.8; }\n    .logo { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 500; margin-bottom: 60px; }\n  </style>\n</head>\n<body>\n  <div class=\"logo\">Maison Aldéric & Associés</div>\n  \n  <h1>Bienvenue chez Maison Aldéric & Associés</h1>\n  <div class=\"subtitle\">Welcome Pack — Guide de démarrage</div>\n  \n  <div class=\"section\">\n    <p>Cher {{ $('Récupérer données client + avocat').item.json.full_name }},</p>\n    <p>Nous sommes heureux de vous accueillir parmi nos clients. Ce document vous guidera dans vos premiers pas avec notre cabinet et votre portail client sécurisé.</p>\n  </div>\n  \n  <h2>Votre avocat référent</h2>\n  <div class=\"highlight\">\n    <strong>{{ $('Récupérer données client + avocat').item.json.avocat_name }}</strong><br>\n    Email : {{ $('Récupérer données client + avocat').item.json.avocat_email }}<br>\n    Téléphone : +32 2 555 01 23\n  </div>\n  \n  <h2>Accéder à votre portail client</h2>\n  <div class=\"section\">\n    <p>Votre espace sécurisé vous permet de :</p>\n    <ul>\n      <li>Consulter l'avancement de vos dossiers en temps réel</li>\n      <li>Échanger des messages sécurisés avec votre équipe juridique</li>\n      <li>Accéder à tous vos documents contractuels</li>\n      <li>Gérer vos rendez-vous et factures</li>\n    </ul>\n    <p><strong>Connexion :</strong> Vous avez reçu un lien d'accès par email séparé (magic link). Conservez-le précieusement.</p>\n  </div>\n  \n  <h2>Prochaines étapes</h2>\n  <div class=\"section\">\n    <ol>\n      <li><strong>Vérification d'identité</strong> (J+3) : Envoyez vos documents via le portail</li>\n      <li><strong>Signature du mandat</strong> (J+7) : Signature électronique sécurisée</li>\n      <li><strong>RDV kick-off</strong> (J+7) : Premier rendez-vous avec {{ $('Récupérer données client + avocat').item.json.avocat_name }}</li>\n      <li><strong>Mise en place portail</strong> (J+14) : Configuration finale</li>\n    </ol>\n  </div>\n  \n  <h2>Notre engagement</h2>\n  <div class=\"section\">\n    <p>Maison Aldéric & Associés s'engage à :</p>\n    <ul>\n      <li>Répondre à vos emails sous 24h ouvrées maximum</li>\n      <li>Maintenir une transparence totale sur l'avancement de vos dossiers</li>\n      <li>Sécuriser vos données selon les normes RGPD les plus strictes</li>\n      <li>Vous accompagner avec excellence à chaque étape</li>\n    </ul>\n  </div>\n  \n  <div class=\"contact\">\n    <strong>Maison Aldéric & Associés SCRL</strong><br>\n    Avenue Louise 480, 1050 Bruxelles, Belgique<br>\n    Tél : +32 2 555 01 23 | Email : contact@maison-alderic.be<br>\n    www.maison-alderic.be\n  </div>\n</body>\n</html>"
+            },
+            {
+              "name": "fileName",
+              "value": "Welcome_Pack_Maison_Alderic.pdf"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "generate-welcome-pdf",
+      "name": "Générer Welcome Pack PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1050, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "html2pdf-api",
+          "name": "HTML2PDF API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "bucketName": "documents",
+        "fileName": "onboarding/{{ $('Récupérer données client + avocat').item.json.id }}/welcome-pack.pdf",
+        "binaryData": true,
+        "binaryPropertyName": "data",
+        "additionalFields": {
+          "contentType": "application/pdf"
+        }
+      },
+      "id": "upload-to-storage",
+      "name": "Upload PDF vers Supabase Storage",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1250, 200],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase",
+          "name": "Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO documents (\n  dossier_id,\n  name,\n  description,\n  file_path,\n  file_size,\n  mime_type,\n  category,\n  uploaded_by,\n  visible_to_client\n)\nVALUES (\n  '{{ $('Créer dossier Onboarding').item.json.id }}'::uuid,\n  'Welcome Pack — Guide de démarrage',\n  'Document d''accueil contenant toutes les informations essentielles pour démarrer votre collaboration avec Maison Aldéric & Associés.',\n  'onboarding/{{ $('Récupérer données client + avocat').item.json.id }}/welcome-pack.pdf',\n  {{ $('Générer Welcome Pack PDF').item.json.fileSize || 0 }},\n  'application/pdf',\n  'other',\n  '{{ $('Récupérer données client + avocat').item.json.avocat_id }}'::uuid,\n  true\n)\nRETURNING id;"
+      },
+      "id": "insert-doc-db",
+      "name": "Insérer doc en DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1450, 200],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "bienvenue@maison-alderic.be",
+        "toEmail": "={{ $('Récupérer données client + avocat').item.json.email }}",
+        "subject": "Bienvenue chez Maison Aldéric & Associés",
+        "emailFormat": "html",
+        "text": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <style>\n    body { font-family: Inter, sans-serif; color: #1A1A1A; background: #F8F7F4; }\n    .container { max-width: 600px; margin: 40px auto; background: #FFFFFF; padding: 40px; border-radius: 4px; }\n    h1 { font-family: Fraunces, serif; font-size: 28px; font-weight: 500; color: #1A1A1A; margin: 0 0 16px 0; }\n    .subtitle { color: #5C5A55; font-size: 16px; margin-bottom: 32px; }\n    .highlight { background: #F2F0EB; padding: 20px; border-radius: 4px; margin: 24px 0; }\n    .cta { display: inline-block; background: #1A1A1A; color: #FFFFFF; padding: 14px 32px; text-decoration: none; border-radius: 4px; margin: 24px 0; font-weight: 500; }\n    .cta:hover { background: #7A1F2B; }\n    .footer { margin-top: 40px; padding-top: 24px; border-top: 1px solid #E5E2DB; color: #8B887F; font-size: 14px; }\n    ul { line-height: 1.8; color: #5C5A55; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>Bienvenue chez Maison Aldéric & Associés</h1>\n    <div class=\"subtitle\">Nous sommes heureux de vous accueillir</div>\n    \n    <p>Cher {{ $('Récupérer données client + avocat').item.json.full_name }},</p>\n    \n    <p>Votre compte client a été créé avec succès. Vous pouvez dès maintenant accéder à votre portail sécurisé pour suivre l'avancement de vos dossiers, échanger avec votre équipe juridique et consulter vos documents.</p>\n    \n    <div class=\"highlight\">\n      <strong>Votre avocat référent :</strong><br>\n      {{ $('Récupérer données client + avocat').item.json.avocat_name }}<br>\n      <a href=\"mailto:{{ $('Récupérer données client + avocat').item.json.avocat_email }}\" style=\"color: #7A1F2B;\">{{ $('Récupérer données client + avocat').item.json.avocat_email }}</a>\n    </div>\n    \n    <a href=\"https://maison-alderic.be/portail\" class=\"cta\">Accéder au portail client</a>\n    \n    <p><strong>Prochaines étapes :</strong></p>\n    <ul>\n      <li>Vérification de votre identité (sous 3 jours)</li>\n      <li>Signature du mandat d'avocat (sous 7 jours)</li>\n      <li>Rendez-vous de kick-off avec {{ $('Récupérer données client + avocat').item.json.avocat_name }} (dans 7 jours)</li>\n    </ul>\n    \n    <p>Vous trouverez en pièce jointe votre <strong>Welcome Pack</strong> contenant toutes les informations pratiques pour bien démarrer.</p>\n    \n    <p>Si vous avez la moindre question, n'hésitez pas à nous contacter.</p>\n    \n    <div class=\"footer\">\n      <strong>Maison Aldéric & Associés</strong><br>\n      Avenue Louise 480, 1050 Bruxelles<br>\n      +32 2 555 01 23 | <a href=\"mailto:contact@maison-alderic.be\" style=\"color: #7A1F2B;\">contact@maison-alderic.be</a>\n    </div>\n  </div>\n</body>\n</html>",
+        "options": {
+          "attachments": "data"
+        }
+      },
+      "id": "send-welcome-email",
+      "name": "Envoyer email bienvenue + PDF",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1050, 400],
+      "credentials": {
+        "smtp": {
+          "id": "resend-smtp",
+          "name": "Resend SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO appointments (\n  client_id,\n  avocat_id,\n  dossier_id,\n  title,\n  description,\n  starts_at,\n  ends_at,\n  location,\n  status\n)\nVALUES (\n  '{{ $('Récupérer données client + avocat').item.json.id }}'::uuid,\n  '{{ $('Récupérer données client + avocat').item.json.avocat_id }}'::uuid,\n  '{{ $('Créer dossier Onboarding').item.json.id }}'::uuid,\n  'RDV Kick-off — {{ $('Récupérer données client + avocat').item.json.full_name }}',\n  'Premier rendez-vous de présentation et définition du cadre de collaboration.',\n  NOW() + INTERVAL '7 days' + TIME '14:00:00',\n  NOW() + INTERVAL '7 days' + TIME '15:00:00',\n  'Bureau Bruxelles — Avenue Louise 480',\n  'scheduled'\n)\nRETURNING id, starts_at;"
+      },
+      "id": "create-rdv-kickoff",
+      "name": "Créer RDV kick-off (J+7)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1250, 400],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-db",
+          "name": "Supabase Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channelId": "={{ $vars.SLACK_CHANNEL_ONBOARDING }}",
+        "text": "🎉 *Nouveau client onboardé*\n\n*Client :* {{ $('Récupérer données client + avocat').item.json.full_name }}\n*Société :* {{ $('Récupérer données client + avocat').item.json.company || 'N/A' }}\n*Email :* {{ $('Récupérer données client + avocat').item.json.email }}\n*Avocat référent :* {{ $('Récupérer données client + avocat').item.json.avocat_name }}\n*Dossier créé :* {{ $('Créer dossier Onboarding').item.json.reference }} — {{ $('Créer dossier Onboarding').item.json.title }}\n*RDV kick-off :* {{ $fromDateTime($('Créer RDV kick-off (J+7)').item.json.starts_at).toFormat('EEEE d MMMM yyyy à HH:mm', { locale: 'fr' }) }}\n\n✅ Email de bienvenue envoyé\n✅ Welcome Pack généré\n✅ Timeline créée (4 étapes)\n✅ RDV planifié",
+        "otherOptions": {}
+      },
+      "id": "notify-slack",
+      "name": "Notifier avocat sur Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [1450, 400],
+      "credentials": {
+        "slackApi": {
+          "id": "slack",
+          "name": "Slack Maison Aldéric"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Onboarding terminé avec succès\",\n  \"data\": {\n    \"client_id\": \"{{ $('Récupérer données client + avocat').item.json.id }}\",\n    \"dossier_id\": \"{{ $('Créer dossier Onboarding').item.json.id }}\",\n    \"dossier_reference\": \"{{ $('Créer dossier Onboarding').item.json.reference }}\",\n    \"appointment_id\": \"{{ $('Créer RDV kick-off (J+7)').item.json.id }}\",\n    \"appointment_date\": \"{{ $('Créer RDV kick-off (J+7)').item.json.starts_at }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Répondre succès au webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Onboarding Client": {
+      "main": [
+        [
+          {
+            "node": "Récupérer données client + avocat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Récupérer données client + avocat": {
+      "main": [
+        [
+          {
+            "node": "Créer dossier Onboarding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Créer dossier Onboarding": {
+      "main": [
+        [
+          {
+            "node": "Créer timeline standard (4 étapes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Créer timeline standard (4 étapes)": {
+      "main": [
+        [
+          {
+            "node": "Générer Welcome Pack PDF",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Envoyer email bienvenue + PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Générer Welcome Pack PDF": {
+      "main": [
+        [
+          {
+            "node": "Upload PDF vers Supabase Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload PDF vers Supabase Storage": {
+      "main": [
+        [
+          {
+            "node": "Insérer doc en DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insérer doc en DB": {
+      "main": [
+        [
+          {
+            "node": "Répondre succès au webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envoyer email bienvenue + PDF": {
+      "main": [
+        [
+          {
+            "node": "Créer RDV kick-off (J+7)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Créer RDV kick-off (J+7)": {
+      "main": [
+        [
+          {
+            "node": "Notifier avocat sur Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notifier avocat sur Slack": {
+      "main": [
+        [
+          {
+            "node": "Répondre succès au webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-05-10T00:00:00.000Z",
+  "versionId": "1"
+}

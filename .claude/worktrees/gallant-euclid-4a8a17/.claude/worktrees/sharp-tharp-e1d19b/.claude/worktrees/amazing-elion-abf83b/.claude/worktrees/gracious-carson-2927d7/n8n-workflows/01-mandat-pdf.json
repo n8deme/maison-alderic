@@ -1,0 +1,272 @@
+{
+  "name": "01 — Génération Mandat PDF",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mandat-pdf",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Webhook — Nouveau mandat",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "mandat-pdf-prod"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "var-client-id",   "name": "client_id",   "value": "={{ $json.body.client_id }}",   "type": "string" },
+            { "id": "var-dossier-id",  "name": "dossier_id",  "value": "={{ $json.body.dossier_id }}",  "type": "string" },
+            { "id": "var-triggered-at","name": "triggered_at","value": "={{ $json.body.triggered_at }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000002",
+      "name": "Set — Variables entrée",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/profiles?select=id,full_name,email,company,phone&id=eq.{{ $('Set — Variables entrée').item.json.client_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000003",
+      "name": "Supabase — Profil client",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/dossiers?select=id,reference,title,type,description&id=eq.{{ $('Set — Variables entrée').item.json.dossier_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000004",
+      "name": "Supabase — Données dossier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/dossier_avocats?select=avocat_id,role,avocats(id,full_name,email,title,phone)&dossier_id=eq.{{ $('Set — Variables entrée').item.json.dossier_id }}&role=eq.lead",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000005",
+      "name": "Supabase — Avocat référent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Récupérer les données de chaque étape\nconst vars     = $('Set — Variables entrée').item.json;\nconst client   = $('Supabase — Profil client').item.json[0];\nconst dossier  = $('Supabase — Données dossier').item.json[0];\nconst leadData = $('Supabase — Avocat référent').item.json[0];\nconst avocat   = leadData?.avocats ?? { full_name: 'Maison Aldéric', email: 'contact@maison-alderic.be', title: 'Cabinet' };\n\nconst today = new Date().toLocaleDateString('fr-BE', { day: 'numeric', month: 'long', year: 'numeric' });\n\n// Template HTML du mandat\nconst html = `\n<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    body { font-family: Georgia, serif; color: #1A1A1A; max-width: 800px; margin: 40px auto; padding: 40px; }\n    .header { border-bottom: 2px solid #1A1A1A; padding-bottom: 20px; margin-bottom: 30px; }\n    .cabinet-name { font-size: 22px; font-weight: 500; letter-spacing: -0.02em; }\n    .cabinet-sub { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #8B887F; margin-top: 4px; }\n    .title { font-size: 18px; font-weight: 500; margin: 30px 0 20px; text-align: center; }\n    .section { margin: 20px 0; }\n    .section h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #5C5A55; margin-bottom: 8px; border-bottom: 1px solid #E5E2DB; padding-bottom: 6px; }\n    .field { margin: 8px 0; font-size: 13px; }\n    .label { font-weight: 500; }\n    .signature-block { margin-top: 60px; display: flex; justify-content: space-between; }\n    .sig-box { width: 45%; }\n    .sig-line { border-top: 1px solid #1A1A1A; margin-top: 60px; padding-top: 8px; font-size: 11px; color: #5C5A55; }\n    .footer { margin-top: 40px; font-size: 10px; color: #8B887F; text-align: center; border-top: 1px solid #E5E2DB; padding-top: 16px; }\n    .ref { font-size: 10px; color: #8B887F; text-align: right; margin-bottom: 30px; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <div class=\"cabinet-name\">Maison Aldéric &amp; Associés</div>\n    <div class=\"cabinet-sub\">SCRL · Avenue Louise 480 · 1050 Bruxelles</div>\n  </div>\n\n  <div class=\"ref\">Réf. ${dossier?.reference ?? 'N/A'} · ${today}</div>\n\n  <div class=\"title\">LETTRE DE MISSION</div>\n\n  <div class=\"section\">\n    <h3>Le cabinet</h3>\n    <div class=\"field\"><span class=\"label\">Dénomination :</span> Maison Aldéric &amp; Associés SCRL</div>\n    <div class=\"field\"><span class=\"label\">Siège social :</span> Avenue Louise 480, 1050 Bruxelles</div>\n    <div class=\"field\"><span class=\"label\">Avocat référent :</span> ${avocat.full_name}, ${avocat.title}</div>\n    <div class=\"field\"><span class=\"label\">Contact :</span> ${avocat.email}</div>\n  </div>\n\n  <div class=\"section\">\n    <h3>Le client</h3>\n    <div class=\"field\"><span class=\"label\">Nom :</span> ${client?.full_name ?? 'N/A'}</div>\n    <div class=\"field\"><span class=\"label\">Société :</span> ${client?.company ?? '—'}</div>\n    <div class=\"field\"><span class=\"label\">E-mail :</span> ${client?.email ?? 'N/A'}</div>\n    <div class=\"field\"><span class=\"label\">Téléphone :</span> ${client?.phone ?? '—'}</div>\n  </div>\n\n  <div class=\"section\">\n    <h3>La mission</h3>\n    <div class=\"field\"><span class=\"label\">Dossier :</span> ${dossier?.title ?? 'N/A'}</div>\n    <div class=\"field\"><span class=\"label\">Type :</span> ${dossier?.type ?? 'N/A'}</div>\n    <div class=\"field\"><span class=\"label\">Description :</span> ${dossier?.description ?? 'Conseil juridique selon les modalités convenues.'}</div>\n  </div>\n\n  <div class=\"section\">\n    <h3>Conditions générales</h3>\n    <div class=\"field\">Les honoraires sont facturés selon le barème convenu. Toute contestation relève de la juridiction compétente du barreau de Bruxelles. Le cabinet est soumis au secret professionnel conformément aux règles déontologiques du Barreau de Bruxelles.</div>\n  </div>\n\n  <div class=\"signature-block\">\n    <div class=\"sig-box\">\n      <div class=\"sig-line\">Pour Maison Aldéric &amp; Associés<br>${avocat.full_name}</div>\n    </div>\n    <div class=\"sig-box\">\n      <div class=\"sig-line\">Pour le client<br>${client?.full_name ?? ''}</div>\n    </div>\n  </div>\n\n  <div class=\"footer\">\n    Maison Aldéric &amp; Associés SCRL · TVA BE 0xxx.xxx.xxx · Barreau de Bruxelles<br>\n    Avenue Louise 480, 1050 Bruxelles · contact@maison-alderic.be\n  </div>\n</body>\n</html>`;\n\nreturn [{\n  json: {\n    html,\n    client_id:    vars.client_id,\n    dossier_id:   vars.dossier_id,\n    reference:    dossier?.reference ?? 'MANDAT',\n    client_email: client?.email,\n    client_name:  client?.full_name,\n    avocat_email: avocat.email,\n    avocat_name:  avocat.full_name,\n    filename:     `mandat-${dossier?.reference ?? 'MA'}-${Date.now()}.html`,\n    file_path:    `${vars.dossier_id}/mandat-${dossier?.reference ?? 'MA'}-${Date.now()}.html`\n  }\n}];"
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000006",
+      "name": "Code — Génère HTML mandat",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/storage/v1/object/documents/{{ $json.file_path }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Content-Type",  "value": "text/html" },
+            { "name": "x-upsert",      "value": "true" }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "raw",
+        "rawBody": "={{ $json.html }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000007",
+      "name": "Storage — Upload mandat",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/documents",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" },
+            { "name": "Prefer",        "value": "return=representation" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"dossier_id\": \"{{ $('Code — Génère HTML mandat').item.json.dossier_id }}\",\n  \"name\": \"Lettre de mission — {{ $('Code — Génère HTML mandat').item.json.reference }}\",\n  \"description\": \"Mandat généré automatiquement\",\n  \"file_path\": \"{{ $('Code — Génère HTML mandat').item.json.file_path }}\",\n  \"file_size\": {{ $('Code — Génère HTML mandat').item.json.html.length }},\n  \"mime_type\": \"text/html\",\n  \"category\": \"mandat\",\n  \"uploaded_by\": \"{{ $('Code — Génère HTML mandat').item.json.client_id }}\",\n  \"visible_to_client\": true\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000008",
+      "name": "Supabase — Insert document",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/dossier_timeline",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"dossier_id\": \"{{ $('Code — Génère HTML mandat').item.json.dossier_id }}\",\n  \"title\": \"Mandat généré\",\n  \"description\": \"Lettre de mission générée automatiquement et envoyée au client.\",\n  \"status\": \"completed\",\n  \"completed_at\": \"{{ new Date().toISOString() }}\",\n  \"display_order\": 1\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000009",
+      "name": "Supabase — Insert timeline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.RESEND_API_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"from\": \"Maison Aldéric <mandats@maison-alderic.be>\",\n  \"to\": [\"{{ $('Code — Génère HTML mandat').item.json.client_email }}\"],\n  \"subject\": \"Votre lettre de mission — Dossier {{ $('Code — Génère HTML mandat').item.json.reference }}\",\n  \"html\": \"<p>Bonjour {{ $('Code — Génère HTML mandat').item.json.client_name }},</p><p>Veuillez trouver ci-joint votre lettre de mission pour le dossier <strong>{{ $('Code — Génère HTML mandat').item.json.reference }}</strong>.</p><p>Merci de nous retourner ce document signé.</p><p>Cordialement,<br><strong>{{ $('Code — Génère HTML mandat').item.json.avocat_name }}</strong><br>Maison Aldéric & Associés</p>\"\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000010",
+      "name": "Resend — Email client",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2220, 220]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.RESEND_API_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"from\": \"Portail interne <noreply@maison-alderic.be>\",\n  \"to\": [\"{{ $('Code — Génère HTML mandat').item.json.avocat_email }}\"],\n  \"subject\": \"[ACTION] Mandat envoyé — {{ $('Code — Génère HTML mandat').item.json.reference }}\",\n  \"html\": \"<p>Le mandat pour le dossier <strong>{{ $('Code — Génère HTML mandat').item.json.reference }}</strong> a été généré et envoyé au client <strong>{{ $('Code — Génère HTML mandat').item.json.client_name }}</strong>.</p><p>En attente de signature.</p>\"\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000011",
+      "name": "Resend — Email avocat",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2220, 380]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"success\": true, \"dossier_id\": \"{{ $('Code — Génère HTML mandat').item.json.dossier_id }}\", \"document\": \"{{ $('Code — Génère HTML mandat').item.json.file_path }}\" }",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000012",
+      "name": "Respond — Succès",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2440, 300]
+    }
+  ],
+  "connections": {
+    "Webhook — Nouveau mandat": {
+      "main": [[{ "node": "Set — Variables entrée",      "type": "main", "index": 0 }]]
+    },
+    "Set — Variables entrée": {
+      "main": [[{ "node": "Supabase — Profil client",    "type": "main", "index": 0 }]]
+    },
+    "Supabase — Profil client": {
+      "main": [[{ "node": "Supabase — Données dossier",  "type": "main", "index": 0 }]]
+    },
+    "Supabase — Données dossier": {
+      "main": [[{ "node": "Supabase — Avocat référent",  "type": "main", "index": 0 }]]
+    },
+    "Supabase — Avocat référent": {
+      "main": [[{ "node": "Code — Génère HTML mandat",   "type": "main", "index": 0 }]]
+    },
+    "Code — Génère HTML mandat": {
+      "main": [[{ "node": "Storage — Upload mandat",     "type": "main", "index": 0 }]]
+    },
+    "Storage — Upload mandat": {
+      "main": [[{ "node": "Supabase — Insert document",  "type": "main", "index": 0 }]]
+    },
+    "Supabase — Insert document": {
+      "main": [[{ "node": "Supabase — Insert timeline",  "type": "main", "index": 0 }]]
+    },
+    "Supabase — Insert timeline": {
+      "main": [
+        [{ "node": "Resend — Email client", "type": "main", "index": 0 }],
+        [{ "node": "Resend — Email avocat", "type": "main", "index": 0 }]
+      ]
+    },
+    "Resend — Email client": {
+      "main": [[{ "node": "Respond — Succès", "type": "main", "index": 0 }]]
+    },
+    "Resend — Email avocat": {
+      "main": [[{ "node": "Respond — Succès", "type": "main", "index": 1 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "id": "wf-mandat-pdf-001",
+  "meta": { "instanceId": "maison-alderic-n8n" }
+}

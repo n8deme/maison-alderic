@@ -1,0 +1,476 @@
+{
+  "name": "Maison Aldéric — Génération mandat PDF",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "alderic-mandat",
+        "options": {
+          "allowedOrigins": "https://portail.maisonalderic.be,http://localhost:3000"
+        }
+      },
+      "id": "66db074a-9a9d-4ffb-96eb-45b7c18edd67",
+      "name": "Webhook Mandat",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -2080,
+        912
+      ],
+      "webhookId": "alderic-mandat-secure"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.client_id }}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{ $json.body.avocat_id }}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{ $json.body.type_dossier }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "9754ffed-e622-4388-9d95-27ef3f5ad224",
+      "name": "Validation données",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -1872,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "client_id",
+              "value": "={{ $json.body.client_id }}"
+            },
+            {
+              "name": "client_nom",
+              "value": "={{ $json.body.client_nom }}"
+            },
+            {
+              "name": "client_email",
+              "value": "={{ $json.body.client_email }}"
+            },
+            {
+              "name": "avocat_id",
+              "value": "={{ $json.body.avocat_id }}"
+            },
+            {
+              "name": "avocat_nom",
+              "value": "={{ $json.body.avocat_nom }}"
+            },
+            {
+              "name": "type_dossier",
+              "value": "={{ $json.body.type_dossier }}"
+            },
+            {
+              "name": "date_signature",
+              "value": "={{ $now.format('DD/MM/YYYY à HH:mm') }}"
+            },
+            {
+              "name": "numero_mandat",
+              "value": "{{ \"MAN-20260506-0001\" }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "37178970-fdde-45bb-81bd-89c7319d093c",
+      "name": "Format Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -1680,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const htmlTemplate = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    @page { margin: 2cm; }\n    body { \n      font-family: 'Georgia', serif; \n      font-size: 11pt; \n      line-height: 1.6; \n      color: #1a1a1a;\n    }\n    .header { \n      text-align: center; \n      margin-bottom: 40px; \n      border-bottom: 2px solid #8B7355;\n      padding-bottom: 20px;\n    }\n    .header h1 { \n      font-size: 18pt; \n      margin: 0; \n      color: #8B7355;\n      letter-spacing: 2px;\n    }\n    .header p { \n      margin: 5px 0; \n      font-size: 9pt; \n      color: #666;\n    }\n    .section { \n      margin-bottom: 30px; \n    }\n    .section h2 { \n      font-size: 13pt; \n      color: #8B7355; \n      border-left: 4px solid #8B7355; \n      padding-left: 10px; \n      margin-bottom: 15px;\n    }\n    .meta { \n      background: #f9f7f4; \n      padding: 15px; \n      border-radius: 4px; \n      margin-bottom: 20px;\n    }\n    .meta-row { \n      display: flex; \n      justify-content: space-between; \n      margin-bottom: 8px;\n    }\n    .meta-label { \n      font-weight: bold; \n      color: #666;\n    }\n    .clause { \n      margin-bottom: 20px; \n      text-align: justify;\n    }\n    .clause-title { \n      font-weight: bold; \n      margin-bottom: 8px;\n    }\n    .signatures { \n      margin-top: 60px; \n      display: flex; \n      justify-content: space-between;\n    }\n    .signature-box { \n      width: 45%; \n      border-top: 1px solid #333; \n      padding-top: 10px;\n    }\n    .watermark { \n      position: fixed; \n      bottom: 20px; \n      right: 20px; \n      font-size: 8pt; \n      color: #ccc;\n    }\n    .confidential { \n      text-align: center; \n      color: #d32f2f; \n      font-weight: bold; \n      margin-top: 40px; \n      font-size: 10pt;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>MAISON ALDÉRIC</h1>\n    <p>Cabinet d'Avocats — Avenue Louise 250, 1050 Bruxelles</p>\n    <p>RPM Bruxelles 0987.654.321 — Tél: +32 2 234 56 00</p>\n  </div>\n\n  <div class=\"meta\">\n    <div class=\"meta-row\">\n      <span class=\"meta-label\">Numéro de mandat:</span>\n      <span>${items[0].json.numero_mandat}</span>\n    </div>\n    <div class=\"meta-row\">\n      <span class=\"meta-label\">Date de signature:</span>\n      <span>${items[0].json.date_signature}</span>\n    </div>\n    <div class=\"meta-row\">\n      <span class=\"meta-label\">Type de dossier:</span>\n      <span>${items[0].json.type_dossier}</span>\n    </div>\n  </div>\n\n  <div class=\"section\">\n    <h2>MANDAT D'AVOCAT</h2>\n    <p><strong>Entre:</strong></p>\n    <p style=\"margin-left: 20px;\">\n      <strong>${items[0].json.client_nom}</strong><br>\n      Ci-après dénommé(e) « le Client »<br>\n      Email: ${items[0].json.client_email}\n    </p>\n    <p style=\"margin-top: 20px;\"><strong>Et:</strong></p>\n    <p style=\"margin-left: 20px;\">\n      <strong>Maître ${items[0].json.avocat_nom}</strong><br>\n      Avocat inscrit au Barreau de Bruxelles<br>\n      Ci-après dénommé(e) « l'Avocat »\n    </p>\n  </div>\n\n  <div class=\"section\">\n    <h2>IL A ÉTÉ CONVENU CE QUI SUIT:</h2>\n\n    <div class=\"clause\">\n      <div class=\"clause-title\">Article 1 — Objet du mandat</div>\n      <p>Le Client confie à l'Avocat le mandat de le représenter et de défendre ses intérêts dans le cadre d'un dossier de type <strong>${items[0].json.type_dossier}</strong>.</p>\n      <p>L'Avocat s'engage à exercer sa mission avec diligence, compétence et dans le respect des règles déontologiques de la profession.</p>\n    </div>\n\n    <div class=\"clause\">\n      <div class=\"clause-title\">Article 2 — Étendue du mandat</div>\n      <p>Le mandat comprend tous les actes nécessaires à la défense des intérêts du Client, notamment:</p>\n      <ul>\n        <li>La consultation et l'analyse juridique du dossier</li>\n        <li>La représentation devant toutes juridictions compétentes</li>\n        <li>La rédaction de tous actes, conclusions et correspondances</li>\n        <li>La négociation avec les parties adverses</li>\n        <li>Tout acte conservatoire ou d'exécution nécessaire</li>\n      </ul>\n    </div>\n\n    <div class=\"clause\">\n      <div class=\"clause-title\">Article 3 — Honoraires et frais</div>\n      <p>Les honoraires de l'Avocat seront déterminés selon les modalités convenues séparément et communiquées au Client par lettre d'engagement détaillée.</p>\n      <p>Les frais engagés pour les besoins de la cause (frais de justice, d'expertise, de déplacement, etc.) seront facturés en sus et devront être approuvés préalablement par le Client.</p>\n    </div>\n\n    <div class=\"clause\">\n      <div class=\"clause-title\">Article 4 — Secret professionnel</div>\n      <p>L'Avocat est tenu au secret professionnel le plus absolu concernant toutes les informations qui lui sont confiées par le Client dans le cadre de l'exécution du présent mandat.</p>\n    </div>\n\n    <div class=\"clause\">\n      <div class=\"clause-title\">Article 5 — Durée et résiliation</div>\n      <p>Le présent mandat prend effet à la date de sa signature et demeure valable jusqu'à la clôture définitive du dossier.</p>\n      <p>Chacune des parties peut y mettre fin moyennant un préavis de 15 jours par lettre recommandée, sans préjudice du droit pour l'Avocat de percevoir les honoraires dus pour les prestations effectuées.</p>\n    </div>\n\n    <div class=\"clause\">\n      <div class=\"clause-title\">Article 6 — Protection des données</div>\n      <p>Les données personnelles du Client sont traitées conformément au Règlement Général sur la Protection des Données (RGPD). Le Client dispose d'un droit d'accès, de rectification et de suppression de ses données.</p>\n    </div>\n  </div>\n\n  <div class=\"signatures\">\n    <div class=\"signature-box\">\n      <p><strong>Le Client</strong></p>\n      <p>${items[0].json.client_nom}</p>\n      <p style=\"margin-top: 40px;\">Signature électronique validée le ${items[0].json.date_signature}</p>\n    </div>\n    <div class=\"signature-box\">\n      <p><strong>L'Avocat</strong></p>\n      <p>Maître ${items[0].json.avocat_nom}</p>\n      <p style=\"margin-top: 40px;\">Pour Maison Aldéric</p>\n    </div>\n  </div>\n\n  <div class=\"confidential\">\n    DOCUMENT CONFIDENTIEL — COUVERT PAR LE SECRET PROFESSIONNEL DE L'AVOCAT\n  </div>\n\n  <div class=\"watermark\">\n    Généré le ${items[0].json.date_signature} — ${items[0].json.numero_mandat}\n  </div>\n</body>\n</html>\n`;\n\nreturn [{ json: { html: htmlTemplate } }];"
+      },
+      "id": "d61c6a85-0ee2-4b5f-a9d9-6ffafdd47dfb",
+      "name": "Generate HTML Template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1472,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "kevin@n8de.me",
+        "toEmail": "={{ $json.body.client_email }}",
+        "subject": "=Nouveau mandat signé",
+        "html": "=<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f4f4f4;\">\n  <div style=\"background-color: #ffffff; padding: 40px 30px; border-radius: 8px; margin: 20px;\">\n    <!-- Header -->\n    <div style=\"text-align: center; border-bottom: 2px solid #8B7355; padding-bottom: 20px; margin-bottom: 30px;\">\n      <h1 style=\"color: #8B7355; margin: 0; font-size: 24px; letter-spacing: 1px;\">MAISON ALDÉRIC</h1>\n      <p style=\"color: #666; margin: 5px 0; font-size: 12px;\">Cabinet d'Avocats — Bruxelles</p>\n    </div>\n\n    <!-- Titre -->\n    <h2 style=\"color: #1a1a1a; font-size: 20px; margin-bottom: 20px;\">Nouveau mandat signé</h2>\n\n    <!-- Infos mandat -->\n    <div style=\"background-color: #f9f7f4; padding: 20px; border-radius: 6px; margin-bottom: 25px;\">\n      <table style=\"width: 100%; border-collapse: collapse;\">\n        <tr>\n          <td style=\"padding: 8px 0; color: #666; font-size: 14px;\"><strong>Client :</strong></td>\n          <td style=\"padding: 8px 0; color: #1a1a1a; font-size: 14px;\">{{ $json.body.client_nom }}</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #666; font-size: 14px;\"><strong>Avocat :</strong></td>\n          <td style=\"padding: 8px 0; color: #1a1a1a; font-size: 14px;\">Maître {{ $json.body.avocat_nom }}</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #666; font-size: 14px;\"><strong>Type de dossier :</strong></td>\n          <td style=\"padding: 8px 0; color: #1a1a1a; font-size: 14px;\">{{ $json.body.type_dossier }}</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #666; font-size: 14px;\"><strong>Honoraires estimés :</strong></td>\n          <td style=\"padding: 8px 0; color: #1a1a1a; font-size: 14px;\">{{ $json.body.honoraires_estimes }} {{ $json.body.devise }}</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #666; font-size: 14px;\"><strong>Numéro :</strong></td>\n          <td style=\"padding: 8px 0; color: #1a1a1a; font-size: 14px;\">{{ $json.numero_mandat }}</td>\n        </tr>\n      </table>\n    </div>\n\n    <!-- Description -->\n    <div style=\"margin-bottom: 25px;\">\n      <p style=\"color: #666; font-size: 14px; line-height: 1.6; margin: 0;\">\n        <strong>Description :</strong><br>\n        {{ $json.body.description }}\n      </p>\n    </div>\n\n    <!-- Note PDF -->\n    <div style=\"background-color: #e8f5e9; padding: 15px; border-radius: 6px; margin-bottom: 25px;\">\n      <p style=\"color: #2e7d32; font-size: 13px; margin: 0;\">\n        ✓ Le mandat PDF a été généré et est disponible dans votre portail client.\n      </p>\n    </div>\n\n    <!-- CTA -->\n    <div style=\"text-align: center; margin: 30px 0;\">\n      <a href=\"https://portail.maisonalderic.be/dossiers/{{ $json.body.dossier_id }}\" \n         style=\"display: inline-block; background-color: #8B7355; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-size: 14px;\">\n        Accéder au portail\n      </a>\n    </div>\n\n    <!-- Footer -->\n    <div style=\"border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 30px; text-align: center;\">\n      <p style=\"color: #999; font-size: 11px; margin: 5px 0;\">\n        Ce message a été généré automatiquement<br>\n        Maison Aldéric — Avenue Louise 250, 1050 Bruxelles<br>\n        <a href=\"mailto:contact@maisonalderic.be\" style=\"color: #8B7355; text-decoration: none;\">contact@maisonalderic.be</a>\n      </p>\n    </div>\n  </div>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "ecb65f77-d16b-4b32-a005-6a2e87c0f4e5",
+      "name": "Email Client",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -704,
+        704
+      ],
+      "webhookId": "42467be2-2ebb-414f-8e72-4c8a7e44067a",
+      "credentials": {
+        "smtp": {
+          "id": "3ABKULsC5JTD6Kpm",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "kevin@n8de.me",
+        "toEmail": "={{ $json.body.avocat_email }}",
+        "subject": "=Nouveau mandat signé",
+        "html": "=<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n</head>\n<body style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f4f4f4;\">\n  <div style=\"background-color: #ffffff; padding: 40px 30px; border-radius: 8px; margin: 20px;\">\n    <!-- Header -->\n    <div style=\"text-align: center; border-bottom: 2px solid #8B7355; padding-bottom: 20px; margin-bottom: 30px;\">\n      <h1 style=\"color: #8B7355; margin: 0; font-size: 24px; letter-spacing: 1px;\">MAISON ALDÉRIC</h1>\n      <p style=\"color: #666; margin: 5px 0; font-size: 12px;\">Cabinet d'Avocats — Bruxelles</p>\n    </div>\n\n    <!-- Titre -->\n    <h2 style=\"color: #1a1a1a; font-size: 20px; margin-bottom: 20px;\">Nouveau mandat signé</h2>\n\n    <!-- Infos mandat -->\n    <div style=\"background-color: #f9f7f4; padding: 20px; border-radius: 6px; margin-bottom: 25px;\">\n      <table style=\"width: 100%; border-collapse: collapse;\">\n        <tr>\n          <td style=\"padding: 8px 0; color: #666; font-size: 14px;\"><strong>Client :</strong></td>\n          <td style=\"padding: 8px 0; color: #1a1a1a; font-size: 14px;\">{{ $json.body.client_nom }}</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #666; font-size: 14px;\"><strong>Avocat :</strong></td>\n          <td style=\"padding: 8px 0; color: #1a1a1a; font-size: 14px;\">Maître {{ $json.body.avocat_nom }}</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #666; font-size: 14px;\"><strong>Type de dossier :</strong></td>\n          <td style=\"padding: 8px 0; color: #1a1a1a; font-size: 14px;\">{{ $json.body.type_dossier }}</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #666; font-size: 14px;\"><strong>Honoraires estimés :</strong></td>\n          <td style=\"padding: 8px 0; color: #1a1a1a; font-size: 14px;\">{{ $json.body.honoraires_estimes }} {{ $json.body.devise }}</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #666; font-size: 14px;\"><strong>Numéro :</strong></td>\n          <td style=\"padding: 8px 0; color: #1a1a1a; font-size: 14px;\">{{ $json.numero_mandat }}</td>\n        </tr>\n      </table>\n    </div>\n\n    <!-- Description -->\n    <div style=\"margin-bottom: 25px;\">\n      <p style=\"color: #666; font-size: 14px; line-height: 1.6; margin: 0;\">\n        <strong>Description :</strong><br>\n        {{ $json.body.description }}\n      </p>\n    </div>\n\n    <!-- Note PDF -->\n    <div style=\"background-color: #e8f5e9; padding: 15px; border-radius: 6px; margin-bottom: 25px;\">\n      <p style=\"color: #2e7d32; font-size: 13px; margin: 0;\">\n        ✓ Le mandat PDF a été généré et est disponible dans votre portail client.\n      </p>\n    </div>\n\n    <!-- CTA -->\n    <div style=\"text-align: center; margin: 30px 0;\">\n      <a href=\"https://portail.maisonalderic.be/dossiers/{{ $json.body.dossier_id }}\" \n         style=\"display: inline-block; background-color: #8B7355; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-size: 14px;\">\n        Accéder au portail\n      </a>\n    </div>\n\n    <!-- Footer -->\n    <div style=\"border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 30px; text-align: center;\">\n      <p style=\"color: #999; font-size: 11px; margin: 5px 0;\">\n        Ce message a été généré automatiquement<br>\n        Maison Aldéric — Avenue Louise 250, 1050 Bruxelles<br>\n        <a href=\"mailto:contact@maisonalderic.be\" style=\"color: #8B7355; text-decoration: none;\">contact@maisonalderic.be</a>\n      </p>\n    </div>\n  </div>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "acd4166c-6b78-4f28-8a39-4877b5d7e01f",
+      "name": "Notify Avocat",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -704,
+        1104
+      ],
+      "webhookId": "e0ae4125-4591-457a-947c-9394234169d2",
+      "credentials": {
+        "smtp": {
+          "id": "3ABKULsC5JTD6Kpm",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"mandat_numero\": $('Format Data').item.json.numero_mandat, \"pdf_url\": \"https://supabase.n8de.me/storage/v1/object/public/mandats/\" + $('Format Data').item.json.numero_mandat + \".pdf\" } }}",
+        "options": {}
+      },
+      "id": "2a16b736-e19d-4209-906d-e4587df1a436",
+      "name": "Webhook Response Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": false, \"error\": \"Données manquantes ou invalides\" } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "d9d47b32-ad1d-41a4-a9aa-49395ddc7c37",
+      "name": "Webhook Response Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -1680,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdfshift.io/v3/convert/pdf",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "source",
+              "value": "={{ $json.html }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1280,
+        832
+      ],
+      "id": "23050a6d-ed9b-4f2e-94a7-32d0d83a2d4a",
+      "name": "HTML to PDF",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "HujutvRCoimg0Er0",
+          "name": "PDFSHIFT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://dwbkiyylbsydkuzrdxqc.supabase.co/storage/v1/object/documents/mandat-test-001.pdf",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/pdf"
+            },
+            {
+              "name": "x-upsert",
+              "value": "true"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1088,
+        832
+      ],
+      "id": "2aed8094-a736-4e7f-9d3e-a1807c5a2978",
+      "name": "Upload PDF to Supabase Storage",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Lq1XXqYW5kp0MHCO",
+          "name": "Supabase Service Role Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://dwbkiyylbsydkuzrdxqc.supabase.co/rest/v1/documents",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3YmtpeXlsYnN5ZGt1enJkeHFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkyODMzNiwiZXhwIjoyMDkzNTA0MzM2fQ.UDpQPly8-Uh3P4bp99kPxW6k0zQkkRXgO1J32M_9cfE"
+            },
+            {
+              "name": "prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "dossier_id",
+              "value": "={{ $('Webhook Mandat').item.json.body.dossier_id }}"
+            },
+            {
+              "name": "name",
+              "value": "={{ $('Upload PDF to Supabase Storage').item.json.Key.split('/')[1] }}"
+            },
+            {
+              "name": "file_path",
+              "value": "={{ $('Upload PDF to Supabase Storage').item.json.Key }}"
+            },
+            {
+              "name": "category",
+              "value": "mandat"
+            },
+            {
+              "name": "is_signed",
+              "value": "false"
+            },
+            {
+              "name": "visible_to_client",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -880,
+        832
+      ],
+      "id": "db43d8f7-b5c4-49b8-9c32-9477efe8fb76",
+      "name": "Insert Document DB",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Lq1XXqYW5kp0MHCO",
+          "name": "Supabase Service Role Auth"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Mandat": {
+      "main": [
+        [
+          {
+            "node": "Validation données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation données": {
+      "main": [
+        [
+          {
+            "node": "Format Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Response Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Data": {
+      "main": [
+        [
+          {
+            "node": "Generate HTML Template",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify Avocat",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate HTML Template": {
+      "main": [
+        [
+          {
+            "node": "HTML to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Client": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Avocat": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML to PDF": {
+      "main": [
+        [
+          {
+            "node": "Upload PDF to Supabase Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload PDF to Supabase Storage": {
+      "main": [
+        [
+          {
+            "node": "Insert Document DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Document DB": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9969c9d2-7427-4c48-95b4-7bad157472e9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "63be9fc8fe190c363871dfbd8623bc81d5c26dd7c1d8c27cb5f2b45cc88ffddb"
+  },
+  "id": "jCgMPBCmgnSpX250",
+  "tags": []
+}

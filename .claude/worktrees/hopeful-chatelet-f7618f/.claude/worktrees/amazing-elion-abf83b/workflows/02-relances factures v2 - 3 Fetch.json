@@ -1,0 +1,467 @@
+{
+  "name": "Maison Aldéric - Relances factures v2 - 3 Fetch",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9,17 * * 1-5"
+            }
+          ]
+        }
+      },
+      "name": "Cron Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        240
+      ],
+      "id": "908b1952-c5d9-42ac-944d-e3b6e5dde251"
+    },
+    {
+      "parameters": {
+        "fromEmail": "kevin@n8de.me",
+        "toEmail": "={{ $json.client_id.email }}",
+        "subject": "=Rappel facture {{ $json.invoice_number }} — Maison Aldéric",
+        "emailFormat": "html",
+        "html": "=<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    body { font-family: Georgia, serif; background: #F8F7F4; color: #1A1A1A; margin: 0; padding: 40px 20px; }\n    .container { max-width: 600px; margin: 0 auto; background: #FFFFFF; border: 1px solid #E5E2DB; padding: 48px 40px; }\n    .header { border-bottom: 1px solid #E5E2DB; padding-bottom: 24px; margin-bottom: 32px; }\n    .logo { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; color: #1A1A1A; }\n    .tagline { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #8B887F; margin-top: 4px; }\n    h1 { font-size: 22px; font-weight: 500; margin: 0 0 24px 0; letter-spacing: -0.01em; }\n    p { font-size: 14px; line-height: 1.7; color: #1A1A1A; margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; }\n    .invoice-box { background: #F2F0EB; border-left: 3px solid #7A1F2B; padding: 20px 24px; margin: 24px 0; }\n    .invoice-box .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #5C5A55; margin-bottom: 4px; font-family: -apple-system, sans-serif; }\n    .invoice-box .value { font-size: 18px; font-weight: 500; color: #1A1A1A; font-family: -apple-system, sans-serif; }\n    .btn { display: inline-block; background: #1A1A1A; color: #FFFFFF !important; padding: 12px 28px; text-decoration: none; font-size: 13px; letter-spacing: 0.02em; margin: 16px 0; font-family: -apple-system, sans-serif; }\n    .footer { margin-top: 40px; padding-top: 24px; border-top: 1px solid #E5E2DB; font-size: 12px; color: #8B887F; line-height: 1.6; font-family: -apple-system, sans-serif; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <div class=\"logo\">Maison Aldéric &amp; Associés</div>\n      <div class=\"tagline\">Cabinet d'avocats d'affaires — Bruxelles</div>\n    </div>\n\n    <h1>Rappel de paiement</h1>\n\n    <p>Bonjour {{ $json.client_id.full_name }},</p>\n\n    <p>Nous nous permettons de vous rappeler que la facture suivante, échue le <strong>{{ $json.due_at.split('T')[0] }}</strong>, demeure à ce jour impayée.</p>\n\n    <div class=\"invoice-box\">\n      <div class=\"label\">Facture {{ $json.invoice_number }}</div>\n      <div class=\"value\">{{ $json.amount_ttc }} € TTC</div>\n    </div>\n\n    <p>Si le paiement a déjà été effectué, nous vous prions de bien vouloir considérer le présent message comme nul et non avenu.</p>\n\n    <p>Dans le cas contraire, nous vous remercions de régulariser votre situation dans les meilleurs délais. Vous pouvez consulter et régler votre facture directement depuis votre espace client :</p>\n\n    <a href=\"https://portail.maisonalderic.be/portail/facturation\" class=\"btn\">Accéder à mon espace client</a>\n\n    <p>Pour toute question relative à cette facture, n'hésitez pas à nous contacter.</p>\n\n    <p>Bien cordialement,<br><em>Le service comptabilité — Maison Aldéric &amp; Associés</em></p>\n\n    <div class=\"footer\">\n      Maison Aldéric &amp; Associés SCRL<br>\n      Avenue Louise 480, 1050 Bruxelles<br>\n      TVA BE 0123.456.789 — Barreau de Bruxelles\n    </div>\n  </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "name": "Email Relance 1 (J+7)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        48
+      ],
+      "id": "d48930f8-794b-48d2-9283-7c65c999a699",
+      "webhookId": "b8084ea8-fb74-4782-836a-50ac91a4ee8c",
+      "credentials": {
+        "smtp": {
+          "id": "3ABKULsC5JTD6Kpm",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://dwbkiyylbsydkuzrdxqc.supabase.co/rest/v1/invoices?id=eq.{{ $('Fetch Relance 1 (J+7)').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3YmtpeXlsYnN5ZGt1enJkeHFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkyODMzNiwiZXhwIjoyMDkzNTA0MzM2fQ.UDpQPly8-Uh3P4bp99kPxW6k0zQkkRXgO1J32M_9cfE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "reminder_level",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Update Reminder Level → 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -464,
+        48
+      ],
+      "id": "af1d862f-5f22-4fdc-ad03-0164527fedcc",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Lq1XXqYW5kp0MHCO",
+          "name": "Supabase Service Role Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "kevin@n8de.me",
+        "toEmail": "={{ $json.client_id.email }}",
+        "subject": "=Deuxième rappel — Facture {{ $json.invoice_number }} en souffrance",
+        "emailFormat": "html",
+        "html": "=<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    body { font-family: Georgia, serif; background: #F8F7F4; color: #1A1A1A; margin: 0; padding: 40px 20px; }\n    .container { max-width: 600px; margin: 0 auto; background: #FFFFFF; border: 1px solid #E5E2DB; padding: 48px 40px; }\n    .header { border-bottom: 1px solid #E5E2DB; padding-bottom: 24px; margin-bottom: 32px; }\n    .logo { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; color: #1A1A1A; }\n    .tagline { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #8B887F; margin-top: 4px; }\n    h1 { font-size: 22px; font-weight: 500; margin: 0 0 24px 0; letter-spacing: -0.01em; }\n    p { font-size: 14px; line-height: 1.7; color: #1A1A1A; margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; }\n    .invoice-box { background: #F2F0EB; border-left: 3px solid #7A1F2B; padding: 20px 24px; margin: 24px 0; }\n    .invoice-box .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #5C5A55; margin-bottom: 4px; font-family: -apple-system, sans-serif; }\n    .invoice-box .value { font-size: 18px; font-weight: 500; color: #1A1A1A; font-family: -apple-system, sans-serif; }\n    .alert { background: rgba(122,31,43,0.04); border: 1px solid rgba(122,31,43,0.2); padding: 16px 20px; margin: 24px 0; font-size: 13px; color: #5C1820; font-family: -apple-system, sans-serif; }\n    .btn { display: inline-block; background: #7A1F2B; color: #FFFFFF !important; padding: 12px 28px; text-decoration: none; font-size: 13px; letter-spacing: 0.02em; margin: 16px 0; font-family: -apple-system, sans-serif; }\n    .footer { margin-top: 40px; padding-top: 24px; border-top: 1px solid #E5E2DB; font-size: 12px; color: #8B887F; line-height: 1.6; font-family: -apple-system, sans-serif; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <div class=\"logo\">Maison Aldéric &amp; Associés</div>\n      <div class=\"tagline\">Cabinet d'avocats d'affaires — Bruxelles</div>\n    </div>\n\n    <h1>Deuxième rappel de paiement</h1>\n\n    <p>Bonjour {{ $json.client_id.full_name }},</p>\n\n    <p>Sauf erreur de notre part, notre relance du <strong>{{ $now.minus({days: 7}).format('dd/MM/yyyy') }}</strong> est demeurée sans réponse. À ce jour, la facture suivante reste impayée alors que son échéance est dépassée depuis plus de quatorze jours.</p>\n\n    <div class=\"invoice-box\">\n      <div class=\"label\">Facture {{ $json.invoice_number }} — échue le {{ $json.due_at.split('T')[0] }}</div>\n      <div class=\"value\">{{ $json.amount_ttc }} € TTC</div>\n    </div>\n\n    <div class=\"alert\">\n      Nous vous saurions gré de bien vouloir régulariser cette situation sous huitaine. À défaut de paiement, nous serions contraints de procéder à une mise en demeure formelle.\n    </div>\n\n    <p>Si une difficulté particulière motive ce retard, nous vous invitons à nous contacter sans délai afin de convenir, le cas échéant, d'un échéancier de paiement.</p>\n\n    <a href=\"https://portail.maisonalderic.be/portail/facturation\" class=\"btn\">Régler ma facture</a>\n\n    <p>Bien cordialement,<br><em>Le service comptabilité — Maison Aldéric &amp; Associés</em></p>\n\n    <div class=\"footer\">\n      Maison Aldéric &amp; Associés SCRL<br>\n      Avenue Louise 480, 1050 Bruxelles<br>\n      TVA BE 0123.456.789 — Barreau de Bruxelles\n    </div>\n  </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "name": "Email Relance 2 (J+14)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        240
+      ],
+      "id": "b0391d64-d6c8-4eba-b735-e79b180d60f6",
+      "webhookId": "5b33caea-401d-498f-a968-10d6daac0a6f",
+      "credentials": {
+        "smtp": {
+          "id": "3ABKULsC5JTD6Kpm",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://dwbkiyylbsydkuzrdxqc.supabase.co/rest/v1/invoices?id=eq.{{ $('Fetch Relance 2 (J+14)').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3YmtpeXlsYnN5ZGt1enJkeHFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkyODMzNiwiZXhwIjoyMDkzNTA0MzM2fQ.UDpQPly8-Uh3P4bp99kPxW6k0zQkkRXgO1J32M_9cfE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "reminder_level",
+              "value": "2"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Update Reminder Level → 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -464,
+        240
+      ],
+      "id": "ebe8d022-abf6-43b5-9d6b-68210b5d18cd",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Lq1XXqYW5kp0MHCO",
+          "name": "Supabase Service Role Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "kevin@n8de.me",
+        "toEmail": "={{ $json.client_id.email }}",
+        "subject": "=MISE EN DEMEURE — Facture {{ $json.invoice_number }}",
+        "emailFormat": "html",
+        "html": "=<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    body { font-family: Georgia, serif; background: #F8F7F4; color: #1A1A1A; margin: 0; padding: 40px 20px; }\n    .container { max-width: 600px; margin: 0 auto; background: #FFFFFF; border: 1px solid #E5E2DB; padding: 48px 40px; }\n    .header { border-bottom: 1px solid #E5E2DB; padding-bottom: 24px; margin-bottom: 32px; }\n    .logo { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; color: #1A1A1A; }\n    .tagline { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #8B887F; margin-top: 4px; }\n    .ref { font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: #7A1F2B; font-weight: 500; margin-bottom: 8px; font-family: -apple-system, sans-serif; }\n    h1 { font-size: 22px; font-weight: 500; margin: 0 0 24px 0; letter-spacing: -0.01em; }\n    p { font-size: 14px; line-height: 1.7; color: #1A1A1A; margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; }\n    .invoice-box { background: #F2F0EB; border-left: 3px solid #7A1F2B; padding: 20px 24px; margin: 24px 0; }\n    .invoice-box .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #5C5A55; margin-bottom: 4px; font-family: -apple-system, sans-serif; }\n    .invoice-box .value { font-size: 18px; font-weight: 500; color: #1A1A1A; font-family: -apple-system, sans-serif; }\n    .formal { background: #1A1A1A; color: #FFFFFF; padding: 24px 28px; margin: 24px 0; font-size: 13px; line-height: 1.7; font-family: -apple-system, sans-serif; }\n    .formal strong { color: #FFFFFF; }\n    .footer { margin-top: 40px; padding-top: 24px; border-top: 1px solid #E5E2DB; font-size: 12px; color: #8B887F; line-height: 1.6; font-family: -apple-system, sans-serif; }\n    .signature { margin-top: 32px; padding-top: 24px; border-top: 1px solid #E5E2DB; font-style: italic; font-size: 13px; color: #5C5A55; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <div class=\"logo\">Maison Aldéric &amp; Associés</div>\n      <div class=\"tagline\">Cabinet d'avocats d'affaires — Bruxelles</div>\n    </div>\n\n    <div class=\"ref\">Réf. {{ $json.invoice_number }} — Mise en demeure</div>\n    <h1>Mise en demeure de payer</h1>\n\n    <p>Madame, Monsieur {{ $json.client_id.full_name }},</p>\n\n    <p>Nonobstant nos précédentes relances demeurées infructueuses, nous constatons que la facture désignée ci-après n'a toujours pas été honorée à ce jour, soit plus de trente jours après son échéance.</p>\n\n    <div class=\"invoice-box\">\n      <div class=\"label\">Facture {{ $json.invoice_number }} — échue le {{ $json.due_at.split('T')[0] }}</div>\n      <div class=\"value\">{{ $json.amount_ttc }} € TTC</div>\n    </div>\n\n    <div class=\"formal\">\n      Par la présente, nous vous mettons formellement en demeure, conformément à l'<strong>article 1139 du Code civil</strong>, de procéder au règlement intégral de la somme due dans un délai de <strong>huit (8) jours calendrier</strong> à compter de la réception du présent courrier.\n    </div>\n\n    <p>À défaut de paiement dans le délai imparti, nous nous réservons le droit, sans nouvelle mise en demeure :</p>\n\n    <p style=\"padding-left: 16px; border-left: 2px solid #E5E2DB;\">\n      — d'appliquer des intérêts moratoires au taux légal majoré ;<br>\n      — de réclamer une indemnité forfaitaire pour frais de recouvrement ;<br>\n      — d'engager, sans préavis supplémentaire, toute procédure contentieuse utile à la sauvegarde de nos droits.\n    </p>\n\n    <p>Nous demeurons à votre disposition pour évoquer toute solution amiable préalable à de telles démarches, et vous invitons à prendre contact avec notre service comptabilité dans les meilleurs délais.</p>\n\n    <div class=\"signature\">\n      Veuillez agréer, Madame, Monsieur, l'expression de nos salutations distinguées.<br><br>\n      Maison Aldéric &amp; Associés — Service comptabilité\n    </div>\n\n    <div class=\"footer\">\n      Maison Aldéric &amp; Associés SCRL<br>\n      Avenue Louise 480, 1050 Bruxelles<br>\n      TVA BE 0123.456.789 — Barreau de Bruxelles\n    </div>\n  </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "name": "Email Relance 3 (J+30)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        448
+      ],
+      "id": "0edad062-501a-4a8f-9388-b384c6c10519",
+      "webhookId": "67d68423-aadc-41f7-902d-f3ce9e3c15bb",
+      "credentials": {
+        "smtp": {
+          "id": "3ABKULsC5JTD6Kpm",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://dwbkiyylbsydkuzrdxqc.supabase.co/rest/v1/invoices?select=*,client_id(email,full_name)&status=eq.overdue&reminder_level=eq.0&is_test_data=eq.false&due_at=lte.{{ $now.minus({days: 7}).toISO() }}&order=due_at.asc",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3YmtpeXlsYnN5ZGt1enJkeHFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkyODMzNiwiZXhwIjoyMDkzNTA0MzM2fQ.UDpQPly8-Uh3P4bp99kPxW6k0zQkkRXgO1J32M_9cfE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Relance 1 (J+7)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -864,
+        48
+      ],
+      "id": "b5a52520-e743-4aa4-b053-d536f612decc",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Lq1XXqYW5kp0MHCO",
+          "name": "Supabase Service Role Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://dwbkiyylbsydkuzrdxqc.supabase.co/rest/v1/invoices?select=*,client_id(email,full_name)&status=eq.overdue&reminder_level=eq.1&is_test_data=eq.false&due_at=lte.{{ $now.minus({days: 14}).toISO() }}&order=due_at.asc",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3YmtpeXlsYnN5ZGt1enJkeHFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkyODMzNiwiZXhwIjoyMDkzNTA0MzM2fQ.UDpQPly8-Uh3P4bp99kPxW6k0zQkkRXgO1J32M_9cfE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Relance 2 (J+14)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -864,
+        240
+      ],
+      "id": "0cef7b60-2c24-4ef1-a06c-84d63987faea",
+      "executeOnce": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Lq1XXqYW5kp0MHCO",
+          "name": "Supabase Service Role Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://dwbkiyylbsydkuzrdxqc.supabase.co/rest/v1/invoices?select=*,client_id(email,full_name)&status=eq.overdue&reminder_level=eq.2&is_test_data=eq.false&due_at=lte.{{ $now.minus({days: 30}).toISO() }}&order=due_at.asc",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3YmtpeXlsYnN5ZGt1enJkeHFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkyODMzNiwiZXhwIjoyMDkzNTA0MzM2fQ.UDpQPly8-Uh3P4bp99kPxW6k0zQkkRXgO1J32M_9cfE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Relance 3 (J+30)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -864,
+        448
+      ],
+      "id": "22aabfe7-a728-4101-a49a-7a2f4340ceee",
+      "executeOnce": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Lq1XXqYW5kp0MHCO",
+          "name": "Supabase Service Role Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://dwbkiyylbsydkuzrdxqc.supabase.co/rest/v1/invoices?id=eq.{{ $('Fetch Relance 3 (J+30)').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3YmtpeXlsYnN5ZGt1enJkeHFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzkyODMzNiwiZXhwIjoyMDkzNTA0MzM2fQ.UDpQPly8-Uh3P4bp99kPxW6k0zQkkRXgO1J32M_9cfE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "reminder_level",
+              "value": "3"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Update Reminder Level → 3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -464,
+        448
+      ],
+      "id": "761a27b8-6006-4d82-8200-ff15a5b27e7c",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Lq1XXqYW5kp0MHCO",
+          "name": "Supabase Service Role Auth"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cron Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Relance 1 (J+7)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Relance 2 (J+14)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Relance 3 (J+30)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Relance 1 (J+7)": {
+      "main": [
+        [
+          {
+            "node": "Update Reminder Level → 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Relance 2 (J+14)": {
+      "main": [
+        [
+          {
+            "node": "Update Reminder Level → 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Relance 3 (J+30)": {
+      "main": [
+        [
+          {
+            "node": "Update Reminder Level → 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Relance 1 (J+7)": {
+      "main": [
+        [
+          {
+            "node": "Email Relance 1 (J+7)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Relance 2 (J+14)": {
+      "main": [
+        [
+          {
+            "node": "Email Relance 2 (J+14)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Relance 3 (J+30)": {
+      "main": [
+        [
+          {
+            "node": "Email Relance 3 (J+30)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Reminder Level → 1": {
+      "main": [
+        []
+      ]
+    },
+    "Update Reminder Level → 2": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7c22588d-91cc-41e8-9526-eed6ba37ee63",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "63be9fc8fe190c363871dfbd8623bc81d5c26dd7c1d8c27cb5f2b45cc88ffddb"
+  },
+  "id": "27aiz6uzcYHVPRdE",
+  "tags": []
+}

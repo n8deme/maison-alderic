@@ -1,0 +1,279 @@
+{
+  "name": "04 — Onboarding client",
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Webhook onboarding-client",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "onboarding-client",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "onboarding-client",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      }
+    },
+    {
+      "id": "get_profile",
+      "name": "GET profil client",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [470, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/profiles' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_KEY }}" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "id,full_name,email,company,phone" },
+            { "name": "id", "value": "={{ 'eq.' + $json.body.profile_id }}" },
+            { "name": "limit", "value": "1" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "get_avocat",
+      "name": "GET avocat référent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [690, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/profiles' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_KEY }}" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "id,full_name,email,title" },
+            { "name": "id", "value": "={{ 'eq.' + ($('Webhook onboarding-client').item.json.body.avocat_id ?? '') }}" },
+            { "name": "limit", "value": "1" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "set_vars",
+      "name": "Consolidation variables",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300],
+      "parameters": {
+        "jsCode": "const webhook = $('Webhook onboarding-client').item.json.body;\nconst profiles = $('GET profil client').all();\nconst avocats = $('GET avocat référent').all();\n\nconst client = profiles[0]?.json?.[0] ?? {\n  id: webhook.profile_id,\n  full_name: webhook.client_name,\n  email: webhook.client_email,\n  company: webhook.client_company,\n};\n\nconst avocat = avocats[0]?.json?.[0] ?? null;\n\nconst now = new Date();\nconst ref = 'ONBOARDING-' + now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + client.id.substring(0, 8).toUpperCase();\n\nconst rdvDate = new Date(now);\nrdvDate.setDate(rdvDate.getDate() + 7);\nrdvDate.setHours(10, 0, 0, 0);\nconst rdvEnd = new Date(rdvDate);\nrdvEnd.setMinutes(rdvEnd.getMinutes() + 60);\n\nreturn [{\n  json: {\n    profile_id: client.id,\n    avocat_id: avocat?.id ?? null,\n    client_name: client.full_name,\n    client_email: client.email,\n    client_company: client.company ?? '',\n    avocat_name: avocat?.full_name ?? 'votre avocat référent',\n    avocat_title: avocat?.title ?? '',\n    avocat_email: avocat?.email ?? 'contact@maison-alderic.be',\n    dossier_ref: ref,\n    dossier_title: 'Consultation initiale — ' + (client.company || client.full_name),\n    rdv_starts_at: rdvDate.toISOString(),\n    rdv_ends_at: rdvEnd.toISOString(),\n    triggered_by: webhook.triggered_by,\n    triggered_at: webhook.triggered_at,\n  }\n}];"
+      }
+    },
+    {
+      "id": "create_dossier",
+      "name": "POST créer dossier onboarding",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1130, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/dossiers' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=representation" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({\n  reference: $json.dossier_ref,\n  title: $json.dossier_title,\n  type: 'conseil',\n  status: 'open',\n  client_id: $json.profile_id,\n  lead_avocat_id: $json.avocat_id,\n  created_by: $json.triggered_by,\n}) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "create_timeline",
+      "name": "POST timeline — Bienvenue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1350, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/dossier_timeline' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({\n  dossier_id: $('POST créer dossier onboarding').item.json[0]?.id,\n  type: 'ouverture',\n  title: 'Bienvenue — Dossier ouvert',\n  description: 'Dossier d\\'onboarding créé automatiquement suite à l\\'inscription du client ' + $('Consolidation variables').item.json.client_name + '.',\n  created_by: $('Consolidation variables').item.json.triggered_by,\n}) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "email_bienvenue",
+      "name": "Email bienvenue client",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1570, 180],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.RESEND_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({\n  from: 'Maison Aldéric <bienvenue@maison-alderic.be>',\n  to: [$('Consolidation variables').item.json.client_email],\n  subject: 'Bienvenue chez Maison Aldéric & Associés',\n  html: '<p>Cher(e) ' + $('Consolidation variables').item.json.client_name + ',</p><p>Nous avons le plaisir de vous accueillir chez <strong>Maison Aldéric & Associés</strong>. Votre dossier a été ouvert et votre espace client est désormais actif.</p><p>Votre avocat référent, <strong>' + $('Consolidation variables').item.json.avocat_title + ' ' + $('Consolidation variables').item.json.avocat_name + '</strong>, vous contactera prochainement pour organiser votre première consultation.</p><h3 style=\"margin-top:24px\">Votre espace client</h3><p>Depuis votre portail, vous pouvez :<br>• Consulter l\\'avancement de vos dossiers<br>• Accéder à vos documents<br>• Échanger en toute confidentialité avec votre avocat<br>• Suivre vos factures et rendez-vous</p><p style=\"margin-top:24px\"><a href=\"https://maison-alderic.be/portail\" style=\"background:#7A1F2B;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px\">Accéder à mon espace</a></p><p style=\"margin-top:32px\">Cordialement,<br><strong>Maison Aldéric & Associés</strong><br>Avenue Louise 149, 1050 Bruxelles'\n}) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "create_rdv",
+      "name": "POST RDV consultation J+7",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1570, 420],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL + '/rest/v1/appointments' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({\n  title: 'Consultation initiale',\n  type: 'premier_rdv',\n  status: 'scheduled',\n  client_id: $('Consolidation variables').item.json.profile_id,\n  avocat_id: $('Consolidation variables').item.json.avocat_id,\n  dossier_id: $('POST créer dossier onboarding').item.json[0]?.id,\n  starts_at: $('Consolidation variables').item.json.rdv_starts_at,\n  ends_at: $('Consolidation variables').item.json.rdv_ends_at,\n  location: 'Maison Aldéric & Associés — Avenue Louise 149, 1050 Bruxelles',\n  notes: 'Consultation initiale automatiquement planifiée lors de l\\'onboarding.',\n}) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "email_rdv_confirm",
+      "name": "Email confirmation RDV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1790, 420],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "={{ 'Bearer ' + $env.RESEND_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ (function() {\n  const vars = $('Consolidation variables').item.json;\n  const rdvDate = new Date(vars.rdv_starts_at);\n  const dateStr = rdvDate.toLocaleDateString('fr-BE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });\n  const timeStr = rdvDate.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' });\n  return JSON.stringify({\n    from: 'Maison Aldéric <rdv@maison-alderic.be>',\n    to: [vars.client_email],\n    subject: 'Votre consultation initiale confirmée — ' + dateStr,\n    html: '<p>Cher(e) ' + vars.client_name + ',</p><p>Votre première consultation avec ' + vars.avocat_title + ' ' + vars.avocat_name + ' est confirmée :</p><ul><li><strong>Date :</strong> ' + dateStr + ' à ' + timeStr + '</li><li><strong>Lieu :</strong> Maison Aldéric & Associés<br>Avenue Louise 149, 1050 Bruxelles</li></ul><p>Vous recevrez un rappel la veille du rendez-vous.</p><p>Cordialement,<br><strong>Maison Aldéric & Associés</strong>',\n  });\n})() }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "respond",
+      "name": "Répondre au webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2010, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  dossier_id: $('POST créer dossier onboarding').item.json[0]?.id,\n  dossier_ref: $('Consolidation variables').item.json.dossier_ref,\n  rdv_scheduled_at: $('Consolidation variables').item.json.rdv_starts_at,\n}) }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook onboarding-client": {
+      "main": [
+        [{ "node": "GET profil client", "type": "main", "index": 0 }]
+      ]
+    },
+    "GET profil client": {
+      "main": [
+        [{ "node": "GET avocat référent", "type": "main", "index": 0 }]
+      ]
+    },
+    "GET avocat référent": {
+      "main": [
+        [{ "node": "Consolidation variables", "type": "main", "index": 0 }]
+      ]
+    },
+    "Consolidation variables": {
+      "main": [
+        [{ "node": "POST créer dossier onboarding", "type": "main", "index": 0 }]
+      ]
+    },
+    "POST créer dossier onboarding": {
+      "main": [
+        [{ "node": "POST timeline — Bienvenue", "type": "main", "index": 0 }]
+      ]
+    },
+    "POST timeline — Bienvenue": {
+      "main": [
+        [
+          { "node": "Email bienvenue client", "type": "main", "index": 0 },
+          { "node": "POST RDV consultation J+7", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Email bienvenue client": {
+      "main": [
+        [{ "node": "Répondre au webhook", "type": "main", "index": 0 }]
+      ]
+    },
+    "POST RDV consultation J+7": {
+      "main": [
+        [{ "node": "Email confirmation RDV", "type": "main", "index": 0 }]
+      ]
+    },
+    "Email confirmation RDV": {
+      "main": [
+        [{ "node": "Répondre au webhook", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "04000000-0000-0000-0000-000000000001",
+  "id": "04-onboarding-client",
+  "meta": {
+    "instanceId": "maison-alderic-local"
+  }
+}
