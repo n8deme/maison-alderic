@@ -24,15 +24,18 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
   if (profile?.role !== "avocat") redirect("/portail");
 
-  // Vérifier que le client demandé appartient bien à cet org (isolation tenant)
   const org = await getOrganization();
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("user_id")
+
+  // Isolation tenant : vérifier que ce client a au moins un dossier dans l'org
+  const { data: orgDossiers } = await supabase
+    .from("dossiers")
+    .select("id")
     .eq("organization_id", org.id)
-    .eq("user_id", id)
-    .maybeSingle();
-  if (!membership) redirect("/portail-avocat/clients");
+    .eq("client_id", id);
+
+  if (!orgDossiers || orgDossiers.length === 0) redirect("/portail-avocat/clients");
+
+  const orgDossierIds = new Set(orgDossiers.map((d) => d.id));
 
   const { data: client, error } = await getClientWithDossiers(supabase, id);
   if (error || !client) {
@@ -40,7 +43,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
     redirect("/portail-avocat/clients");
   }
 
-  const dossiers: DossierWithAvocats[] = client.dossiers ?? [];
+  const dossiers: DossierWithAvocats[] = (client.dossiers ?? []).filter((d) => orgDossierIds.has(d.id));
   const dossiersActifs = dossiers.filter((d) => d.status === "active" || d.status === "pending");
 
   return (
