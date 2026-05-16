@@ -1,4 +1,4 @@
-import { createServiceClient } from "@/lib/supabase/service";
+import { createClient } from "@/lib/supabase/server";
 
 export async function logAuditEvent(
   orgId: string,
@@ -9,8 +9,8 @@ export async function logAuditEvent(
   metadata?: Record<string, unknown>,
 ): Promise<void> {
   try {
-    const service = createServiceClient();
-    await service.from("audit_logs").insert({
+    const supabase = await createClient();
+    await supabase.from("audit_logs").insert({
       organization_id: orgId,
       user_id: userId,
       action,

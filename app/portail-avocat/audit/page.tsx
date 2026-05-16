@@ -1,4 +1,3 @@
-import { createServiceClient } from "@/lib/supabase/service";
 import { getOrganization } from "@/lib/get-organization";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -25,9 +24,8 @@ export default async function AuditPage() {
   if (!user) redirect("/connexion");
 
   const org = await getOrganization();
-  const service = createServiceClient();
 
-  const { data: logs } = await service
+  const { data: logs } = await supabase
     .from("audit_logs")
     .select("id, action, resource_type, resource_id, created_at, user_id")
     .eq("organization_id", org.id)
@@ -36,7 +34,7 @@ export default async function AuditPage() {
 
   const userIds = [...new Set((logs ?? []).map((l) => l.user_id).filter(Boolean))];
   const { data: profiles } = userIds.length > 0
-    ? await service.from("profiles").select("id, full_name, email").in("id", userIds)
+    ? await supabase.from("profiles").select("id, full_name, email").in("id", userIds)
     : { data: [] };
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
