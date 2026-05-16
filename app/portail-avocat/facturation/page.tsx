@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getOrganization } from "@/lib/get-organization";
 import Link from "next/link";
 import { NewInvoiceButton } from "@/components/portail-avocat/facturation/new-invoice-button";
 import { computeDisplayStatus, invoiceStatusLabel } from "@/lib/invoice-status";
@@ -23,11 +24,13 @@ export default async function AvocatFacturationPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
 
+  const org = await getOrganization();
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
 
   const { data: invoices } = await supabase
     .from("invoices")
     .select("id, invoice_number, amount_ttc, status, issued_at, due_at, dossier:dossiers(reference, title), client:profiles!client_id(full_name)")
+    .eq("organization_id", org.id)
     .order("issued_at", { ascending: false });
 
   const caMonth = (invoices ?? [])

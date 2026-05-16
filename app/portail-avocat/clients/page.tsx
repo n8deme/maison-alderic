@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getOrganization } from "@/lib/get-organization";
 
 export const metadata: Metadata = { title: "Clients" };
 
@@ -12,17 +13,31 @@ export default async function AvocatClientsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
 
-  // Single join query — eliminates the second round-trip
-  const { data: raw } = await supabase
-    .from("profiles")
-    .select(`
-      id, full_name, email,
-      dossiers:dossiers!client_id (
-        id, reference, title, status, opened_at
-      )
-    `)
-    .eq("role", "client")
-    .order("full_name");
+  const org = await getOrganization();
+
+  // Récupérer les user_ids appartenant à cet org — filtre tenant explicite
+  // (défense en profondeur : ne pas compter que sur RLS)
+  const { data: members } = await supabase
+    .from("organization_members")
+    .select("user_id")
+    .eq("organization_id", org.id);
+
+  const memberIds = (members ?? []).map((m) => m.user_id);
+
+  // Si l'org n'a aucun membre (ne devrait pas arriver) → liste vide sans requête DB
+  const { data: raw } = memberIds.length > 0
+    ? await supabase
+        .from("profiles")
+        .select(`
+          id, full_name, email,
+          dossiers:dossiers!client_id (
+            id, reference, title, status, opened_at
+          )
+        `)
+        .eq("role", "client")
+        .in("id", memberIds)
+        .order("full_name")
+    : { data: [] };
 
   const clients = (raw ?? []).map((c) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

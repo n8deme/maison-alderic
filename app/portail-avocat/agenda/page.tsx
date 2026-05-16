@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getOrganization } from "@/lib/get-organization";
 import { CalendarMonthView, type Appointment } from "@/components/portail-avocat/agenda/calendar-month-view";
 
 export const metadata: Metadata = { title: "Agenda" };
@@ -12,6 +13,8 @@ export default async function AvocatAgendaPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
 
+  const org = await getOrganization();
+
   // Fetch 3 months back to 12 months forward — covers full client-side navigation
   const now        = new Date();
   const rangeStart = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString();
@@ -22,6 +25,7 @@ export default async function AvocatAgendaPage() {
     .select(
       "id, title, description, starts_at, ends_at, location, status, avocat:avocats(full_name), client:profiles!client_id(full_name)"
     )
+    .eq("organization_id", org.id)
     .gte("starts_at", rangeStart)
     .lt("starts_at", rangeEnd)
     .order("starts_at", { ascending: true });

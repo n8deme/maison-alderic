@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft, Mail, Building2, Calendar, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getOrganization } from "@/lib/get-organization";
 import { dossierStatusLabel } from "@/lib/dossier-status";
 import { NewDossierButton } from "@/components/portail-avocat/clients/new-dossier-button";
 import { getClientWithDossiers, getLeadAvocat, type DossierWithAvocats } from "@/lib/supabase/queries/dossiers";
@@ -22,6 +23,16 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
   if (profile?.role !== "avocat") redirect("/portail");
+
+  // Vérifier que le client demandé appartient bien à cet org (isolation tenant)
+  const org = await getOrganization();
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select("user_id")
+    .eq("organization_id", org.id)
+    .eq("user_id", id)
+    .maybeSingle();
+  if (!membership) redirect("/portail-avocat/clients");
 
   const { data: client, error } = await getClientWithDossiers(supabase, id);
   if (error || !client) {
