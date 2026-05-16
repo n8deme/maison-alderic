@@ -12,6 +12,7 @@ const PUBLIC_SAAS_ROUTES = [
   "/confidentialite",
   "/cgv",
   "/api/health",
+  "/api/demo",
   "/api/webhooks/stripe",
 ];
 
@@ -112,10 +113,9 @@ export async function updateSession(request: NextRequest) {
       path: "/",
     });
 
-    // Encoder le nom pour éviter les caractères spéciaux dans les headers HTTP
     supabaseResponse.headers.set("x-org-id",     org.id);
     supabaseResponse.headers.set("x-org-slug",   org.slug);
-    supabaseResponse.headers.set("x-org-name",   encodeURIComponent(org.name));
+    supabaseResponse.headers.set("x-org-name",   org.name);
     supabaseResponse.headers.set("x-org-plan",   org.plan);
     supabaseResponse.headers.set("x-org-color",  org.primary_color);
     supabaseResponse.headers.set("x-org-accent", org.accent_color);
@@ -153,6 +153,19 @@ export async function updateSession(request: NextRequest) {
     if (profile?.role !== "avocat") {
       const url = request.nextUrl.clone();
       url.pathname = "/portail";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  if (user && pathname.startsWith("/portail") && !pathname.startsWith("/portail-avocat")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (profile?.role === "avocat") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/portail-avocat";
       return NextResponse.redirect(url);
     }
   }
