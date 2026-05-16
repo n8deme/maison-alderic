@@ -1,5 +1,6 @@
 import { getOrganization } from "@/lib/get-organization";
 import DangerZone from "./danger-zone";
+import { TwoFactorSetup } from "./two-factor-setup";
 
 export default async function SettingsPage() {
   const org = await getOrganization();
@@ -55,6 +56,16 @@ export default async function SettingsPage() {
               </dd>
             </div>
           </dl>
+        </section>
+
+        <section>
+          <h2
+            className="text-base font-medium mb-4"
+            style={{ color: "var(--foreground)", fontFamily: "var(--font-body)" }}
+          >
+            Sécurité
+          </h2>
+          <TwoFactorSetup />
         </section>
 
         <DangerZone orgId={org.id} orgName={org.name} />
