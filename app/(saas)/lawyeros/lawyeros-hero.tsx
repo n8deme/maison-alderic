@@ -21,10 +21,10 @@ function CyclingWord() {
         position: "relative",
         display: "inline-block",
         width: "5.5em",
-        height: "1em",
-        verticalAlign: "baseline",
+        height: "1.25em",
+        verticalAlign: "bottom",
         overflow: "hidden",
-        lineHeight: "1",
+        lineHeight: "1.25",
       }}
     >
       <AnimatePresence mode="wait">
@@ -38,10 +38,10 @@ function CyclingWord() {
           style={{
             position: "absolute",
             left: 0,
-            bottom: "-0.08em",
+            bottom: 0,
             display: "inline-block",
             whiteSpace: "nowrap",
-            lineHeight: "1",
+            lineHeight: "1.25",
             color: "var(--accent)",
           }}
         >
