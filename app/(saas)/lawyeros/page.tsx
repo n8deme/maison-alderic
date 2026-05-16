@@ -74,6 +74,7 @@ export default function LawyerOSPage() {
         .los-connexion-link { color: var(--text-secondary); transition: color 200ms; }
         .los-connexion-link:hover { color: var(--foreground); }
         .los-hero-cta-primary {
+          display: inline-block;
           background-color: var(--accent);
           transition: background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
           box-shadow: 0 1px 2px rgba(26, 26, 26, 0.06);
