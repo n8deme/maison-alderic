@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PricingSection } from "./pricing-section";
+import { LawyerosHero } from "./lawyeros-hero";
 
 export const metadata: Metadata = {
   title: "LawyerOS — Le portail client que vos clients méritent",
@@ -72,6 +73,16 @@ export default function LawyerOSPage() {
         .los-footer-link:hover { color: var(--text-secondary); }
         .los-connexion-link { color: var(--text-secondary); transition: color 200ms; }
         .los-connexion-link:hover { color: var(--foreground); }
+        .los-hero-cta-primary {
+          background-color: var(--accent);
+          transition: background-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+          box-shadow: 0 1px 2px rgba(26, 26, 26, 0.06);
+        }
+        .los-hero-cta-primary:hover {
+          background-color: #5C1820;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 14px rgba(92, 24, 32, 0.16);
+        }
       `}</style>
 
       <div style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}>
@@ -113,47 +124,7 @@ export default function LawyerOSPage() {
         </header>
 
         {/* ─────────────── HERO ─────────────── */}
-        <section className="px-6 md:px-12 lg:px-20 pt-24 pb-20 md:pt-32 md:pb-28">
-          <div className="max-w-7xl mx-auto">
-            <div className="max-w-3xl">
-              <div
-                className="inline-flex items-center gap-2 rounded-sm border px-3 py-1.5 text-xs font-medium mb-8"
-                style={{ borderColor: "var(--border)", color: "var(--text-secondary)", backgroundColor: "var(--surface)", fontFamily: "var(--font-body)" }}
-              >
-                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--accent)" }} />
-                Conçu pour les cabinets belges et français
-              </div>
-
-              <h1 className="text-4xl md:text-6xl font-heading font-medium tracking-tight leading-tight" style={{ color: "var(--foreground)" }}>
-                Le portail client que{" "}
-                <em className="not-italic" style={{ color: "var(--accent)", fontStyle: "italic" }}>
-                  vos clients méritent.
-                </em>
-              </h1>
-
-              <p
-                className="mt-6 text-lg md:text-xl max-w-xl"
-                style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)", lineHeight: "1.7" }}
-              >
-                LawyerOS donne à votre cabinet un portail professionnel en 10 minutes.
-                Dossiers, messagerie, facturation et IA — tout dans un seul outil.
-              </p>
-
-              <div className="mt-10 flex flex-wrap gap-4">
-                <Link href="/signup" className="los-btn-accent rounded-sm px-6 py-3.5 text-sm font-medium" style={{ fontFamily: "var(--font-body)" }}>
-                  Essayer 14 jours gratuit
-                </Link>
-                <Link href="/portail-avocat?__tenant=maison-alderic" className="los-btn-outline rounded-sm px-6 py-3.5 text-sm font-medium" style={{ fontFamily: "var(--font-body)" }}>
-                  Voir la démo →
-                </Link>
-              </div>
-
-              <p className="mt-5 text-xs" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
-                Aucune carte bancaire. Annulation en 1 clic.
-              </p>
-            </div>
-          </div>
-        </section>
+        <LawyerosHero />
 
         {/* ─────────────── STATS ─────────────── */}
         <section className="border-y" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
