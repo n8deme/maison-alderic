@@ -37,7 +37,7 @@ export default async function AvocatFacturationPage() {
     .filter((i) => i.issued_at >= monthStart && i.status !== "cancelled")
     .reduce((sum, i) => sum + Number(i.amount_ttc), 0);
 
-  const overdue = (invoices ?? []).filter((i) => i.status === "overdue");
+  const overdue = (invoices ?? []).filter((i) => computeDisplayStatus({ status: i.status, due_at: i.due_at }) === "overdue");
   const overdueAmount = overdue.reduce((sum, i) => sum + Number(i.amount_ttc), 0);
 
   return (
