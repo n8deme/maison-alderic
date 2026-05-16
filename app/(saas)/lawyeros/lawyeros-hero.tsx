@@ -5,46 +5,49 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
-const CYCLING_WORDS = ["méritent.", "exigent.", "attendent.", "réclament."] as const;
-const WORD_INTERVAL_MS = 4000;
-const WORD_EASE = [0.22, 1, 0.36, 1] as const;
+const words = ["méritent.", "exigent.", "attendent.", "réclament."] as const;
 
 function CyclingWord() {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    const id = window.setInterval(() => {
-      setIndex((i) => (i + 1) % CYCLING_WORDS.length);
-    }, WORD_INTERVAL_MS);
+    const id = window.setInterval(() => setIndex((i) => (i + 1) % words.length), 4000);
     return () => window.clearInterval(id);
   }, []);
 
-  const word = CYCLING_WORDS[index];
-  const ariaWord = word.replace(/\.$/, "");
-
   return (
     <span
-      className="relative inline-block align-baseline"
+      className="font-heading font-medium italic"
       style={{
+        position: "relative",
+        display: "inline-block",
+        verticalAlign: "baseline",
         width: "5.5em",
         height: "1em",
-        verticalAlign: "baseline",
+        lineHeight: "1",
         overflow: "hidden",
+        color: "var(--accent)",
       }}
       aria-live="polite"
-      aria-label={`vos clients ${ariaWord}`}
+      aria-label={`vos clients ${words[index].replace(/\.$/, "")}`}
     >
       <AnimatePresence mode="wait">
         <motion.span
-          key={word}
-          initial={{ y: "0.4em", opacity: 0 }}
-          animate={{ y: "0em", opacity: 1 }}
-          exit={{ y: "-0.4em", opacity: 0 }}
-          transition={{ duration: 0.5, ease: WORD_EASE }}
-          className="absolute bottom-0 left-0 inline-block whitespace-nowrap font-heading font-medium italic"
-          style={{ lineHeight: 1, color: "var(--accent)" }}
+          key={words[index]}
+          initial={{ y: "100%", opacity: 0 }}
+          animate={{ y: "0%", opacity: 1 }}
+          exit={{ y: "-100%", opacity: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            position: "absolute",
+            left: 0,
+            bottom: 0,
+            display: "inline-block",
+            whiteSpace: "nowrap",
+            lineHeight: "1",
+          }}
         >
-          {word}
+          {words[index]}
         </motion.span>
       </AnimatePresence>
     </span>
