@@ -43,7 +43,7 @@ export default async function ClientProfilePage({ params }: { params: Promise<{ 
     redirect("/portail-avocat/clients");
   }
 
-  const dossiers: DossierWithAvocats[] = (client.dossiers ?? []).filter((d) => orgDossierIds.has(d.id));
+  const dossiers: DossierWithAvocats[] = (client.dossiers ?? []).filter((d: DossierWithAvocats) => orgDossierIds.has(d.id));
   const dossiersActifs = dossiers.filter((d) => d.status === "active" || d.status === "pending");
 
   return (
