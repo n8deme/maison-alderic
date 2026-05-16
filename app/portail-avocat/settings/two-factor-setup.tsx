@@ -142,7 +142,7 @@ export function TwoFactorSetup() {
 
     if (error) {
       // Restaurer l'état "enabled" si l'unenroll échoue
-      dispatch({ type: "SET_PHASE", phase: { kind: "enabled", factorId: (state.phase as { kind: "unenrolling"; factorId: string }).factorId } });
+      dispatch({ type: "SET_PHASE", phase: { kind: "enabled", factorId: (state.phase as unknown as { kind: "enabled"; factorId: string }).factorId } });
       dispatch({ type: "SET_ERROR", error: "Impossible de désactiver la 2FA. Réessayez." });
       return;
     }
