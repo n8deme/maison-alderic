@@ -112,9 +112,10 @@ export async function updateSession(request: NextRequest) {
       path: "/",
     });
 
+    // Encoder le nom pour éviter les caractères spéciaux dans les headers HTTP
     supabaseResponse.headers.set("x-org-id",     org.id);
     supabaseResponse.headers.set("x-org-slug",   org.slug);
-    supabaseResponse.headers.set("x-org-name",   org.name);
+    supabaseResponse.headers.set("x-org-name",   encodeURIComponent(org.name));
     supabaseResponse.headers.set("x-org-plan",   org.plan);
     supabaseResponse.headers.set("x-org-color",  org.primary_color);
     supabaseResponse.headers.set("x-org-accent", org.accent_color);
