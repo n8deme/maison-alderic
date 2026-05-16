@@ -142,6 +142,7 @@ export default function DocsPage() {
             <nav className="hidden md:flex items-center gap-6">
               {[
                 { href: "/lawyeros#fonctionnalites", label: "Fonctionnalités" },
+                { href: "/lawyeros#demo",            label: "Démo" },
                 { href: "/lawyeros#tarifs",          label: "Tarifs" },
                 { href: "/lawyeros/docs",            label: "Documentation" },
               ].map((item) => (
