@@ -19,10 +19,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: "Maison Aldéric & Associés — Cabinet d'avocats d'affaires",
-    template: "%s | Maison Aldéric & Associés",
-  },
+  title: "Maison Aldéric & Associés — Cabinet d'avocats d'affaires",
   description:
     "Conseil stratégique pour M&A, private equity, contentieux complexe et droit fiscal international. Le droit comme architecture stratégique.",
   keywords: [
