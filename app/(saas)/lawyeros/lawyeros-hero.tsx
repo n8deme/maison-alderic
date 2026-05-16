@@ -38,7 +38,7 @@ function CyclingWord() {
           style={{
             position: "absolute",
             left: 0,
-            bottom: "-0.18em",
+            bottom: "-0.08em",
             display: "inline-block",
             whiteSpace: "nowrap",
             lineHeight: "1",
