@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PricingSection } from "./pricing-section";
 import { LawyerosHero } from "./lawyeros-hero";
+import { StatsSection } from "@/components/lawyeros/stats-section";
 
 export const metadata: Metadata = {
   title: "LawyerOS — Le portail client que vos clients méritent",
@@ -46,13 +47,6 @@ const FEATURES = [
     description: "Vérifiez chaque nouveau client en quelques secondes. Moteur de détection automatique sur toute votre base.",
     icon: "M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z",
   },
-];
-
-const STATS = [
-  { value: "10 min", label: "pour configurer votre cabinet" },
-  { value: "14 jours", label: "d'essai gratuit" },
-  { value: "0 CB", label: "requise pour commencer" },
-  { value: "RGPD", label: "conforme, hébergé EU" },
 ];
 
 export default function LawyerOSPage() {
@@ -127,23 +121,7 @@ export default function LawyerOSPage() {
         {/* ─────────────── HERO ─────────────── */}
         <LawyerosHero />
 
-        {/* ─────────────── STATS ─────────────── */}
-        <section className="border-y" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-12">
-            <dl className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {STATS.map((stat) => (
-                <div key={stat.value} className="text-center">
-                  <dt className="text-3xl md:text-4xl font-heading font-medium" style={{ color: "var(--foreground)" }}>
-                    {stat.value}
-                  </dt>
-                  <dd className="mt-1 text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
-                    {stat.label}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </section>
+        <StatsSection />
 
         {/* ─────────────── FEATURES ─────────────── */}
         <section id="fonctionnalites" className="py-32 md:py-40 px-6 md:px-12 lg:px-20">
