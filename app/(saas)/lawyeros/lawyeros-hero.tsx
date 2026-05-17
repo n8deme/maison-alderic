@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
@@ -9,6 +9,40 @@ const words = ["méritent.", "exigent.", "attendent.", "réclament."] as const;
 
 function CyclingWord() {
   const [index, setIndex] = useState(0);
+  const [minWidthPx, setMinWidthPx] = useState<number | undefined>(undefined);
+  const measureRef = useRef<HTMLSpanElement>(null);
+
+  const recalcMinWidth = useCallback(() => {
+    const el = measureRef.current;
+    if (!el) return;
+    let max = 0;
+    for (const w of words) {
+      el.textContent = w;
+      max = Math.max(max, el.offsetWidth);
+    }
+    el.textContent = "";
+    setMinWidthPx(max);
+  }, []);
+
+  useLayoutEffect(() => {
+    recalcMinWidth();
+  }, [recalcMinWidth]);
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const onResize = () => {
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        recalcMinWidth();
+        timeoutId = undefined;
+      }, 150);
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+    };
+  }, [recalcMinWidth]);
 
   useEffect(() => {
     const id = window.setInterval(() => setIndex((i) => (i + 1) % words.length), 4000);
@@ -20,28 +54,37 @@ function CyclingWord() {
       style={{
         position: "relative",
         display: "inline-block",
-        width: "5.5em",
-        height: "1em",
         verticalAlign: "baseline",
-        overflow: "hidden",
-        lineHeight: "1",
+        lineHeight: "inherit",
+        whiteSpace: "nowrap",
+        ...(minWidthPx != null && minWidthPx > 0 ? { minWidth: `${minWidthPx}px` } : {}),
       }}
     >
+      <span
+        ref={measureRef}
+        aria-hidden
+        className="font-heading font-medium italic"
+        style={{
+          position: "absolute",
+          visibility: "hidden",
+          pointerEvents: "none",
+          whiteSpace: "nowrap",
+          left: 0,
+          top: 0,
+          lineHeight: "inherit",
+        }}
+      />
       <AnimatePresence mode="wait">
         <motion.span
           key={words[index]}
-          initial={{ y: "100%", opacity: 0 }}
-          animate={{ y: "0%", opacity: 1 }}
-          exit={{ y: "-100%", opacity: 0 }}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="font-heading font-medium italic"
           style={{
-            position: "absolute",
-            left: 0,
-            bottom: "-0.08em",
             display: "inline-block",
-            whiteSpace: "nowrap",
-            lineHeight: "1",
+            lineHeight: "inherit",
             color: "var(--accent)",
           }}
         >
