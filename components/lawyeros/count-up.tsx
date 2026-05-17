@@ -52,7 +52,7 @@ export function CountUp({
     setText(formatValue(0, decimals));
     const controls = animate(count, value, {
       duration,
-      ease: "easeOut",
+      ease: [0.22, 1, 0.36, 1],
       delay,
     });
     return () => controls.stop();
