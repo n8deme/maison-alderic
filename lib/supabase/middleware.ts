@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { DEMO_TENANT_SLUG } from "@/lib/demo/credentials";
 
 const PUBLIC_SAAS_ROUTES = [
   "/signup",
@@ -137,6 +138,25 @@ export async function updateSession(request: NextRequest) {
       if (membership) {
         supabaseResponse.headers.set("x-user-role", membership.role);
       }
+    }
+  }
+
+  const demoTenantQuery = request.nextUrl.searchParams.get("__tenant");
+  if (!user && demoTenantQuery === DEMO_TENANT_SLUG && subdomain) {
+    const isPortailAvocat = pathname.startsWith("/portail-avocat");
+    const isPortailClient =
+      pathname === "/portail" ||
+      (pathname.startsWith("/portail/") && !pathname.startsWith("/portail-avocat"));
+    if (isPortailAvocat || isPortailClient) {
+      const role = isPortailAvocat ? "avocat" : "client";
+      const signinUrl = new URL("/api/demo/signin", request.url);
+      signinUrl.searchParams.set("role", role);
+      signinUrl.searchParams.set("next", pathname);
+      const redirectDemo = NextResponse.redirect(signinUrl);
+      supabaseResponse.cookies.getAll().forEach((c) => {
+        redirectDemo.cookies.set(c.name, c.value);
+      });
+      return redirectDemo;
     }
   }
 

@@ -163,17 +163,30 @@ export function DemoSection() {
           </motion.div>
         </div>
 
-        <Link
-          href="/portail-avocat?__tenant=maison-alderic"
-          className="mt-12 inline-flex rounded-md px-8 py-4 text-base font-medium text-white transition-[transform,box-shadow] duration-[250ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1F2B] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F2F0EB] [&:hover]:-translate-y-0.5 [&:hover]:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]"
-          style={{
-            backgroundColor: "#1A1A1A",
-            fontFamily: "var(--font-body)",
-            transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
-          }}
-        >
-          Ouvrir la démo →
-        </Link>
+        <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Link
+            href="/portail-avocat?__tenant=maison-alderic"
+            className="inline-flex rounded-md px-8 py-4 text-base font-medium text-white transition-[transform,box-shadow] duration-[250ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1F2B] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F2F0EB] [&:hover]:-translate-y-0.5 [&:hover]:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]"
+            style={{
+              backgroundColor: "#1A1A1A",
+              fontFamily: "var(--font-body)",
+              transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+            }}
+          >
+            Vue avocat →
+          </Link>
+          <Link
+            href="/portail?__tenant=maison-alderic"
+            className="inline-flex rounded-md px-8 py-4 text-base font-medium text-white transition-[transform,box-shadow] duration-[250ms] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7A1F2B] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F2F0EB] [&:hover]:-translate-y-0.5 [&:hover]:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]"
+            style={{
+              backgroundColor: "#1A1A1A",
+              fontFamily: "var(--font-body)",
+              transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+            }}
+          >
+            Vue client →
+          </Link>
+        </div>
       </div>
     </section>
   );
