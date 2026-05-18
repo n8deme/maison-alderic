@@ -1,3 +1,4 @@
+import { Building2, CreditCard } from "lucide-react";
 import { getOrganization } from "@/lib/get-organization";
 import DangerZone from "./danger-zone";
 import { TwoFactorSetup } from "./two-factor-setup";
@@ -7,28 +8,26 @@ export default async function SettingsPage() {
   const org = await getOrganization();
 
   return (
-    <div className="px-6 py-8 md:px-12 lg:px-16 max-w-3xl mx-auto">
+    <div className="mx-auto max-w-3xl px-6 py-8 md:px-12 lg:px-16">
       <div className="mb-8">
         <h1
-          className="text-2xl font-heading font-medium tracking-tight"
-          style={{ color: "var(--foreground)" }}
+          className="font-heading text-3xl font-medium tracking-tight text-[#1A1A1A]"
+          style={{ fontFamily: "var(--font-display)" }}
         >
           Paramètres
         </h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>
+        <p className="mt-1 text-sm text-[#5C5A55]" style={{ fontFamily: "var(--font-body)" }}>
           Gestion et configuration de votre cabinet
         </p>
       </div>
 
       <div className="space-y-6">
-        <section
-          className="rounded-sm border px-6 py-5"
-          style={{ borderColor: "var(--border)" }}
-        >
+        <section className="rounded-md border border-[#EFEDE6] bg-white p-6">
           <h2
-            className="text-base font-medium"
-            style={{ color: "var(--foreground)", fontFamily: "var(--font-body)" }}
+            className="flex items-center gap-2 text-base font-medium text-[#1A1A1A]"
+            style={{ fontFamily: "var(--font-body)" }}
           >
+            <Building2 className="size-[18px] shrink-0 text-[#1A1A1A]" aria-hidden />
             Informations du cabinet
           </h2>
           <dl className="mt-4 space-y-3">
@@ -36,7 +35,7 @@ export default async function SettingsPage() {
               <dt className="w-32 shrink-0 text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
                 Nom
               </dt>
-              <dd className="text-sm font-medium" style={{ color: "var(--foreground)", fontFamily: "var(--font-body)" }}>
+              <dd className="text-sm font-medium text-[#1A1A1A]" style={{ fontFamily: "var(--font-body)" }}>
                 {org.name}
               </dd>
             </div>
@@ -44,37 +43,33 @@ export default async function SettingsPage() {
               <dt className="w-32 shrink-0 text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
                 Identifiant
               </dt>
-              <dd className="text-sm font-mono" style={{ color: "var(--text-secondary)" }}>
-                {org.slug}
-              </dd>
+              <dd className="font-mono text-sm text-[#5C5A55]">{org.slug}</dd>
             </div>
             <div className="flex gap-4">
               <dt className="w-32 shrink-0 text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
                 Plan
               </dt>
-              <dd className="text-sm capitalize" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
+              <dd className="text-sm capitalize text-[#5C5A55]" style={{ fontFamily: "var(--font-body)" }}>
                 {org.plan}
               </dd>
             </div>
           </dl>
         </section>
 
-        <section
-          className="rounded-sm border px-6 py-5"
-          style={{ borderColor: "var(--border)" }}
-        >
+        <section className="rounded-md border border-[#EFEDE6] bg-white p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2
-                className="text-base font-medium"
-                style={{ color: "var(--foreground)", fontFamily: "var(--font-body)" }}
+                className="flex items-center gap-2 text-base font-medium text-[#1A1A1A]"
+                style={{ fontFamily: "var(--font-body)" }}
               >
+                <CreditCard className="size-[18px] shrink-0 text-[#1A1A1A]" aria-hidden />
                 Abonnement
               </h2>
-              <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
+              <p className="mt-1 text-sm text-[#5C5A55]" style={{ fontFamily: "var(--font-body)" }}>
                 Gérez votre plan, vos factures et vos informations de paiement.
               </p>
-              <p className="mt-1 text-sm font-medium capitalize" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
+              <p className="mt-1 text-sm font-medium capitalize text-[#5C5A55]" style={{ fontFamily: "var(--font-body)" }}>
                 Plan actuel : {org.plan}
               </p>
             </div>
@@ -84,15 +79,7 @@ export default async function SettingsPage() {
           </div>
         </section>
 
-        <section>
-          <h2
-            className="text-base font-medium mb-4"
-            style={{ color: "var(--foreground)", fontFamily: "var(--font-body)" }}
-          >
-            Sécurité
-          </h2>
-          <TwoFactorSetup />
-        </section>
+        <TwoFactorSetup />
 
         <DangerZone orgId={org.id} orgName={org.name} />
       </div>

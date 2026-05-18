@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useReducer, useRef } from "react";
+import { AlertCircle, Shield, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -159,14 +160,22 @@ export function TwoFactorSetup() {
   const { phase, code, error, busy } = state;
 
   return (
-    <section className="rounded-sm border" style={{ borderColor: "var(--border)" }}>
+    <section className="rounded-md border border-[#EFEDE6] bg-white p-6">
       {/* En-tête */}
-      <div className="px-6 py-5 flex items-start justify-between gap-4" style={{ borderBottom: phase.kind === "enrolling" ? "1px solid var(--border)" : undefined }}>
+      <div
+        className="flex items-start justify-between gap-4"
+        style={{ borderBottom: phase.kind === "enrolling" ? "1px solid #EFEDE6" : undefined, paddingBottom: phase.kind === "enrolling" ? "1.5rem" : undefined }}
+      >
         <div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            {phase.kind === "enabled" ? (
+              <ShieldCheck className="size-[18px] shrink-0 text-[#1A1A1A]" aria-hidden />
+            ) : (
+              <Shield className="size-[18px] shrink-0 text-[#1A1A1A]" aria-hidden />
+            )}
             <h2
-              className="text-base font-medium"
-              style={{ color: "var(--foreground)", fontFamily: "var(--font-body)" }}
+              className="text-base font-medium text-[#1A1A1A]"
+              style={{ fontFamily: "var(--font-body)" }}
             >
               Authentification à deux facteurs
             </h2>
@@ -198,23 +207,32 @@ export function TwoFactorSetup() {
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
+          <p className="mt-1 text-sm text-[#5C5A55]" style={{ fontFamily: "var(--font-body)" }}>
             Protégez votre compte avec une application d&apos;authentification (Google Authenticator, Authy…).
           </p>
         </div>
 
         {/* CTA principal à droite de l'en-tête */}
-        <div className="shrink-0">
+        <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
           {phase.kind === "disabled" && (
-            <button
-              type="button"
-              onClick={handleEnroll}
-              disabled={busy}
-              className="rounded-sm px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50"
-              style={{ backgroundColor: "var(--foreground)", color: "#ffffff", fontFamily: "var(--font-body)" }}
-            >
-              {busy ? "Initialisation…" : "Activer la 2FA"}
-            </button>
+            <>
+              <div
+                className="mt-2 flex max-w-[260px] items-start gap-1.5 text-xs italic text-[#B45309] sm:mt-0 sm:text-right"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
+                <AlertCircle className="size-3.5 shrink-0" aria-hidden />
+                <span>Recommandé pour la sécurité de votre cabinet.</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleEnroll}
+                disabled={busy}
+                className="rounded-md bg-[#1A1A1A] px-4 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
+                {busy ? "Initialisation…" : "Activer la 2FA"}
+              </button>
+            </>
           )}
 
           {phase.kind === "enabled" && (
@@ -222,8 +240,8 @@ export function TwoFactorSetup() {
               type="button"
               onClick={handleUnenroll}
               disabled={busy}
-              className="rounded-sm border px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50"
-              style={{ borderColor: "var(--border)", color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}
+              className="rounded-md border border-[#E5E2DB] bg-transparent px-4 py-2 text-sm font-medium text-[#1A1A1A] transition-colors hover:bg-[#F8F7F4] disabled:opacity-50"
+              style={{ fontFamily: "var(--font-body)" }}
             >
               {busy ? "Désactivation…" : "Désactiver"}
             </button>
@@ -239,7 +257,7 @@ export function TwoFactorSetup() {
 
       {/* Panneau d'enrollment */}
       {phase.kind === "enrolling" && (
-        <div className="px-6 py-5 space-y-6">
+        <div className="mt-6 space-y-6 border-t border-[#EFEDE6] pt-6">
 
           {/* Instructions */}
           <p className="text-sm" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
@@ -358,8 +376,8 @@ export function TwoFactorSetup() {
       {/* Message succès inline (état enabled) */}
       {phase.kind === "enabled" && (
         <div
-          className="px-6 py-4"
-          style={{ borderTop: "1px solid var(--border-subtle)", backgroundColor: "rgba(16,185,129,0.04)" }}
+          className="mt-6 border-t border-[#EFEDE6] px-0 py-4"
+          style={{ backgroundColor: "rgba(16,185,129,0.04)" }}
         >
           <p className="text-sm" style={{ color: "#059669", fontFamily: "var(--font-body)" }}>
             La double authentification est activée. Votre compte est protégé.
@@ -369,7 +387,7 @@ export function TwoFactorSetup() {
 
       {/* Erreur globale (hors enrollment) */}
       {error && phase.kind !== "enrolling" && (
-        <div className="px-6 py-3" style={{ borderTop: "1px solid #fecaca", backgroundColor: "#fef2f2" }}>
+        <div className="mt-6 border-t border-[#fecaca] px-0 py-3" style={{ backgroundColor: "#fef2f2" }}>
           <p className="text-sm" style={{ color: "#dc2626", fontFamily: "var(--font-body)" }}>
             {error}
           </p>
