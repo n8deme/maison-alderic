@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DemoSection } from "@/components/lawyeros/demo-section";
 import { FeaturesSection } from "@/components/lawyeros/features-section";
+import { FinalCtaSection } from "@/components/lawyeros/final-cta-section";
 import { PricingSection } from "@/components/lawyeros/pricing-section";
 import { StatsSection } from "@/components/lawyeros/stats-section";
 import { LawyerosHero } from "./lawyeros-hero";
@@ -98,25 +99,7 @@ export default function LawyerOSPage() {
 
         <DemoSection />
 
-        {/* ─────────────── CTA FINAL ─────────────── */}
-        <section className="py-24 px-6 md:px-12 lg:px-20 text-center" style={{ backgroundColor: "var(--foreground)" }}>
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-heading font-medium tracking-tight" style={{ color: "#ffffff" }}>
-              Votre cabinet mérite mieux qu&apos;un email.
-            </h2>
-            <p className="mt-4 text-lg" style={{ color: "rgba(255,255,255,0.65)", fontFamily: "var(--font-body)" }}>
-              Rejoignez les cabinets qui ont choisi de professionnaliser leur relation client.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-4 justify-center">
-              <Link href="/signup" className="los-btn-accent rounded-sm px-6 py-3.5 text-sm font-medium" style={{ fontFamily: "var(--font-body)" }}>
-                Commencer — 14 jours gratuits
-              </Link>
-              <Link href="/connexion" className="los-btn-ghost-dark rounded-sm px-6 py-3.5 text-sm font-medium" style={{ fontFamily: "var(--font-body)" }}>
-                J&apos;ai déjà un compte
-              </Link>
-            </div>
-          </div>
-        </section>
+        <FinalCtaSection />
 
         {/* ─────────────── FOOTER ─────────────── */}
         <footer className="border-t px-6 md:px-12 lg:px-20 py-12" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
