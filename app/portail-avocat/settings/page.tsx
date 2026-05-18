@@ -84,7 +84,7 @@ export default async function SettingsPage() {
 
         <TwoFactorSetup />
 
-        <DangerZone orgId={org.id} orgName={org.name} />
+        <DangerZone orgId={org.id} orgName={org.name} orgSlug={org.slug} />
       </div>
     </div>
   );
