@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PricingSection } from "./pricing-section";
 import { LawyerosHero } from "./lawyeros-hero";
+import { DemoSection } from "@/components/lawyeros/demo-section";
 import { FeaturesSection } from "@/components/lawyeros/features-section";
 import { StatsSection } from "@/components/lawyeros/stats-section";
 
@@ -95,71 +96,7 @@ export default function LawyerOSPage() {
         {/* ─────────────── PRICING ─────────────── */}
         <PricingSection />
 
-        {/* ─────────────── DEMO ─────────────── */}
-        <section id="demo" className="py-32 md:py-40 px-6 md:px-12 lg:px-20" style={{ backgroundColor: "var(--surface)" }}>
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <p className="text-xs uppercase tracking-widest font-medium mb-4" style={{ color: "var(--accent)", fontFamily: "var(--font-body)" }}>
-                Démo live
-              </p>
-              <h2 className="text-3xl md:text-4xl font-heading font-medium tracking-tight" style={{ color: "var(--foreground)" }}>
-                Testez le portail en live.
-              </h2>
-              <p className="mt-4 text-lg" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
-                Explorez un cabinet démo entièrement configuré — dossiers réels, messagerie, facturation.
-              </p>
-            </div>
-
-            {/* Browser chrome mockup */}
-            <div
-              className="rounded-sm border overflow-hidden max-w-4xl mx-auto"
-              style={{ borderColor: "var(--border)", boxShadow: "0 8px 40px rgba(0,0,0,0.10)" }}
-            >
-              <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ backgroundColor: "var(--surface-alt)", borderColor: "var(--border)" }}>
-                <div className="flex gap-1.5">
-                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: "#fca5a5" }} />
-                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: "#fde68a" }} />
-                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: "#a7f3d0" }} />
-                </div>
-                <div
-                  className="flex-1 rounded-sm px-3 py-1.5 text-xs text-center"
-                  style={{ backgroundColor: "var(--background)", color: "var(--text-muted)", fontFamily: "var(--font-body)" }}
-                >
-                  lawyeros.vercel.app/portail-avocat?__tenant=maison-alderic
-                </div>
-              </div>
-
-              <div
-                className="relative flex flex-col items-center justify-center py-20 gap-6"
-                style={{ backgroundColor: "var(--background)", minHeight: "320px" }}
-              >
-                <div
-                  className="absolute inset-0 opacity-[0.04]"
-                  style={{
-                    backgroundImage:
-                      "repeating-linear-gradient(0deg, transparent, transparent 31px, var(--foreground) 31px, var(--foreground) 32px), repeating-linear-gradient(90deg, transparent, transparent 31px, var(--foreground) 31px, var(--foreground) 32px)",
-                  }}
-                />
-                <div className="relative text-center px-4">
-                  <p className="text-4xl md:text-5xl font-heading font-medium italic mb-2" style={{ color: "var(--foreground)" }}>
-                    Maison Aldéric{" "}
-                    <span style={{ color: "var(--accent)" }}>&amp; Associés</span>
-                  </p>
-                  <p className="text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
-                    Cabinet d&apos;avocats d&apos;affaires — Cabinet démo LawyerOS
-                  </p>
-                </div>
-                <Link
-                  href="/portail-avocat?__tenant=maison-alderic"
-                  className="los-btn-accent relative rounded-sm px-6 py-3 text-sm font-medium"
-                  style={{ fontFamily: "var(--font-body)" }}
-                >
-                  Ouvrir le portail démo →
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+        <DemoSection />
 
         {/* ─────────────── CTA FINAL ─────────────── */}
         <section className="py-24 px-6 md:px-12 lg:px-20 text-center" style={{ backgroundColor: "var(--foreground)" }}>
