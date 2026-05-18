@@ -1,52 +1,68 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Page introuvable",
+  robots: { index: false, follow: false },
+};
 
 export default function NotFound() {
   return (
     <main
-      className="min-h-screen flex flex-col items-center justify-center px-6"
-      style={{ backgroundColor: "var(--background)" }}
+      className="flex min-h-screen flex-col items-center justify-center px-6 py-24"
+      style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
     >
-      <div className="max-w-2xl w-full text-center space-y-8">
+      <div className="max-w-2xl text-center">
         <p
-          className="text-sm tracking-widest uppercase"
-          style={{ fontFamily: "var(--font-body)", color: "var(--text-muted)" }}
+          className="mb-8 text-xs font-medium uppercase tracking-[0.2em]"
+          style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}
         >
           Erreur 404
         </p>
 
         <h1
-          className="text-5xl md:text-6xl italic"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 500,
-            letterSpacing: "-0.02em",
-            color: "var(--text-primary)",
-          }}
+          className="font-heading text-5xl font-medium italic leading-[1.05] tracking-tight md:text-7xl"
+          style={{ fontFamily: "var(--font-display)", color: "var(--foreground)" }}
         >
-          Ubi nihil vales,
+          Cette page n’existe pas.
           <br />
-          ibi nihil velis.
+          <span style={{ color: "var(--accent)" }}>
+            Mais d’autres vous attendent.
+          </span>
         </h1>
 
         <p
-          className="text-sm"
-          style={{ fontFamily: "var(--font-body)", color: "var(--text-secondary)" }}
+          className="mx-auto mt-10 max-w-md text-base leading-relaxed"
+          style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}
         >
-          Cette page n&apos;existe pas.
+          Le lien que vous avez suivi est rompu, ou la page a été déplacée.
+          Reprenez la navigation à partir de l’accueil.
         </p>
 
-        <Link
-          href="/"
-          className="inline-block text-sm border px-6 py-3 transition-colors hover:bg-[#1A1A1A] hover:text-[#F8F7F4]"
-          style={{
-            fontFamily: "var(--font-body)",
-            fontWeight: 500,
-            color: "var(--text-primary)",
-            borderColor: "var(--border)",
-          }}
-        >
-          Retour à l&apos;accueil
-        </Link>
+        <div className="mt-12 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center rounded-sm px-6 py-3 text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: "var(--foreground)",
+              color: "var(--background)",
+              fontFamily: "var(--font-body)",
+            }}
+          >
+            Retour à l’accueil
+          </Link>
+          <Link
+            href="/contact"
+            className="inline-flex items-center justify-center rounded-sm border px-6 py-3 text-sm font-medium transition-colors"
+            style={{
+              borderColor: "var(--border)",
+              color: "var(--foreground)",
+              fontFamily: "var(--font-body)",
+            }}
+          >
+            Nous contacter
+          </Link>
+        </div>
       </div>
     </main>
   );

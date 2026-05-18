@@ -48,16 +48,18 @@ export default async function AvocatFacturationPage() {
   if (!user) redirect("/connexion");
 
   const org = await getOrganization();
-  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
 
   const { data: invoices } = await supabase
     .from("invoices")
-    .select("id, invoice_number, amount_ttc, status, issued_at, due_at, dossier:dossiers(reference, title), client:profiles!client_id(full_name)")
+    .select("id, invoice_number, amount_ttc, status, issued_at, due_at, paid_at, dossier:dossiers(reference, title), client:profiles!client_id(full_name)")
     .eq("organization_id", org.id)
     .order("issued_at", { ascending: false });
 
-  const caMonth = (invoices ?? [])
-    .filter((i) => i.issued_at >= monthStart && i.status !== "cancelled")
+  const caYtd = (invoices ?? [])
+    .filter(
+      (i) => i.status === "paid" && i.paid_at != null && i.paid_at >= yearStart
+    )
     .reduce((sum, i) => sum + Number(i.amount_ttc), 0);
 
   const overdue = (invoices ?? []).filter((i) => computeDisplayStatus({ status: i.status, due_at: i.due_at }) === "overdue");
@@ -72,8 +74,8 @@ export default async function AvocatFacturationPage() {
 
       <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
         <div className="rounded-sm border border-border bg-surface p-4">
-          <p className="text-xs text-text-muted">CA du mois</p>
-          <p className="mt-1 text-2xl text-foreground">{fmtEur(caMonth)}</p>
+          <p className="text-xs text-text-muted">CA encaissé · YTD 2026</p>
+          <p className="mt-1 text-2xl text-foreground">{fmtEur(caYtd)}</p>
         </div>
         <div className="rounded-sm border border-border bg-surface p-4">
           <p className="text-xs text-text-muted">Factures en retard</p>

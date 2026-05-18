@@ -175,3 +175,7 @@ To run from source:
 # Go >= 1.22
 go run . help
 ```
+
+## TODO post-audit
+
+- [ ] **Audit historique git pour secrets exposés** : vérifier `git log --all -p -- scripts/` pour des clés SUPABASE_SERVICE_ROLE_KEY / STRIPE_SECRET / RESEND_API_KEY exposées. Si trouvées, révoquer côté provider + `git filter-repo` pour purger l'historique.

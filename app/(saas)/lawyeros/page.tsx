@@ -8,7 +8,7 @@ import { StatsSection } from "@/components/lawyeros/stats-section";
 import { LawyerosHero } from "./lawyeros-hero";
 
 export const metadata: Metadata = {
-  title: "LawyerOS — Le portail client que vos clients méritent",
+  title: "Le portail client que vos clients méritent",
   description:
     "LawyerOS donne à votre cabinet un portail professionnel en 10 minutes. Dossiers, messagerie, facturation Stripe, notes IA. 14 jours gratuits, sans carte.",
   openGraph: {

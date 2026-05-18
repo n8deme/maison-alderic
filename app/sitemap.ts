@@ -3,7 +3,7 @@ import { createStaticClient } from "@/lib/supabase/static";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createStaticClient();
-  const base = "https://maison-alderic.vercel.app";
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lawyeros.vercel.app";
 
   const [avocatsRes, insightsRes] = await Promise.all([
     supabase.from("avocats").select("slug, updated_at"),
@@ -36,6 +36,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/contact`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.6 },
     { url: `${base}/mentions-legales`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
     { url: `${base}/confidentialite`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
+    // LawyerOS (produit SaaS)
+    { url: `${base}/lawyeros`, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
+    { url: `${base}/lawyeros/docs`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
+    { url: `${base}/signup`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.8 },
+    { url: `${base}/cgv`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
   ];
 
   return [...staticPages, ...avocats, ...insights];
