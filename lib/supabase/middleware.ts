@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { DEMO_TENANT_SLUG } from "@/lib/demo/credentials";
+import { DEMO_CREDENTIALS, DEMO_EMAILS_WHITELIST, DEMO_TENANT_SLUG } from "@/lib/demo/credentials";
 
 const PUBLIC_SAAS_ROUTES = [
   "/signup",
@@ -142,21 +142,46 @@ export async function updateSession(request: NextRequest) {
   }
 
   const demoTenantQuery = request.nextUrl.searchParams.get("__tenant");
-  if (!user && demoTenantQuery === DEMO_TENANT_SLUG && subdomain) {
-    const isPortailAvocat = pathname.startsWith("/portail-avocat");
-    const isPortailClient =
-      pathname === "/portail" ||
-      (pathname.startsWith("/portail/") && !pathname.startsWith("/portail-avocat"));
-    if (isPortailAvocat || isPortailClient) {
-      const role = isPortailAvocat ? "avocat" : "client";
+  const isDemoTenant = demoTenantQuery === DEMO_TENANT_SLUG;
+  const isPortailRoute =
+    pathname.startsWith("/portail-avocat") ||
+    pathname === "/portail" ||
+    (pathname.startsWith("/portail/") && !pathname.startsWith("/portail-avocat"));
+
+  if (isDemoTenant && isPortailRoute && subdomain) {
+    const expectedRole = pathname.startsWith("/portail-avocat") ? "avocat" : "client";
+
+    let shouldSignin = false;
+
+    if (!user) {
+      shouldSignin = true;
+    } else {
+      const userEmail = user.email ?? "";
+      const isDemoSession = (DEMO_EMAILS_WHITELIST as readonly string[]).includes(
+        userEmail,
+      );
+      if (isDemoSession) {
+        const currentRole =
+          userEmail === DEMO_CREDENTIALS.avocat.email
+            ? "avocat"
+            : userEmail === DEMO_CREDENTIALS.client.email
+              ? "client"
+              : null;
+        if (currentRole != null && currentRole !== expectedRole) {
+          shouldSignin = true;
+        }
+      }
+    }
+
+    if (shouldSignin) {
       const signinUrl = new URL("/api/demo/signin", request.url);
-      signinUrl.searchParams.set("role", role);
+      signinUrl.searchParams.set("role", expectedRole);
       signinUrl.searchParams.set("next", pathname);
-      const redirectDemo = NextResponse.redirect(signinUrl);
+      const demoRedirect = NextResponse.redirect(signinUrl);
       supabaseResponse.cookies.getAll().forEach((c) => {
-        redirectDemo.cookies.set(c.name, c.value);
+        demoRedirect.cookies.set(c.name, c.value);
       });
-      return redirectDemo;
+      return demoRedirect;
     }
   }
 

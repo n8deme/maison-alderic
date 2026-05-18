@@ -43,6 +43,8 @@ export async function GET(req: NextRequest) {
     }
   );
 
+  await supabase.auth.signOut();
+
   const { error } = await supabase.auth.signInWithPassword({
     email: creds.email,
     password: creds.password,
