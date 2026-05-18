@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
+import { DossiersFiltersForm } from "@/components/portail-avocat/dossiers/dossiers-filters-form";
 import { DataTableClickableRow } from "@/components/portail-avocat/ui/data-table-clickable-row";
 import {
   DataTable,
@@ -82,33 +83,13 @@ export default async function AvocatDossiersPage({
         </Link>
       </div>
 
-      <form method="GET" className="mb-4 grid grid-cols-1 gap-2 rounded-sm border border-border bg-surface p-3 md:grid-cols-5">
-        <select name="status" defaultValue={params.status ?? "all"} className="rounded-sm border border-border px-2 py-2 text-xs">
-          <option value="all">Statut : tous</option>
-          <option value="active">Actif</option>
-          <option value="pending">En attente</option>
-          <option value="archived">Archivé</option>
-          <option value="won">Clôturé</option>
-          <option value="lost">Perdu</option>
-        </select>
-        <select name="type" defaultValue={params.type ?? "all"} className="rounded-sm border border-border px-2 py-2 text-xs">
-          <option value="all">Type : tous</option>
-          <option value="M&A">M&A</option>
-          <option value="Litigation">Litigation</option>
-          <option value="Tax">Tax</option>
-          <option value="Corporate">Corporate</option>
-          <option value="PE">PE</option>
-          <option value="Restructuring">Restructuring</option>
-        </select>
-        <select name="avocat" defaultValue={params.avocat ?? "all"} className="rounded-sm border border-border px-2 py-2 text-xs">
-          <option value="all">Avocat : tous</option>
-          {(avocats ?? []).map((a) => (
-            <option key={a.id} value={a.id}>{a.full_name}</option>
-          ))}
-        </select>
-        <input name="q" defaultValue={params.q ?? ""} placeholder="Recherche titre / numéro" className="rounded-sm border border-border px-2 py-2 text-xs md:col-span-2" />
-        <button type="submit" className="rounded-sm bg-foreground px-3 py-2 text-xs text-background md:col-span-5">Appliquer les filtres</button>
-      </form>
+      <DossiersFiltersForm
+        initialStatus={params.status ?? "all"}
+        initialType={params.type ?? "all"}
+        initialAvocat={params.avocat ?? "all"}
+        initialQ={params.q ?? ""}
+        avocats={avocats ?? []}
+      />
 
       <DataTable>
         <DataTableTable>
