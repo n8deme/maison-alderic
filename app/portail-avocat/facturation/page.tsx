@@ -2,11 +2,34 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getOrganization } from "@/lib/get-organization";
-import Link from "next/link";
 import { NewInvoiceButton } from "@/components/portail-avocat/facturation/new-invoice-button";
-import { computeDisplayStatus, invoiceStatusLabel } from "@/lib/invoice-status";
+import { DataTableClickableRow } from "@/components/portail-avocat/ui/data-table-clickable-row";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmptyState,
+  DataTableHead,
+  DataTableHeadCell,
+  DataTableHeadRow,
+  DataTableTable,
+  dataTableActionLinkClass,
+} from "@/components/portail-avocat/ui/data-table";
+import {
+  computeDisplayStatus,
+  invoiceStatusLabel,
+  type InvoiceStatusKey,
+} from "@/lib/invoice-status";
 
 export const metadata: Metadata = { title: "Facturation" };
+
+const INVOICE_BADGE_CLASS: Record<InvoiceStatusKey, string> = {
+  draft:     "bg-surface-alt text-text-secondary",
+  sent:      "bg-yellow-100 text-yellow-800",
+  paid:      "bg-green-100 text-green-800",
+  overdue:   "bg-red-100 text-red-800",
+  cancelled: "bg-gray-100 text-gray-800",
+};
 
 function fmtDate(iso: string | null) {
   if (!iso) return "-";
@@ -59,42 +82,56 @@ export default async function AvocatFacturationPage() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-sm border border-border bg-surface">
-        <table className="min-w-full text-left text-xs">
-          <thead className="bg-surface-alt text-text-muted">
-            <tr>
-              <th className="px-3 py-2">Numéro</th>
-              <th className="px-3 py-2">Client</th>
-              <th className="px-3 py-2">Dossier</th>
-              <th className="px-3 py-2">Montant TTC</th>
-              <th className="px-3 py-2">Statut</th>
-              <th className="px-3 py-2">Date émission</th>
-              <th className="px-3 py-2">Échéance</th>
-              <th className="px-3 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(invoices ?? []).map((inv: any) => (
-              <tr key={inv.id} className="border-t border-border-subtle">
-                <td className="px-3 py-2">{inv.invoice_number}</td>
-                <td className="px-3 py-2">{inv.client?.full_name ?? "-"}</td>
-                <td className="px-3 py-2">{inv.dossier?.reference ?? "-"}</td>
-                <td className="px-3 py-2">{fmtEur(Number(inv.amount_ttc))}</td>
-                <td className="px-3 py-2">
-                  {invoiceStatusLabel[computeDisplayStatus({ status: inv.status, due_at: inv.due_at })]}
-                </td>
-                <td className="px-3 py-2">{fmtDate(inv.issued_at)}</td>
-                <td className="px-3 py-2">{fmtDate(inv.due_at)}</td>
-                <td className="px-3 py-2">
-                  <Link href={`/portail-avocat/facturation/${inv.id}`} className="text-bordeaux underline">
-                    Voir
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable>
+        <DataTableTable>
+          <DataTableHead>
+            <DataTableHeadRow>
+              <DataTableHeadCell>Numéro</DataTableHeadCell>
+              <DataTableHeadCell>Client</DataTableHeadCell>
+              <DataTableHeadCell>Dossier</DataTableHeadCell>
+              <DataTableHeadCell align="right">Montant TTC</DataTableHeadCell>
+              <DataTableHeadCell>Statut</DataTableHeadCell>
+              <DataTableHeadCell>Date émission</DataTableHeadCell>
+              <DataTableHeadCell>Échéance</DataTableHeadCell>
+              <DataTableHeadCell>Actions</DataTableHeadCell>
+            </DataTableHeadRow>
+          </DataTableHead>
+          <DataTableBody>
+            {(invoices ?? []).length === 0 ? (
+              <DataTableEmptyState colSpan={8} />
+            ) : (
+              (invoices ?? []).map((inv: any) => {
+                const displayStatus = computeDisplayStatus({ status: inv.status, due_at: inv.due_at });
+                const href = `/portail-avocat/facturation/${inv.id}`;
+                return (
+                  <DataTableClickableRow
+                    key={inv.id}
+                    href={href}
+                    ariaLabel={`Ouvrir la facture ${inv.invoice_number}`}
+                  >
+                    <DataTableCell mono>{inv.invoice_number}</DataTableCell>
+                    <DataTableCell>{inv.client?.full_name ?? "-"}</DataTableCell>
+                    <DataTableCell mono>{inv.dossier?.reference ?? "-"}</DataTableCell>
+                    <DataTableCell amount>{fmtEur(Number(inv.amount_ttc))}</DataTableCell>
+                    <DataTableCell>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${INVOICE_BADGE_CLASS[displayStatus] ?? "bg-gray-100 text-gray-800"}`}
+                      >
+                        {invoiceStatusLabel[displayStatus]}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell>{fmtDate(inv.issued_at)}</DataTableCell>
+                    <DataTableCell>{fmtDate(inv.due_at)}</DataTableCell>
+                    <DataTableCell>
+                      <span className={dataTableActionLinkClass()}>Voir</span>
+                    </DataTableCell>
+                  </DataTableClickableRow>
+                );
+              })
+            )}
+          </DataTableBody>
+        </DataTableTable>
+      </DataTable>
     </div>
   );
 }

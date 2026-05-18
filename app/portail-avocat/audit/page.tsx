@@ -1,6 +1,17 @@
 import { getOrganization } from "@/lib/get-organization";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmptyState,
+  DataTableHead,
+  DataTableHeadCell,
+  DataTableHeadRow,
+  DataTableRow,
+  DataTableTable,
+} from "@/components/portail-avocat/ui/data-table";
 
 const ACTION_LABELS: Record<string, string> = {
   dossier_created:       "Dossier créé",
@@ -57,36 +68,21 @@ export default async function AuditPage() {
         </p>
       </div>
 
-      <div
-        className="rounded-sm border overflow-hidden"
-        style={{ borderColor: "var(--border)" }}
-      >
-        <table className="w-full text-sm">
-          <thead>
-            <tr style={{ backgroundColor: "var(--surface-alt)", borderBottom: "1px solid var(--border)" }}>
-              <th className="px-4 py-3 text-left font-medium" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
-                Date
-              </th>
-              <th className="px-4 py-3 text-left font-medium" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
-                Action
-              </th>
-              <th className="px-4 py-3 text-left font-medium" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
-                Ressource
-              </th>
-              <th className="px-4 py-3 text-left font-medium" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
-                Utilisateur
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+      <DataTable>
+        <DataTableTable>
+          <DataTableHead>
+            <DataTableHeadRow>
+              <DataTableHeadCell>Date</DataTableHeadCell>
+              <DataTableHeadCell>Action</DataTableHeadCell>
+              <DataTableHeadCell>Ressource</DataTableHeadCell>
+              <DataTableHeadCell>Utilisateur</DataTableHeadCell>
+            </DataTableHeadRow>
+          </DataTableHead>
+          <DataTableBody>
             {!logs || logs.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
-                  Aucune action enregistrée pour l&apos;instant.
-                </td>
-              </tr>
+              <DataTableEmptyState colSpan={4} />
             ) : (
-              logs.map((log, idx) => {
+              logs.map((log) => {
                 const profile = profileMap.get(log.user_id);
                 const label = ACTION_LABELS[log.action] ?? log.action;
                 const resource = RESOURCE_LABELS[log.resource_type] ?? log.resource_type;
@@ -102,32 +98,18 @@ export default async function AuditPage() {
                   : "—";
 
                 return (
-                  <tr
-                    key={log.id}
-                    style={{
-                      borderTop: idx === 0 ? undefined : "1px solid var(--border-subtle)",
-                      backgroundColor: idx % 2 === 0 ? "var(--surface)" : "transparent",
-                    }}
-                  >
-                    <td className="px-4 py-3 tabular-nums" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
-                      {date}
-                    </td>
-                    <td className="px-4 py-3" style={{ color: "var(--foreground)", fontFamily: "var(--font-body)" }}>
-                      {label}
-                    </td>
-                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
-                      {resource}
-                    </td>
-                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
-                      {userName}
-                    </td>
-                  </tr>
+                  <DataTableRow key={log.id}>
+                    <DataTableCell className="tabular-nums">{date}</DataTableCell>
+                    <DataTableCell>{label}</DataTableCell>
+                    <DataTableCell>{resource}</DataTableCell>
+                    <DataTableCell>{userName}</DataTableCell>
+                  </DataTableRow>
                 );
               })
             )}
-          </tbody>
-        </table>
-      </div>
+          </DataTableBody>
+        </DataTableTable>
+      </DataTable>
     </div>
   );
 }

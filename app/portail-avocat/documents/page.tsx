@@ -2,6 +2,17 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DownloadButton } from "@/components/portail/documents/download-button";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmptyState,
+  DataTableHead,
+  DataTableHeadCell,
+  DataTableHeadRow,
+  DataTableRow,
+  DataTableTable,
+} from "@/components/portail-avocat/ui/data-table";
 
 export const metadata: Metadata = { title: "Documents" };
 
@@ -72,42 +83,52 @@ export default async function AvocatDocumentsPage({
         <button type="submit" className="rounded-sm bg-foreground px-3 py-2 text-xs text-background md:col-span-4">Filtrer</button>
       </form>
 
-      <div className="overflow-x-auto rounded-sm border border-border bg-surface">
-        <table className="min-w-full text-left text-xs">
-          <thead className="bg-surface-alt text-text-muted">
-            <tr>
-              <th className="px-3 py-2">Nom</th>
-              <th className="px-3 py-2">Catégorie</th>
-              <th className="px-3 py-2">Dossier</th>
-              <th className="px-3 py-2">Client</th>
-              <th className="px-3 py-2">Date upload</th>
-              <th className="px-3 py-2">Uploadé par</th>
-              <th className="px-3 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredDocs.map((doc: any) => (
-              <tr key={doc.id} className="border-t border-border-subtle">
-                <td className="px-3 py-2">{doc.name}</td>
-                <td className="px-3 py-2">
-                  {doc.category === "contract" ? "Contrat" :
-                   doc.category === "mandat" ? "Mandat" :
-                   doc.category === "pleading" ? "Conclusions" :
-                   doc.category === "correspondence" ? "Correspondance" :
-                   doc.category === "other" ? "Autre" : doc.category}
-                </td>
-                <td className="px-3 py-2">{doc.dossier?.reference ?? "-"}</td>
-                <td className="px-3 py-2">{doc.dossier?.client?.full_name ?? "-"}</td>
-                <td className="px-3 py-2">{fmtDate(doc.created_at)}</td>
-                <td className="px-3 py-2">{doc.uploader?.full_name ?? "-"}</td>
-                <td className="px-3 py-2">
-                  <DownloadButton documentId={doc.id} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable>
+        <DataTableTable>
+          <DataTableHead>
+            <DataTableHeadRow>
+              <DataTableHeadCell>Nom</DataTableHeadCell>
+              <DataTableHeadCell>Catégorie</DataTableHeadCell>
+              <DataTableHeadCell>Dossier</DataTableHeadCell>
+              <DataTableHeadCell>Client</DataTableHeadCell>
+              <DataTableHeadCell>Date upload</DataTableHeadCell>
+              <DataTableHeadCell>Uploadé par</DataTableHeadCell>
+              <DataTableHeadCell>Actions</DataTableHeadCell>
+            </DataTableHeadRow>
+          </DataTableHead>
+          <DataTableBody>
+            {filteredDocs.length === 0 ? (
+              <DataTableEmptyState colSpan={7} />
+            ) : (
+              filteredDocs.map((doc: any) => (
+                <DataTableRow key={doc.id}>
+                  <DataTableCell>{doc.name}</DataTableCell>
+                  <DataTableCell>
+                    {doc.category === "contract"
+                      ? "Contrat"
+                      : doc.category === "mandat"
+                        ? "Mandat"
+                        : doc.category === "pleading"
+                          ? "Conclusions"
+                          : doc.category === "correspondence"
+                            ? "Correspondance"
+                            : doc.category === "other"
+                              ? "Autre"
+                              : doc.category}
+                  </DataTableCell>
+                  <DataTableCell mono>{doc.dossier?.reference ?? "-"}</DataTableCell>
+                  <DataTableCell>{doc.dossier?.client?.full_name ?? "-"}</DataTableCell>
+                  <DataTableCell>{fmtDate(doc.created_at)}</DataTableCell>
+                  <DataTableCell>{doc.uploader?.full_name ?? "-"}</DataTableCell>
+                  <DataTableCell>
+                    <DownloadButton documentId={doc.id} />
+                  </DataTableCell>
+                </DataTableRow>
+              ))
+            )}
+          </DataTableBody>
+        </DataTableTable>
+      </DataTable>
     </div>
   );
 }

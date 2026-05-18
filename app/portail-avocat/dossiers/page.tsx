@@ -5,6 +5,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
+import { DataTableClickableRow } from "@/components/portail-avocat/ui/data-table-clickable-row";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableCell,
+  DataTableEmptyState,
+  DataTableHead,
+  DataTableHeadCell,
+  DataTableHeadRow,
+  DataTableTable,
+  dataTableActionLinkClass,
+} from "@/components/portail-avocat/ui/data-table";
 import { createClient } from "@/lib/supabase/server";
 import { getOrganization } from "@/lib/get-organization";
 
@@ -98,46 +110,58 @@ export default async function AvocatDossiersPage({
         <button type="submit" className="rounded-sm bg-foreground px-3 py-2 text-xs text-background md:col-span-5">Appliquer les filtres</button>
       </form>
 
-      <div className="overflow-x-auto rounded-sm border border-border bg-surface">
-        <table className="min-w-full text-left text-xs">
-          <thead className="bg-surface-alt text-text-muted">
-            <tr>
-              <th className="px-3 py-2">Numéro</th>
-              <th className="px-3 py-2">Client</th>
-              <th className="px-3 py-2">Titre</th>
-              <th className="px-3 py-2">Type</th>
-              <th className="px-3 py-2">Statut</th>
-              <th className="px-3 py-2">Avocat assigné</th>
-              <th className="px-3 py-2">Création</th>
-              <th className="px-3 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredDossiers.map((d: any) => {
-              const lead = d.dossier_avocats?.find((da: any) => da.role === "lead") ?? d.dossier_avocats?.[0];
-              const avocatName = lead?.avocats?.full_name ?? "—";
-              return (
-                <tr key={d.id} className="border-t border-border-subtle hover:bg-surface-alt/50">
-                  <td className="px-3 py-2 font-mono">{d.reference}</td>
-                  <td className="px-3 py-2">{d.client?.full_name ?? "—"}</td>
-                  <td className="px-3 py-2">{d.title}</td>
-                  <td className="px-3 py-2">{d.type ?? "—"}</td>
-                  <td className="px-3 py-2">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${STATUS_COLORS[d.status] ?? "bg-gray-100 text-gray-800"}`}>
-                      {STATUS_LABELS[d.status] ?? d.status}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2">{avocatName}</td>
-                  <td className="px-3 py-2">{d.opened_at ? fmtDate(d.opened_at) : "—"}</td>
-                  <td className="px-3 py-2">
-                    <Link className="text-bordeaux underline" href={`/portail-avocat/dossiers/${d.reference}`}>Voir</Link>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <DataTable>
+        <DataTableTable>
+          <DataTableHead>
+            <DataTableHeadRow>
+              <DataTableHeadCell>Numéro</DataTableHeadCell>
+              <DataTableHeadCell>Client</DataTableHeadCell>
+              <DataTableHeadCell>Titre</DataTableHeadCell>
+              <DataTableHeadCell>Type</DataTableHeadCell>
+              <DataTableHeadCell>Statut</DataTableHeadCell>
+              <DataTableHeadCell>Avocat assigné</DataTableHeadCell>
+              <DataTableHeadCell>Création</DataTableHeadCell>
+              <DataTableHeadCell>Actions</DataTableHeadCell>
+            </DataTableHeadRow>
+          </DataTableHead>
+          <DataTableBody>
+            {filteredDossiers.length === 0 ? (
+              <DataTableEmptyState colSpan={8} />
+            ) : (
+              filteredDossiers.map((d: any) => {
+                const lead =
+                  d.dossier_avocats?.find((da: any) => da.role === "lead") ?? d.dossier_avocats?.[0];
+                const avocatName = lead?.avocats?.full_name ?? "—";
+                const href = `/portail-avocat/dossiers/${d.reference}`;
+                return (
+                  <DataTableClickableRow
+                    key={d.id}
+                    href={href}
+                    ariaLabel={`Ouvrir le dossier ${d.reference}`}
+                  >
+                    <DataTableCell mono>{d.reference}</DataTableCell>
+                    <DataTableCell>{d.client?.full_name ?? "—"}</DataTableCell>
+                    <DataTableCell>{d.title}</DataTableCell>
+                    <DataTableCell>{d.type ?? "—"}</DataTableCell>
+                    <DataTableCell>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${STATUS_COLORS[d.status] ?? "bg-gray-100 text-gray-800"}`}
+                      >
+                        {STATUS_LABELS[d.status] ?? d.status}
+                      </span>
+                    </DataTableCell>
+                    <DataTableCell>{avocatName}</DataTableCell>
+                    <DataTableCell>{d.opened_at ? fmtDate(d.opened_at) : "—"}</DataTableCell>
+                    <DataTableCell>
+                      <span className={dataTableActionLinkClass()}>Voir</span>
+                    </DataTableCell>
+                  </DataTableClickableRow>
+                );
+              })
+            )}
+          </DataTableBody>
+        </DataTableTable>
+      </DataTable>
     </div>
   );
 }
