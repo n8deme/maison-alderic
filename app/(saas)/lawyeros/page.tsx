@@ -48,7 +48,7 @@ export default function LawyerOSPage() {
         }
       `}</style>
 
-      <div style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}>
+      <div className="overflow-x-hidden" style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}>
 
         {/* ─────────────── NAVBAR ─────────────── */}
         <header

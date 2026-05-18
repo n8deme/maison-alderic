@@ -125,7 +125,7 @@ function HeroScrollHint() {
 
 export function LawyerosHero() {
   return (
-    <section className="relative px-6 pb-16 md:px-12 md:pb-20 lg:px-20 pt-24 md:pt-32">
+    <section className="relative flex flex-col justify-center px-6 pb-16 md:min-h-[80vh] md:px-12 md:pb-20 lg:px-20 pt-24 md:pt-32 min-h-[70vh]">
       <div className="max-w-7xl mx-auto">
         <div className="max-w-3xl">
           <div
@@ -151,7 +151,7 @@ export function LawyerosHero() {
           </div>
 
           <h1
-            className="text-4xl md:text-6xl font-heading font-medium tracking-tight leading-tight"
+            className="text-4xl md:text-6xl lg:text-7xl font-heading font-medium tracking-tight leading-tight"
             style={{ color: "var(--foreground)" }}
           >
             Le portail client que vos clients <CyclingWord />

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { signupAction, checkSubdomainAction, type SignupState } from "./actions";
+import { isReservedSubdomain } from "@/lib/signup/subdomain-reserved";
 
 const SLUG_RE = /^[a-z0-9-]+$/;
 
@@ -29,9 +30,13 @@ export default function SignupPage() {
   const [showPwd,     setShowPwd]     = useState(false);
   const [cabinetName, setCabinetName] = useState("");
   const [subdomain,   setSubdomain]   = useState("");
-  const [subStatus,   setSubStatus]   = useState<"idle" | "checking" | "available" | "taken">("idle");
+  const [subStatus, setSubStatus] = useState<
+    "idle" | "checking" | "available" | "taken" | "invalid" | "reserved"
+  >("idle");
 
   const checkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const subdomainLatest = useRef("");
+  const subdomainCheckGen = useRef(0);
 
   // Suggestion automatique du sous-domaine depuis le nom du cabinet
   function handleCabinetNameChange(v: string) {
@@ -41,20 +46,60 @@ export default function SignupPage() {
     }
   }
 
-  // Vérification dispo sous-domaine (debounce 500ms)
+  // Vérification dispo sous-domaine (debounce 300ms) + timeout 3s côté client
   function handleSubdomainChange(v: string) {
     const slug = slugify(v);
     setSubdomain(slug);
-    setSubStatus("idle");
+    subdomainLatest.current = slug;
+    const gen = ++subdomainCheckGen.current;
 
     if (checkTimer.current) clearTimeout(checkTimer.current);
-    if (slug.length < 3) return;
+
+    if (!v.trim()) {
+      setSubStatus("idle");
+      return;
+    }
+
+    if (/[^a-z0-9-\s]/i.test(v)) {
+      setSubStatus("invalid");
+      return;
+    }
+
+    if (slug.length < 3) {
+      setSubStatus("idle");
+      return;
+    }
+
+    if (isReservedSubdomain(slug)) {
+      setSubStatus("reserved");
+      return;
+    }
 
     setSubStatus("checking");
-    checkTimer.current = setTimeout(async () => {
-      const available = await checkSubdomainAction(slug);
-      setSubStatus(available ? "available" : "taken");
-    }, 500);
+    checkTimer.current = setTimeout(() => {
+      if (subdomainCheckGen.current !== gen) return;
+      const requested = slug;
+      const deadline = window.setTimeout(() => {
+        if (subdomainCheckGen.current !== gen) return;
+        setSubStatus((prev) =>
+          subdomainLatest.current === requested && prev === "checking" ? "available" : prev
+        );
+      }, 3000);
+
+      checkSubdomainAction(requested)
+        .then((available) => {
+          window.clearTimeout(deadline);
+          if (subdomainCheckGen.current !== gen) return;
+          if (subdomainLatest.current !== requested) return;
+          setSubStatus(available ? "available" : "taken");
+        })
+        .catch(() => {
+          window.clearTimeout(deadline);
+          if (subdomainCheckGen.current !== gen) return;
+          if (subdomainLatest.current !== requested) return;
+          setSubStatus("available");
+        });
+    }, 300);
   }
 
   // Après succès du server action, on connecte le user côté client
@@ -77,14 +122,26 @@ export default function SignupPage() {
   }, [state]);
 
   const subdomainHint =
-    subStatus === "checking"   ? "Vérification..." :
-    subStatus === "available"  ? "Disponible" :
-    subStatus === "taken"      ? "Déjà pris" : null;
+    subStatus === "checking"
+      ? "Vérification..."
+      : subStatus === "available"
+        ? "✓ Disponible"
+        : subStatus === "taken"
+          ? "Ce sous-domaine est déjà utilisé"
+          : subStatus === "reserved"
+            ? "Ce sous-domaine est réservé"
+            : subStatus === "invalid"
+              ? "Uniquement lettres, chiffres et tirets"
+              : null;
 
   const subdomainHintColor =
-    subStatus === "available"  ? "text-emerald-600" :
-    subStatus === "taken"      ? "text-red-600" :
-    "text-text-muted";
+    subStatus === "available"
+      ? "text-emerald-600"
+      : subStatus === "taken" || subStatus === "reserved"
+        ? "text-red-600"
+        : subStatus === "invalid"
+          ? "text-amber-700"
+          : "text-text-muted";
 
   return (
     <div
@@ -251,11 +308,13 @@ export default function SignupPage() {
                 className="flex-1 rounded-sm rounded-r-none border-r-0 border px-3.5 py-2.5 text-sm outline-none transition-colors font-mono"
                 style={{
                   borderColor:
-                    subStatus === "taken" || state.errors?.subdomain
+                    subStatus === "taken" || subStatus === "reserved" || state.errors?.subdomain
                       ? "#ef4444"
-                      : subStatus === "available"
-                      ? "#10b981"
-                      : "var(--border)",
+                      : subStatus === "invalid"
+                        ? "#d97706"
+                        : subStatus === "available"
+                          ? "#10b981"
+                          : "var(--border)",
                   backgroundColor: "var(--surface)",
                   color: "var(--foreground)",
                 }}
@@ -264,11 +323,13 @@ export default function SignupPage() {
                 }
                 onBlur={(e) =>
                   (e.target.style.borderColor =
-                    subStatus === "taken" || state.errors?.subdomain
+                    subStatus === "taken" || subStatus === "reserved" || state.errors?.subdomain
                       ? "#ef4444"
-                      : subStatus === "available"
-                      ? "#10b981"
-                      : "var(--border)")
+                      : subStatus === "invalid"
+                        ? "#d97706"
+                        : subStatus === "available"
+                          ? "#10b981"
+                          : "var(--border)")
                 }
               />
               <span
@@ -288,18 +349,20 @@ export default function SignupPage() {
                 <p className="text-xs text-red-600">{state.errors.subdomain}</p>
               ) : subdomainHint ? (
                 <p className={`text-xs ${subdomainHintColor}`}>{subdomainHint}</p>
-              ) : (
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  Uniquement lettres, chiffres et tirets
-                </p>
-              )}
+              ) : null}
             </div>
           </div>
 
           {/* CTA */}
           <button
             type="submit"
-            disabled={isPending || subStatus === "taken"}
+            disabled={
+              isPending ||
+              subStatus === "taken" ||
+              subStatus === "reserved" ||
+              subStatus === "invalid" ||
+              subStatus === "checking"
+            }
             className="w-full py-3 px-4 rounded-sm text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-2"
             style={{
               backgroundColor: "var(--accent)",

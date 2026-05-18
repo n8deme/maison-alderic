@@ -126,7 +126,7 @@ export default function DocsPage() {
         .docs-section-anchor { scroll-margin-top: 80px; }
       `}</style>
 
-      <div style={{ backgroundColor: "var(--background)", minHeight: "100vh" }}>
+      <div className="overflow-x-hidden" style={{ backgroundColor: "var(--background)", minHeight: "100vh" }}>
 
         {/* ─── Navbar LawyerOS ─── */}
         <header
@@ -142,9 +142,9 @@ export default function DocsPage() {
             <nav className="hidden md:flex items-center gap-6">
               {[
                 { href: "/lawyeros#fonctionnalites", label: "Fonctionnalités" },
-                { href: "/lawyeros#demo",            label: "Démo" },
-                { href: "/lawyeros#tarifs",          label: "Tarifs" },
-                { href: "/lawyeros/docs",            label: "Documentation" },
+                { href: "/lawyeros#tarifs", label: "Tarifs" },
+                { href: "/lawyeros#demo", label: "Démo" },
+                { href: "/lawyeros/docs", label: "Documentation" },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="docs-nav-link text-sm" style={{ fontFamily: "var(--font-body)" }}>
                   {item.label}

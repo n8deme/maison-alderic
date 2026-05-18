@@ -4,11 +4,7 @@ import { z } from "zod";
 import { headers } from "next/headers";
 import { createServiceClient } from "@/lib/supabase/service";
 import { checkRateLimit } from "@/lib/rate-limit";
-
-const RESERVED_SUBDOMAINS = new Set([
-  "www", "app", "admin", "demo", "api", "mail", "cdn",
-  "lawyeros", "support", "help", "billing", "status",
-]);
+import { isReservedSubdomain } from "@/lib/signup/subdomain-reserved";
 
 const signupSchema = z.object({
   full_name:    z.string().min(2, "Minimum 2 caractères"),
@@ -21,7 +17,7 @@ const signupSchema = z.object({
     .max(30, "Maximum 30 caractères")
     .regex(/^[a-z0-9-]+$/, "Lettres minuscules, chiffres et tirets uniquement")
     .refine((v) => !v.startsWith("-") && !v.endsWith("-"), "Ne peut pas commencer ou finir par un tiret")
-    .refine((v) => !RESERVED_SUBDOMAINS.has(v), "Ce sous-domaine est réservé"),
+    .refine((v) => !isReservedSubdomain(v), "Ce sous-domaine est réservé"),
 });
 
 export type SignupState = {
@@ -128,15 +124,25 @@ export async function signupAction(
 }
 
 export async function checkSubdomainAction(subdomain: string): Promise<boolean> {
-  if (!subdomain || subdomain.length < 3) return false;
-  if (RESERVED_SUBDOMAINS.has(subdomain)) return false;
+  try {
+    if (!subdomain || subdomain.length < 3) return false;
+    if (isReservedSubdomain(subdomain)) return false;
 
-  const service = createServiceClient();
-  const { data } = await service
-    .from("organizations")
-    .select("id")
-    .eq("subdomain", subdomain)
-    .maybeSingle();
+    const service = createServiceClient();
+    const { data, error } = await service
+      .from("organizations")
+      .select("id")
+      .eq("subdomain", subdomain)
+      .maybeSingle();
 
-  return !data;
+    if (error) {
+      console.error("[checkSubdomain]", error);
+      return true;
+    }
+
+    return !data;
+  } catch (e) {
+    console.error("[checkSubdomain]", e);
+    return true;
+  }
 }
