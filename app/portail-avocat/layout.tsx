@@ -8,7 +8,7 @@ import { Toaster } from "sonner";
 export const metadata: Metadata = {
   title: {
     default: "Portail avocat",
-    template: "%s — Maison Aldéric & Associés",
+    template: "%s | LawyerOS",
   },
 };
 

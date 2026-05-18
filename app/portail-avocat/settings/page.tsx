@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { Building2, CreditCard } from "lucide-react";
 import { getOrganization } from "@/lib/get-organization";
 import DangerZone from "./danger-zone";
 import { TwoFactorSetup } from "./two-factor-setup";
 import { BillingButton } from "./billing-button";
+
+export const metadata: Metadata = { title: "Paramètres" };
 
 export default async function SettingsPage() {
   const org = await getOrganization();

@@ -2,7 +2,7 @@ import { getOrganization } from "@/lib/get-organization";
 import type { Metadata } from "next";
 import { ConflictChecker } from "./conflict-checker";
 
-export const metadata: Metadata = { title: "Vérification conflits d'intérêts" };
+export const metadata: Metadata = { title: "Conflits d'intérêts" };
 
 export default async function ConflitsPage() {
   const org = await getOrganization();

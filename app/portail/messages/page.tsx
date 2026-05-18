@@ -82,7 +82,9 @@ export default async function MessagesPage({
   const activeDossier = list.find((d) => d.id === activeId);
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <>
+      <h1 className="sr-only">Messages</h1>
+      <div className="flex h-full overflow-hidden">
       {/* Dossier selector (left panel) */}
       <aside className="w-64 shrink-0 border-r border-border flex flex-col overflow-hidden bg-background hidden sm:flex">
         <div className="px-4 py-4 border-b border-border">
@@ -178,5 +180,6 @@ export default async function MessagesPage({
         )}
       </div>
     </div>
+    </>
   );
 }

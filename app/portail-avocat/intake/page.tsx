@@ -3,7 +3,7 @@ import { getOrganization } from "@/lib/get-organization";
 import type { Metadata } from "next";
 import { IntakeManager } from "./intake-manager";
 
-export const metadata: Metadata = { title: "Formulaires intake" };
+export const metadata: Metadata = { title: "Intake" };
 
 export default async function IntakePage() {
   const supabase = await createClient();

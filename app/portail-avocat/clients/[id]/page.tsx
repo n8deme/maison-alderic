@@ -8,7 +8,21 @@ import { dossierStatusLabel } from "@/lib/dossier-status";
 import { NewDossierButton } from "@/components/portail-avocat/clients/new-dossier-button";
 import { getClientWithDossiers, getLeadAvocat, type DossierWithAvocats } from "@/lib/supabase/queries/dossiers";
 
-export const metadata: Metadata = { title: "Profil client" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", id)
+    .maybeSingle();
+  const name = profile?.full_name?.trim() || "Client";
+  return { title: `Client ${name}` };
+}
 
 function fmtDate(iso: string) {
   return new Intl.DateTimeFormat("fr-BE", { day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));

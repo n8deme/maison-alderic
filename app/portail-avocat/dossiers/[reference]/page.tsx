@@ -17,7 +17,20 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { reference } = await params
-  return { title: reference }
+  try {
+    const supabase = await createClient()
+    const org = await getOrganization()
+    const { data } = await supabase
+      .from('dossiers')
+      .select('reference')
+      .eq('reference', reference)
+      .eq('organization_id', org.id)
+      .maybeSingle()
+    const ref = data?.reference ?? reference
+    return { title: `Dossier ${ref}` }
+  } catch {
+    return { title: `Dossier ${reference}` }
+  }
 }
 
 const STATUS_LABELS: Record<string, string> = {
