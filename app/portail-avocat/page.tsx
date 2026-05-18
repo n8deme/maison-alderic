@@ -37,6 +37,7 @@ export default async function PortailAvocatDashboardPage() {
   const weekEnd = new Date(todayStart);
   weekEnd.setDate(weekEnd.getDate() + 7);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const yearStart = new Date(now.getFullYear(), 0, 1).toISOString();
   const nowIso = now.toISOString();
 
   const [activeRes, newClientsRes, rdvWeekRes, caRes, overdueRes, activityRes, todayRdvRes, urgentRes] = await Promise.all([
@@ -65,7 +66,7 @@ export default async function PortailAvocatDashboardPage() {
       .select("amount_ttc, paid_at")
       .eq("organization_id", org.id)
       .eq("status", "paid")
-      .gte("paid_at", monthStart)
+      .gte("paid_at", yearStart)
       .lt("paid_at", nowIso),
 
     supabase

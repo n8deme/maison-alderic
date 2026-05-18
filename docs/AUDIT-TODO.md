@@ -27,3 +27,15 @@
 3. Suspecter en priorité `lib/format-date.ts` et les composants qui l'utilisent dans `app/(public)/associes/` et `app/(public)/expertises/`
 4. Fix : `useEffect(() => setMounted(true), [])` + early return, ou `suppressHydrationWarning` ciblé
 **Budget** : Sonnet minimum, Opus si la cause s'avère architecturale.
+
+## 4.2 — Audit log à enrichir
+**Symptôme** : `/portail-avocat/audit` affiche 1 ligne au lieu des 50 promises.
+**Cause** : cron `/api/demo/reset` (vercel.json) wipe l'audit log chaque nuit.
+**Fix** : adapter le cron pour re-seeder 20-30 events variés après reset, OU modifier le seed initial dans la table audit.
+**Budget** : Sonnet (faut comprendre la logique du reset cron).
+
+## 4.3 — 2FA settings bloqué sur "Vérification…"
+**Symptôme** : `/portail-avocat/settings`, section 2FA, le statut reste sur "Vérification…" indéfiniment.
+**Cause probable** : useEffect qui fetch sans résolution, ou état loading jamais set à false.
+**Fix** : soit implémenter la verify, soit afficher en dur "Non activée" + bouton placeholder.
+**Budget** : Sonnet (debug d'un useEffect).

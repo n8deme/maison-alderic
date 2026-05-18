@@ -115,7 +115,7 @@ export function DashboardKpiCards({
     {
       key: "ca",
       icon: Euro,
-      label: "CA du mois",
+      label: "CA encaissé · YTD 2026",
       stat: <DelayedCountUp value={caMonth} index={3} decimals={2} suffix=" €" locale="fr-BE" />,
       sub: null,
     },
