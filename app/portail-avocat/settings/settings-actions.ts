@@ -1,5 +1,6 @@
 "use server";
 
+import { DEMO_TENANT_SLUG } from "@/lib/demo/credentials";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logAuditEvent } from "@/lib/audit/log";
@@ -26,6 +27,22 @@ export async function deleteOrganization(
   }
 
   const service = createServiceClient();
+  const { data: orgRow, error: orgFetchError } = await service
+    .from("organizations")
+    .select("slug")
+    .eq("id", orgId)
+    .single();
+
+  if (orgFetchError || !orgRow) {
+    return { error: "Erreur lors de la suppression. Réessayez." };
+  }
+  if (orgRow.slug === DEMO_TENANT_SLUG) {
+    return {
+      error:
+        "Cette action n'est pas disponible sur le cabinet de démonstration.",
+    };
+  }
+
   const { error: updateError } = await service
     .from("organizations")
     .update({ is_active: false, deleted_at: new Date().toISOString() })

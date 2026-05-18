@@ -1,22 +1,31 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Trash2 } from "lucide-react";
+import { Lock, Trash2 } from "lucide-react";
+import { DEMO_TENANT_SLUG } from "@/lib/demo/credentials";
 import { deleteOrganization } from "./settings-actions";
 
 export default function DangerZone({
   orgId,
   orgName,
+  orgSlug,
 }: {
   orgId: string;
   orgName: string;
+  orgSlug: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [confirmValue, setConfirmValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const isDemoCabinet = orgSlug === DEMO_TENANT_SLUG;
   const isConfirmed = confirmValue === orgName;
+
+  function handleOpenClick() {
+    if (isDemoCabinet) return;
+    setIsOpen(true);
+  }
 
   function handleDelete() {
     if (!isConfirmed) return;
@@ -48,21 +57,45 @@ export default function DangerZone({
         </div>
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
-          className="shrink-0 rounded-md px-4 py-2 text-sm font-medium transition-colors"
+          onClick={handleOpenClick}
+          disabled={isDemoCabinet}
+          aria-disabled={isDemoCabinet}
+          title={isDemoCabinet ? "Action désactivée en mode démo" : undefined}
+          className={`shrink-0 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            isDemoCabinet ? "cursor-not-allowed opacity-50" : ""
+          }`}
           style={{
             backgroundColor: "#fef2f2",
             color: "#991b1b",
             border: "1px solid #fca5a5",
           }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.backgroundColor = "#fee2e2")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.backgroundColor = "#fef2f2")}
+          onMouseEnter={(e) => {
+            if (isDemoCabinet) return;
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#fee2e2";
+          }}
+          onMouseLeave={(e) => {
+            if (isDemoCabinet) return;
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#fef2f2";
+          }}
         >
           Supprimer mon cabinet
         </button>
       </div>
 
-      {isOpen && (
+      {isDemoCabinet && (
+        <p
+          className="mt-4 flex items-center gap-2 text-sm text-[#5C5A55]"
+          style={{ fontFamily: "var(--font-body)" }}
+          role="note"
+        >
+          <Lock className="h-4 w-4 shrink-0" aria-hidden />
+          <span>
+            Action désactivée en mode démo. Les données sont réinitialisées chaque nuit à 3h.
+          </span>
+        </p>
+      )}
+
+      {isOpen && !isDemoCabinet && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(26,26,26,0.5)" }}>
           <div
             className="w-full max-w-md space-y-4 rounded-md border border-[#E5E2DB] bg-white p-6 shadow-md"
