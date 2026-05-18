@@ -17,6 +17,7 @@ import {
   finalizeOnboarding,
   createCheckoutSession,
 } from "./actions";
+import { annualTotalEuros, PLANS } from "@/lib/lawyeros/pricing";
 
 type Step1Data = { address: string; phone: string; website_url: string };
 type Step2Data = { primary_color: string; accent_color: string; logo_url: string };
@@ -344,14 +345,6 @@ function Step4({ initial, onSubmit, onBack, isPending }: { initial?: Client[]; o
   );
 }
 
-type Plan = { id: string; name: string; monthlyPrice: number; yearlyPrice: number; features: string[]; highlight?: boolean };
-
-const PLANS: Plan[] = [
-  { id: "solo",    name: "Solo",    monthlyPrice: 79,  yearlyPrice: 758,  features: ["1 avocat", "10 dossiers actifs", "Portail client", "Messagerie sécurisée"] },
-  { id: "cabinet", name: "Cabinet", monthlyPrice: 199, yearlyPrice: 1910, features: ["Jusqu'à 5 avocats", "Dossiers illimités", "Signature électronique", "Formulaires intake"], highlight: true },
-  { id: "premium", name: "Premium", monthlyPrice: 399, yearlyPrice: 3830, features: ["Avocats illimités", "IA résumés dossiers", "Domaine personnalisé", "Support prioritaire"] },
-];
-
 function Step5({
   subdomain: _subdomain,
   onStripeCheckout,
@@ -389,13 +382,13 @@ function Step5({
         {/* Plans */}
         <div className="grid gap-4">
           {PLANS.map((plan) => {
-            const price = billing === "monthly" ? plan.monthlyPrice : Math.round(plan.yearlyPrice / 12);
+            const price = billing === "monthly" ? plan.monthlyPrice : plan.annualPrice;
             return (
               <button key={plan.id} type="button" onClick={() => setSelectedPlan(plan.id)}
                 className="w-full text-left rounded-sm border p-5 transition-all"
                 style={{
                   borderColor:     selectedPlan === plan.id ? "var(--foreground)" : "var(--border)",
-                  backgroundColor: plan.highlight && selectedPlan !== plan.id ? "var(--surface-alt)" : "var(--surface)",
+                  backgroundColor: plan.highlighted && selectedPlan !== plan.id ? "var(--surface-alt)" : "var(--surface)",
                   boxShadow:       selectedPlan === plan.id ? "0 0 0 1px var(--foreground)" : "none",
                 }}>
                 <div className="flex items-center justify-between mb-2">
@@ -405,11 +398,11 @@ function Step5({
                       {selectedPlan === plan.id && <div className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--foreground)" }} />}
                     </div>
                     <span className="font-medium" style={{ color: "var(--foreground)" }}>{plan.name}</span>
-                    {plan.highlight && <span className="text-xs px-2 py-0.5 rounded-sm font-medium" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>Recommandé</span>}
+                    {plan.recommendedBadge && <span className="text-xs px-2 py-0.5 rounded-sm font-medium" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>Recommandé</span>}
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>{price} €/mois</span>
-                    {billing === "yearly" && <p className="text-xs" style={{ color: "var(--text-muted)" }}>facturé {plan.yearlyPrice} €/an</p>}
+                    {billing === "yearly" && <p className="text-xs" style={{ color: "var(--text-muted)" }}>facturé {annualTotalEuros(plan)} €/an</p>}
                   </div>
                 </div>
                 <ul className="space-y-1 ml-7">

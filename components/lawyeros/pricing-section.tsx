@@ -4,67 +4,7 @@ import { CountUp } from "@/components/lawyeros/count-up";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-
-type Plan = {
-  name: string;
-  monthlyPrice: number;
-  annualPrice: number;
-  description: string;
-  features: string[];
-  cta: string;
-  highlighted: boolean;
-};
-
-const PLANS: Plan[] = [
-  {
-    name: "Solo",
-    monthlyPrice: 79,
-    annualPrice: 63,
-    description: "Pour l'avocat indépendant qui veut se professionnaliser.",
-    features: [
-      "1 avocat",
-      "Portail client inclus",
-      "Dossiers illimités",
-      "Messagerie sécurisée",
-      "Facturation de base",
-      "Support email",
-    ],
-    cta: "Commencer",
-    highlighted: false,
-  },
-  {
-    name: "Cabinet",
-    monthlyPrice: 199,
-    annualPrice: 159,
-    description: "La solution complète pour les cabinets en croissance.",
-    features: [
-      "Jusqu'à 10 avocats",
-      "Tout Solo inclus",
-      "Notes & résumés IA",
-      "Détection de conflits",
-      "Intake forms clients",
-      "Support prioritaire",
-    ],
-    cta: "Commencer",
-    highlighted: true,
-  },
-  {
-    name: "Premium",
-    monthlyPrice: 399,
-    annualPrice: 319,
-    description: "Pour les structures qui veulent aller plus loin.",
-    features: [
-      "Avocats illimités",
-      "Tout Cabinet inclus",
-      "E-signature intégrée",
-      "API & webhooks",
-      "Domaine personnalisé",
-      "Account manager dédié",
-    ],
-    cta: "Commencer",
-    highlighted: false,
-  },
-];
+import { annualTotalEuros, PLANS } from "@/lib/lawyeros/pricing";
 
 const pricingCardCss = `
   .lawyeros-pricing-card {
@@ -243,7 +183,7 @@ export function PricingSection() {
         >
           {PLANS.map((plan) => (
             <motion.div
-              key={plan.name}
+              key={plan.id}
               variants={cardVariants}
               className={`lawyeros-pricing-card relative flex flex-col rounded-md border bg-surface p-8 md:p-10 ${
                 plan.highlighted ? "lawyeros-pricing-card--featured" : ""
@@ -253,7 +193,7 @@ export function PricingSection() {
                 boxShadow: plan.highlighted ? "0 8px 24px -8px rgba(122, 31, 43, 0.12)" : "none",
               }}
             >
-              {plan.highlighted && (
+              {plan.recommendedBadge && (
                 <div
                   className="absolute -top-4 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-sm px-3 py-1 text-[11px] font-semibold uppercase tracking-wider"
                   style={{ backgroundColor: "var(--accent)", color: "#ffffff", fontFamily: "var(--font-body)" }}
@@ -285,7 +225,7 @@ export function PricingSection() {
                 </div>
                 {annual && (
                   <p className="mt-1 text-xs" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
-                    Facturé annuellement ({plan.annualPrice * 12}€/an)
+                    Facturé annuellement ({annualTotalEuros(plan)}€/an)
                   </p>
                 )}
                 <p className="mt-3 text-sm" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
