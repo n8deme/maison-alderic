@@ -181,16 +181,6 @@ export function LawyerosHero() {
               Voir la démo live
               <span aria-hidden="true">→</span>
             </Link>
-            <Link
-              href="/portail-avocat?__tenant=maison-alderic"
-              className="group los-btn-outline inline-flex items-center gap-1 rounded-sm px-6 py-3.5 text-sm font-medium"
-              style={{ fontFamily: "var(--font-body)" }}
-            >
-              <span>Voir la démo</span>
-              <span className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-1">
-                →
-              </span>
-            </Link>
           </div>
 
           <p className="mt-5 text-xs" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
