@@ -132,7 +132,7 @@ export default async function AssociePage({ params }: PageProps) {
 
             <div className="space-y-6 px-4 sm:px-0">
               <p className="text-sm text-text-secondary">
-                <Link href="/associes" className="hover:text-bordeaux">
+                <Link href="/demo/associes" className="hover:text-bordeaux">
                   L&apos;équipe
                 </Link>{" "}
                 / {avocat.full_name}
@@ -209,7 +209,7 @@ export default async function AssociePage({ params }: PageProps) {
         <div className="mx-auto max-w-4xl rounded-sm border border-border bg-surface-alt p-8 text-center md:p-12">
           <h2 className="text-3xl text-foreground">Travailler avec {firstName} ?</h2>
           <Link
-            href={`/contact?avocat=${slug}`}
+            href={`/demo/contact?avocat=${slug}`}
             className="mt-6 inline-flex rounded-sm bg-bordeaux px-6 py-3 text-sm font-medium text-white"
           >
             Prendre contact

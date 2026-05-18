@@ -10,28 +10,28 @@ const EXPERTISES = [
     title: "M&A",
     description:
       "Structuration buy-side et sell-side, négociations sensibles et exécution jusqu'au closing.",
-    href: "/expertises#ma",
+    href: "/demo/expertises#ma",
   },
   {
     number: "02",
     title: "Private Equity",
     description:
       "Accompagnement des fonds et dirigeants sur LBO, growth equity et opération de sortie.",
-    href: "/expertises#pe",
+    href: "/demo/expertises#pe",
   },
   {
     number: "03",
     title: "Contentieux",
     description:
       "Stratégie pré-contentieuse, arbitrage et défense sur litiges commerciaux complexes.",
-    href: "/expertises#contentieux",
+    href: "/demo/expertises#contentieux",
   },
   {
     number: "04",
     title: "Fiscal",
     description:
       "Pilotage fiscal transfrontalier, structurations et sécurisation des impacts transactionnels.",
-    href: "/expertises#tax",
+    href: "/demo/expertises#tax",
   },
 ] as const;
 

@@ -8,11 +8,11 @@ import { motion } from "framer-motion";
 import { Logo } from "@/components/brand/logo";
 
 const navLinks = [
-  { href: "/expertises", label: "Expertises" },
-  { href: "/associes", label: "Associés" },
-  { href: "/deals", label: "Deals" },
-  { href: "/insights", label: "Insights" },
-  { href: "/contact", label: "Contact" },
+  { href: "/demo/expertises", label: "Expertises" },
+  { href: "/demo/associes", label: "Associés" },
+  { href: "/demo/deals", label: "Deals" },
+  { href: "/demo/insights", label: "Insights" },
+  { href: "/demo/contact", label: "Contact" },
 ];
 
 const SCROLL_THRESHOLD_PX = 80;
@@ -52,7 +52,7 @@ export function SiteNav() {
     >
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 md:px-12 lg:px-20">
         <Link
-          href="/"
+          href="/demo"
           className="block shrink-0 text-[var(--text-primary)] transition-opacity hover:opacity-80"
         >
           <Logo variant="wordmark" className="h-10 w-auto md:h-12" />

@@ -108,7 +108,7 @@ async function SuccessContent({
         </p>
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>
           Des questions ?{" "}
-          <Link href="/contact" className="underline hover:no-underline">Contactez notre équipe</Link>
+          <Link href="/demo/contact" className="underline hover:no-underline">Contactez notre équipe</Link>
         </p>
       </div>
     </div>

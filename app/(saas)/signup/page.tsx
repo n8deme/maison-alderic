@@ -150,7 +150,7 @@ export default function SignupPage() {
     >
       {/* Header */}
       <div className="w-full max-w-md mb-10 text-center">
-        <Link href="/lawyeros" className="inline-block mb-8">
+        <Link href="/" className="inline-block mb-8">
           <span className="text-2xl font-heading font-medium" style={{ color: "var(--foreground)" }}>
             Lawyer<span style={{ color: "var(--accent)" }}>OS</span>
           </span>

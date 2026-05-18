@@ -18,7 +18,7 @@ export default function SaasLegalLayout({ children }: { children: React.ReactNod
           style={{ height: "3.5rem", display: "flex", alignItems: "center" }}
         >
           <Link
-            href="/lawyeros"
+            href="/"
             className="text-lg font-heading font-medium"
             style={{ color: "var(--foreground)" }}
           >

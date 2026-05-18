@@ -52,7 +52,7 @@ export default function NotFound() {
             Retour à l’accueil
           </Link>
           <Link
-            href="/contact"
+            href="/demo/contact"
             className="inline-flex items-center justify-center rounded-sm border px-6 py-3 text-sm font-medium transition-colors"
             style={{
               borderColor: "var(--border)",

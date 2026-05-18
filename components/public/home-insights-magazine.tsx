@@ -26,14 +26,14 @@ export function HomeInsightsMagazine({ insights }: { insights: InsightItem[] }) 
             </span>
             <h2 className="text-4xl text-foreground md:text-5xl">Insights recents</h2>
           </div>
-          <Link href="/insights" className="hidden text-sm text-bordeaux md:inline">
+          <Link href="/demo/insights" className="hidden text-sm text-bordeaux md:inline">
             Voir tous →
           </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.25fr_0.75fr]">
           <Link
-            href={`/insights/${featured.slug}`}
+            href={`/demo/insights/${featured.slug}`}
             className="group rounded-sm border border-border bg-surface p-8 md:p-10"
           >
             <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -60,7 +60,7 @@ export function HomeInsightsMagazine({ insights }: { insights: InsightItem[] }) 
             {others.map((item) => (
               <Link
                 key={item.id}
-                href={`/insights/${item.slug}`}
+                href={`/demo/insights/${item.slug}`}
                 className="group block rounded-sm border border-border bg-surface p-6"
               >
                 <div className="mb-4 flex flex-wrap items-center gap-3">

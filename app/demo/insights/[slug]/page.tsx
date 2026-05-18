@@ -110,7 +110,7 @@ export default async function InsightPage({ params }: PageProps) {
       <section className="px-6 py-16 md:px-12 md:py-20 lg:px-20">
         <div className="mx-auto max-w-4xl space-y-6">
           <p className="text-sm text-text-secondary">
-            <Link href="/insights" className="hover:text-bordeaux">
+            <Link href="/demo/insights" className="hover:text-bordeaux">
               Insights
             </Link>{" "}
             / {categoryLabels[item.category] ?? item.category} / {item.title}
@@ -122,7 +122,7 @@ export default async function InsightPage({ params }: PageProps) {
           <p className="text-sm text-text-secondary">
             {formatDateFr(item.published_at)} · {item.reading_time_minutes} min ·{" "}
             {item.author ? (
-              <Link href={`/associes/${item.author.slug ?? slugify(item.author.full_name)}`} className="hover:text-bordeaux">
+              <Link href={`/demo/associes/${item.author.slug ?? slugify(item.author.full_name)}`} className="hover:text-bordeaux">
                 {item.author.full_name}
               </Link>
             ) : (
@@ -210,7 +210,7 @@ export default async function InsightPage({ params }: PageProps) {
               <div>
                 <p className="text-lg text-foreground">{item.author.full_name}</p>
                 <p className="text-sm text-text-secondary">{item.author.title}</p>
-                <Link href={`/associes/${slugify(item.author.full_name)}`} className="mt-1 inline-block text-sm text-bordeaux">
+                <Link href={`/demo/associes/${slugify(item.author.full_name)}`} className="mt-1 inline-block text-sm text-bordeaux">
                   Voir le profil →
                 </Link>
               </div>
@@ -225,7 +225,7 @@ export default async function InsightPage({ params }: PageProps) {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {(related as any[]).map((entry, index: number) => (
               <Reveal key={entry.id} delay={index * 0.05}>
-                <Link href={`/insights/${entry.slug}`} className="block rounded-sm border border-border bg-surface p-6">
+                <Link href={`/demo/insights/${entry.slug}`} className="block rounded-sm border border-border bg-surface p-6">
                 <p className="text-xs uppercase tracking-wide text-bordeaux">
                   {categoryLabels[entry.category] ?? entry.category}
                 </p>

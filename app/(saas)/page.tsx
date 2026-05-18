@@ -56,7 +56,7 @@ export default function LawyerOSPage() {
           style={{ backgroundColor: "rgba(248,247,244,0.95)", borderColor: "var(--border)", backdropFilter: "blur(8px)" }}
         >
           <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 flex h-14 items-center justify-between">
-            <Link href="/lawyeros" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <span className="text-lg font-heading font-medium" style={{ color: "var(--foreground)" }}>
                 Lawyer<span style={{ color: "var(--accent)" }}>OS</span>
               </span>
@@ -64,10 +64,10 @@ export default function LawyerOSPage() {
 
             <nav className="hidden md:flex items-center gap-6">
               {[
-                { href: "#fonctionnalites", label: "Fonctionnalités" },
-                { href: "#tarifs", label: "Tarifs" },
-                { href: "#demo", label: "Démo" },
-                { href: "/lawyeros/docs", label: "Documentation" },
+                { href: "/#fonctionnalites", label: "Fonctionnalités" },
+                { href: "/#tarifs", label: "Tarifs" },
+                { href: "/#demo", label: "Démo" },
+                { href: "/docs", label: "Documentation" },
               ].map((item) => (
                 <a key={item.href} href={item.href} className="los-nav-link text-sm" style={{ fontFamily: "var(--font-body)" }}>
                   {item.label}

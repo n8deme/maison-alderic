@@ -174,6 +174,14 @@ export function LawyerosHero() {
               Essayer 14 jours gratuit
             </Link>
             <Link
+              href="/demo"
+              className="inline-flex items-center gap-2 rounded-sm border border-[var(--border)] px-6 py-3.5 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              Voir la démo live
+              <span aria-hidden="true">→</span>
+            </Link>
+            <Link
               href="/portail-avocat?__tenant=maison-alderic"
               className="group los-btn-outline inline-flex items-center gap-1 rounded-sm px-6 py-3.5 text-sm font-medium"
               style={{ fontFamily: "var(--font-body)" }}

@@ -100,7 +100,7 @@ export default async function MessagesPage({
                 Aucun dossier actif.
               </p>
               <Link
-                href="/contact"
+                href="/demo/contact"
                 className="mt-3 inline-flex rounded-sm border border-bordeaux px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-bordeaux transition-colors hover:bg-bordeaux hover:text-white"
               >
                 Contacter le cabinet

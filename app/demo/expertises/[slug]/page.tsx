@@ -300,7 +300,7 @@ export default async function ExpertiseSlugPage({ params }: PageProps) {
       <section className="px-6 py-24 md:px-12 md:py-32 lg:px-20">
         <div className="mx-auto max-w-7xl space-y-6">
           <p className="text-sm text-text-secondary">
-            <Link href="/expertises" className="hover:text-bordeaux">
+            <Link href="/demo/expertises" className="hover:text-bordeaux">
               Expertises
             </Link>{" "}
             / {expertise.name}
@@ -348,7 +348,7 @@ export default async function ExpertiseSlugPage({ params }: PageProps) {
               (specialistes ?? []).map((avocat: any) => (
                 <Link
                   key={avocat.id}
-                  href={`/associes/${avocat.slug ?? slugify(avocat.full_name)}`}
+                  href={`/demo/associes/${avocat.slug ?? slugify(avocat.full_name)}`}
                   className="rounded-sm border border-border bg-surface p-5 transition-colors hover:border-bordeaux/35"
                 >
                   <div className="mb-4 flex items-center gap-4">
@@ -393,7 +393,7 @@ export default async function ExpertiseSlugPage({ params }: PageProps) {
         <div className="mx-auto max-w-4xl rounded-sm border border-border bg-surface-alt p-8 text-center md:p-12">
           <h2 className="text-3xl text-foreground">Un projet {expertise.name} ? Discutons-en.</h2>
           <Link
-            href="/contact"
+            href="/demo/contact"
             className="mt-6 inline-flex rounded-sm bg-bordeaux px-6 py-3 text-sm font-medium text-white"
           >
             Prendre contact

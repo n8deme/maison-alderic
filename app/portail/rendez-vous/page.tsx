@@ -74,7 +74,7 @@ export default async function PortailRendezVousPage({
         </div>
 
         <Link
-          href="/contact?motif=rendez-vous"
+          href="/demo/contact?motif=rendez-vous"
           className="rounded-sm bg-bordeaux px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
         >
           Demander un RDV
