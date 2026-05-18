@@ -105,7 +105,7 @@ export default async function HomePage({
               </p>
               <div className="flex flex-wrap gap-4 pt-2">
                 <Link
-                  href="/contact"
+                  href="/demo/contact"
                 className="inline-block px-6 py-3 text-sm font-medium transition-colors hover:opacity-90"
                   style={{
                     fontFamily: "var(--font-body)",
@@ -116,7 +116,7 @@ export default async function HomePage({
                   Prendre rendez-vous
                 </Link>
                 <Link
-                  href="/expertises"
+                  href="/demo/expertises"
                 className="inline-block px-6 py-3 text-sm font-medium transition-colors hover:text-bordeaux"
                   style={{
                     fontFamily: "var(--font-body)",
@@ -209,7 +209,7 @@ export default async function HomePage({
             Conseil pour les opérations qui définissent une trajectoire.
           </p>
           <Link
-            href="/contact"
+            href="/demo/contact"
             className="inline-block px-8 py-3 text-sm font-medium transition-colors hover:bg-surface-alt"
             style={{
               fontFamily: "var(--font-body)",

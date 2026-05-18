@@ -191,7 +191,7 @@ function LoginForm() {
 
         <p className="text-center text-sm text-slate-600">
           Besoin d'aide ?{" "}
-          <a href="/contact" className="text-slate-900 hover:underline">
+          <a href="/demo/contact" className="text-slate-900 hover:underline">
             Contactez-nous
           </a>
         </p>

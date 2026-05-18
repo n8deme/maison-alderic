@@ -122,7 +122,7 @@ function AvocatCard({ avocat }: { avocat: Avocat }) {
   const avocatSlug = avocat.slug ?? slugify(avocat.full_name);
 
   return (
-    <Link href={`/associes/${avocatSlug}`} className="group block">
+    <Link href={`/demo/associes/${avocatSlug}`} className="group block">
       <div className="mb-6 flex justify-center">
         <Image
           src={getAvocatPhoto(avocatSlug)}

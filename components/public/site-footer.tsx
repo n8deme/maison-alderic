@@ -2,17 +2,17 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 
 const expertisesLinks = [
-  { href: "/expertises#ma", label: "Fusions & Acquisitions" },
-  { href: "/expertises#pe", label: "Private Equity" },
-  { href: "/expertises#contentieux", label: "Contentieux" },
-  { href: "/expertises#tax", label: "Droit fiscal international" },
+  { href: "/demo/expertises#ma", label: "Fusions & Acquisitions" },
+  { href: "/demo/expertises#pe", label: "Private Equity" },
+  { href: "/demo/expertises#contentieux", label: "Contentieux" },
+  { href: "/demo/expertises#tax", label: "Droit fiscal international" },
 ];
 
 const cabinetLinks = [
-  { href: "/associes", label: "Nos associés" },
-  { href: "/deals", label: "Deals notables" },
-  { href: "/insights", label: "Insights" },
-  { href: "/carrieres", label: "Carrières" },
+  { href: "/demo/associes", label: "Nos associés" },
+  { href: "/demo/deals", label: "Deals notables" },
+  { href: "/demo/insights", label: "Insights" },
+  { href: "/demo/carrieres", label: "Carrières" },
 ];
 
 export function SiteFooter() {
@@ -131,7 +131,7 @@ export function SiteFooter() {
               <p>8h30 – 18h00</p>
             </div>
             <Link
-              href="/contact"
+              href="/demo/contact"
               className="mt-2 inline-block px-4 py-2 text-xs font-medium uppercase tracking-widest transition-colors hover:bg-bordeaux hover:text-white"
               style={{
                 fontFamily: "var(--font-body)",

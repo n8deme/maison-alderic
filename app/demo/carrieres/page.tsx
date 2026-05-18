@@ -218,7 +218,7 @@ export default function CarriersPage() {
               </div>
               <div className="pt-4">
                 <Link
-                  href="/contact?subject=Candidature spontanée Maison Aldéric"
+                  href="/demo/contact?subject=Candidature spontanée Maison Aldéric"
                   className="inline-flex rounded-sm bg-bordeaux px-6 py-3 text-sm font-medium text-white transition-colors hover:opacity-90"
                   style={{ fontFamily: "var(--font-body)" }}
                 >

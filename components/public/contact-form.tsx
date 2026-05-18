@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { submitContactForm, type ContactFormState } from "@/app/(public)/contact/actions";
+import { submitContactForm, type ContactFormState } from "@/app/demo/contact/actions";
 
 const demandTypes = [
   "m_a",

@@ -22,7 +22,7 @@ export function HomeDealsSticky({ deals }: { deals: DealItem[] }) {
             </span>
             <h2 className="text-4xl text-foreground md:text-5xl">Deals notables</h2>
           </div>
-          <Link href="/deals" className="hidden text-sm text-bordeaux md:inline">
+          <Link href="/demo/deals" className="hidden text-sm text-bordeaux md:inline">
             Voir tous →
           </Link>
         </div>

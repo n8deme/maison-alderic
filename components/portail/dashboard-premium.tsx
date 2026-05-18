@@ -244,7 +244,7 @@ export function DashboardPremium({
               </svg>
               <p className="mt-4 text-sm text-text-secondary">Aucun dossier en cours.</p>
               <Link
-                href="/contact"
+                href="/demo/contact"
                 className="mt-4 inline-flex rounded-sm border border-bordeaux px-4 py-2 text-xs font-medium uppercase tracking-wide text-bordeaux transition-colors hover:bg-bordeaux hover:text-white"
               >
                 Contacter le cabinet

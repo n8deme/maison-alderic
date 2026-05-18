@@ -97,7 +97,7 @@ export default async function InsightsPage() {
       {featured.length > 0 && (
         <section className="py-16 md:py-24" style={{ backgroundColor: "var(--surface)" }}>
           <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
-            <Link href={`/insights/${featured[0].slug}`} className="group block">
+            <Link href={`/demo/insights/${featured[0].slug}`} className="group block">
               <div
                 className="grid grid-cols-1 lg:grid-cols-2 gap-0"
                 style={{ border: "1px solid var(--border)" }}
@@ -238,7 +238,7 @@ export default async function InsightsPage() {
 
 function InsightCard({ insight }: { insight: Insight }) {
   return (
-    <Link href={`/insights/${insight.slug}`} className="group flex flex-col">
+    <Link href={`/demo/insights/${insight.slug}`} className="group flex flex-col">
       <div
         className="relative mb-6 w-full overflow-hidden"
         style={{

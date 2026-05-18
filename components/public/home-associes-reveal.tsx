@@ -23,7 +23,7 @@ export function HomeAssociesReveal({ avocats }: { avocats: AvocatItem[] }) {
             </span>
             <h2 className="text-4xl text-foreground md:text-5xl">Les associés</h2>
           </div>
-          <Link href="/associes" className="hidden text-sm text-bordeaux md:inline">
+          <Link href="/demo/associes" className="hidden text-sm text-bordeaux md:inline">
             Voir l&apos;équipe →
           </Link>
         </div>
@@ -31,7 +31,7 @@ export function HomeAssociesReveal({ avocats }: { avocats: AvocatItem[] }) {
           {avocats.map((a) => (
             <Link
               key={a.id}
-              href={`/associes/${slugify(a.full_name)}`}
+              href={`/demo/associes/${slugify(a.full_name)}`}
               className="group space-y-4 transition-transform duration-500 ease-out hover:-translate-y-0.5"
             >
               <div className="flex justify-center">

@@ -185,7 +185,7 @@ export default function ExpertisesPage() {
                   {exp.description}
                 </p>
                 <Link
-                  href="/contact"
+                  href="/demo/contact"
                   className="inline-block mt-10 text-xs font-medium tracking-widest uppercase px-5 py-2.5 transition-colors"
                   style={{
                     fontFamily: "var(--font-body)",
@@ -269,7 +269,7 @@ export default function ExpertisesPage() {
             Nos associés sont disponibles pour une première consultation confidentielle.
           </p>
           <Link
-            href="/contact"
+            href="/demo/contact"
             className="inline-block mt-10 text-xs font-medium tracking-widest uppercase px-6 py-3 transition-colors"
             style={{
               fontFamily: "var(--font-body)",
