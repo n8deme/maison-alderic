@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Documentation — LawyerOS",
+  title: "Documentation",
   description: "Guide complet pour configurer et utiliser LawyerOS : dossiers, portail client, facturation, sécurité.",
 };
 

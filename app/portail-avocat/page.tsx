@@ -8,7 +8,9 @@ import { DashboardKpiCards } from "@/components/portail-avocat/dashboard/kpi-car
 import { AnimatedActivityCard } from "@/components/portail-avocat/animated-activity-card";
 import { EmptyState } from "@/components/ui/empty-state";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export const metadata: Metadata = {
+  title: { absolute: "Dashboard | LawyerOS" },
+};
 
 function fmtEur(value: number) {
   return new Intl.NumberFormat("fr-BE", { style: "currency", currency: "EUR" }).format(value);
