@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertCircle, CalendarDays, FolderOpen, UserPlus, Euro, Clock3, AlertTriangle, Activity, CalendarX, ShieldCheck } from "lucide-react";
+import { AlertCircle, Clock3, Activity, CalendarX, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOrganization } from "@/lib/get-organization";
-import { AnimatedKPICard } from "@/components/portail-avocat/animated-kpi-card";
+import { DashboardKpiCards } from "@/components/portail-avocat/dashboard/kpi-cards";
 import { AnimatedActivityCard } from "@/components/portail-avocat/animated-activity-card";
 import { EmptyState } from "@/components/ui/empty-state";
 
@@ -109,16 +109,6 @@ export default async function PortailAvocatDashboardPage() {
     item.dossier && item.dossier.status !== "won" && item.dossier.status !== "archived"
   );
 
-  const ICON_CLASS = "h-4 w-4 shrink-0 text-bordeaux";
-
-  const kpiCards = [
-    { label: "Dossiers actifs",         value: activeRes.count ?? 0,     iconNode: <FolderOpen className={ICON_CLASS} />,    href: "/portail-avocat/dossiers?status=active",    sublabel: undefined, isAlert: false, alertActive: false },
-    { label: "Nouveaux clients (mois)", value: newClientsRes.count ?? 0, iconNode: <UserPlus className={ICON_CLASS} />,      href: "/portail-avocat/clients",                   sublabel: undefined, isAlert: false, alertActive: false },
-    { label: "RDV semaine",             value: rdvWeekRes.count ?? 0,    iconNode: <CalendarDays className={ICON_CLASS} />,  href: "/portail-avocat/agenda",                    sublabel: undefined, isAlert: false, alertActive: false },
-    { label: "CA du mois",              value: fmtEur(caMonth),          iconNode: <Euro className={ICON_CLASS} />,          href: "/portail-avocat/facturation?status=paid",   sublabel: undefined, isAlert: false, alertActive: false },
-    { label: "Factures en retard",      value: overdueCount,             iconNode: <AlertTriangle className={ICON_CLASS} />, href: "/portail-avocat/facturation?status=overdue", sublabel: overdueCount > 0 ? fmtEur(overdueAmount) : undefined, isAlert: true, alertActive: overdueCount > 0 },
-  ];
-
   return (
     <div className="max-w-7xl p-6 md:p-8">
       <div className="mb-8">
@@ -128,21 +118,14 @@ export default async function PortailAvocatDashboardPage() {
         <p className="mt-1 text-sm text-text-secondary">Vue globale cabinet - dossiers, clients, agenda et facturation.</p>
       </div>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {kpiCards.map((card, index) => (
-          <AnimatedKPICard
-            key={card.label}
-            icon={card.iconNode}
-            value={card.value}
-            label={card.label}
-            href={card.href}
-            sublabel={card.sublabel}
-            index={index}
-            isAlert={card.isAlert}
-            alertActive={card.alertActive}
-          />
-        ))}
-      </section>
+      <DashboardKpiCards
+        activeDossiers={activeRes.count ?? 0}
+        newClientsMonth={newClientsRes.count ?? 0}
+        rdvWeek={rdvWeekRes.count ?? 0}
+        caMonth={caMonth}
+        overdueCount={overdueCount}
+        overdueAmountLabel={overdueCount > 0 ? fmtEur(overdueAmount) : undefined}
+      />
 
       <section className="mt-8 grid grid-cols-1 gap-4 xl:grid-cols-12">
         <article className="rounded-lg border border-border bg-surface p-6 xl:col-span-7">
