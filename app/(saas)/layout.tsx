@@ -18,11 +18,11 @@ export const metadata: Metadata = {
   authors: [{ name: "LawyerOS" }],
   creator: "LawyerOS",
   publisher: "LawyerOS",
-  metadataBase: new URL("https://lawyeros.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://lawyeros.vercel.app"),
   openGraph: {
     type: "website",
     locale: "fr_BE",
-    url: "https://lawyeros.app",
+    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://lawyeros.vercel.app",
     siteName: "LawyerOS",
     title: "LawyerOS — Le portail client pour avocats",
     description:
