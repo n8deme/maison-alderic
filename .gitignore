@@ -55,5 +55,13 @@ supabase/.temp
 # Scripts de seed (contiennent des clés)
 scripts/
 
-# Logs divers
-*.log.claude/worktrees/
+# Logs
+*.log
+
+# Claude Code worktrees (jamais commit)
+.claude/worktrees/
+
+# Binaires téléchargés
+*.tar.gz
+*.zip
+supabase_linux_*
