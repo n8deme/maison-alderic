@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ClientCard } from "@/components/portail-avocat/clients/client-card";
 import { createClient } from "@/lib/supabase/server";
 import { getOrganization } from "@/lib/get-organization";
 
@@ -66,41 +66,20 @@ export default async function AvocatClientsPage() {
         </p>
       )}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {clients.map((client) => (
-          <article key={client.id} className="rounded-sm border border-border bg-surface p-5">
-            <h2 className="text-lg text-foreground" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>
-              {client.full_name ?? "Client"}
-            </h2>
-            <p className="mt-1 text-xs text-text-secondary" style={{ fontFamily: "var(--font-body)" }}>
-              {client.email}
-            </p>
-            <p className="mt-3 text-xs text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
-              Dossiers actifs : {client.activeCount}
-            </p>
-            <p className="mt-1 text-xs text-text-muted truncate" style={{ fontFamily: "var(--font-body)" }}>
-              Dernier dossier :{" "}
-              {client.lastDossier
-                ? `${client.lastDossier.reference} — ${client.lastDossier.title}`
-                : "Aucun"}
-            </p>
-            <div className="mt-4 flex items-center gap-2">
-              <Link
-                href={`/portail-avocat/clients/${client.id}`}
-                className="rounded-sm border border-border px-3 py-1.5 text-xs hover:bg-surface-alt transition-colors"
-                style={{ fontFamily: "var(--font-body)" }}
-              >
-                Voir profil
-              </Link>
-              <Link
-                href={`/portail-avocat/dossiers?client=${client.id}`}
-                className="rounded-sm bg-foreground px-3 py-1.5 text-xs text-background hover:opacity-90 transition-opacity"
-                style={{ fontFamily: "var(--font-body)" }}
-              >
-                Nouveau dossier
-              </Link>
-            </div>
-          </article>
+          <ClientCard
+            key={client.id}
+            id={client.id}
+            fullName={client.full_name ?? ""}
+            email={client.email}
+            activeCount={client.activeCount}
+            lastDossier={
+              client.lastDossier
+                ? { reference: client.lastDossier.reference, title: client.lastDossier.title }
+                : null
+            }
+          />
         ))}
       </div>
     </div>

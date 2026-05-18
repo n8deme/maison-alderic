@@ -201,3 +201,17 @@
   border: none;
   padding: 0;
 }
+
+/* Portail avocat — cartes clients : lift au hover uniquement souris / trackpad */
+.client-card-portail {
+  transition-property: border-color, transform, box-shadow;
+  transition-duration: 250ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .client-card-portail:hover {
+    border-color: #e5e2db;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  }
+}
