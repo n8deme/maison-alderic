@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PricingSection } from "./pricing-section";
-import { LawyerosHero } from "./lawyeros-hero";
 import { DemoSection } from "@/components/lawyeros/demo-section";
 import { FeaturesSection } from "@/components/lawyeros/features-section";
+import { PricingSection } from "@/components/lawyeros/pricing-section";
 import { StatsSection } from "@/components/lawyeros/stats-section";
+import { LawyerosHero } from "./lawyeros-hero";
 
 export const metadata: Metadata = {
   title: "LawyerOS — Le portail client que vos clients méritent",
