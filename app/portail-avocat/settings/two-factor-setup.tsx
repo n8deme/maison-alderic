@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { AlertCircle, Shield, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Disable2FADialog } from "./disable-2fa-dialog";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -17,8 +18,7 @@ type Phase =
   | { kind: "loading" }
   | { kind: "disabled" }
   | { kind: "enrolling"; factorId: string; secret: string; uri: string }
-  | { kind: "enabled"; factorId: string }
-  | { kind: "unenrolling"; factorId: string };
+  | { kind: "enabled"; factorId: string };
 
 type State = {
   phase: Phase;
@@ -53,6 +53,7 @@ const INIT: State = { phase: { kind: "loading" }, code: "", error: null, busy: f
 
 export function TwoFactorSetup() {
   const [state, dispatch] = useReducer(reducer, INIT);
+  const [showDisableDialog, setShowDisableDialog] = useState(false);
   const codeRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
@@ -135,20 +136,9 @@ export function TwoFactorSetup() {
     dispatch({ type: "SET_PHASE", phase: { kind: "enabled", factorId: state.phase.factorId } });
   }
 
-  async function handleUnenroll() {
+  function handleUnenrollClick() {
     if (state.phase.kind !== "enabled") return;
-    dispatch({ type: "SET_PHASE", phase: { kind: "unenrolling", factorId: state.phase.factorId } });
-
-    const { error } = await supabase.auth.mfa.unenroll({ factorId: state.phase.factorId });
-
-    if (error) {
-      // Restaurer l'état "enabled" si l'unenroll échoue
-      dispatch({ type: "SET_PHASE", phase: { kind: "enabled", factorId: (state.phase as unknown as { kind: "enabled"; factorId: string }).factorId } });
-      dispatch({ type: "SET_ERROR", error: "Impossible de désactiver la 2FA. Réessayez." });
-      return;
-    }
-
-    dispatch({ type: "SET_PHASE", phase: { kind: "disabled" } });
+    setShowDisableDialog(true);
   }
 
   function handleCancelEnroll() {
@@ -236,21 +226,25 @@ export function TwoFactorSetup() {
           )}
 
           {phase.kind === "enabled" && (
-            <button
-              type="button"
-              onClick={handleUnenroll}
-              disabled={busy}
-              className="rounded-md border border-[#E5E2DB] bg-transparent px-4 py-2 text-sm font-medium text-[#1A1A1A] transition-colors hover:bg-[#F8F7F4] disabled:opacity-50"
-              style={{ fontFamily: "var(--font-body)" }}
-            >
-              {busy ? "Désactivation…" : "Désactiver"}
-            </button>
-          )}
-
-          {phase.kind === "unenrolling" && (
-            <span className="text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
-              Désactivation…
-            </span>
+            <>
+              <button
+                type="button"
+                onClick={handleUnenrollClick}
+                disabled={busy}
+                className="rounded-md border border-[#E5E2DB] bg-transparent px-4 py-2 text-sm font-medium text-[#1A1A1A] transition-colors hover:bg-[#F8F7F4] disabled:opacity-50"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
+                Désactiver
+              </button>
+              <Disable2FADialog
+                factorId={phase.factorId}
+                open={showDisableDialog}
+                onOpenChange={setShowDisableDialog}
+                onSuccess={() => {
+                  dispatch({ type: "SET_PHASE", phase: { kind: "disabled" } });
+                }}
+              />
+            </>
           )}
         </div>
       </div>
