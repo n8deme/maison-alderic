@@ -151,7 +151,7 @@ export function DashboardPremium({
                 <Icon className="h-5 w-5 text-bordeaux" />
                 {card.trend ? <span className="text-xs text-text-muted">{card.trend}</span> : <span />}
               </div>
-              <p className="tabular text-4xl font-medium text-foreground whitespace-nowrap">{card.value}</p>
+              <p className="tabular text-3xl font-medium text-foreground whitespace-nowrap">{card.value}</p>
               <p className="mt-2 text-sm text-text-secondary">{card.label}</p>
             </motion.article>
           );

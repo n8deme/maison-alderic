@@ -147,7 +147,7 @@ export function DashboardKpiCards({
                 <Icon className="kpi-card-dashboard-icon h-4 w-4 shrink-0" aria-hidden />
               </div>
               <p
-                className="text-4xl font-medium tracking-tight text-[#1A1A1A] whitespace-nowrap [font-feature-settings:'tnum']"
+                className="text-3xl font-medium tracking-tight text-[#1A1A1A] whitespace-nowrap [font-feature-settings:'tnum']"
                 style={{ fontFamily: "var(--font-display)", fontVariantNumeric: "tabular-nums" }}
               >
                 {card.stat}
