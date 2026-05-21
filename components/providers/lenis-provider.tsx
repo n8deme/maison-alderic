@@ -1,20 +1,30 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { ReactLenis } from "lenis/react";
 import type { ReactNode } from "react";
 
 /**
- * LenisProvider — active le smooth scroll global sur tout le site public.
- *
- * Configuration :
- * - duration 1.2s : feeling premium sans être lent
- * - easing custom : courbe d'expo out (départ rapide, fin douce)
- * - smoothWheel: true : trackpad et molette adoucis
- * - syncTouch: true : mobile/tactile bénéficie aussi du smooth
- *
- * À wrapper dans app/layout.tsx autour de {children}.
+ * LenisProvider — smooth scroll sur le site vitrine uniquement.
+ * Les portails (/portail, /portail-avocat) rendent {children} sans Lenis
+ * pour un scroll document natif (dashboard / SaaS).
  */
+function isPortailRoute(pathname: string | null): boolean {
+  if (!pathname) return false;
+  return (
+    pathname === "/portail" ||
+    pathname.startsWith("/portail/") ||
+    pathname.startsWith("/portail-avocat")
+  );
+}
+
 export function LenisProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+
+  if (isPortailRoute(pathname)) {
+    return children;
+  }
+
   return (
     <ReactLenis
       root

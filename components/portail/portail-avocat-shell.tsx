@@ -146,9 +146,11 @@ export default function PortailAvocatShell({
   const sidebarProps = { profile, signOutAction, pathname, onClose: () => setMobileOpen(false) };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-background lg:flex">
-        <Sidebar {...sidebarProps} />
+    <div className="flex min-h-screen bg-background">
+      <aside className="sticky top-0 self-start hidden max-h-[100dvh] w-64 shrink-0 flex-col border-r border-border bg-background lg:flex">
+        <div className="flex h-full max-h-[100dvh] min-h-0 flex-col overflow-hidden">
+          <Sidebar {...sidebarProps} />
+        </div>
       </aside>
 
       {mobileOpen && (
@@ -160,8 +162,8 @@ export default function PortailAvocatShell({
         </>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex h-12 shrink-0 items-center gap-3 border-b border-border bg-surface px-4 lg:hidden">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-surface px-4 lg:hidden">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
@@ -180,7 +182,7 @@ export default function PortailAvocatShell({
             AVOCAT
           </span>
         </header>
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main>{children}</main>
       </div>
     </div>
   );
