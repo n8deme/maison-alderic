@@ -178,10 +178,12 @@ export default function PortailShell({
   const sidebarProps = { profile, unreadCount, signOutAction, pathname, onClose: () => setMobileOpen(false) };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex min-h-screen bg-background">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-border bg-background">
-        <PortailSidebar {...sidebarProps} />
+      <aside className="sticky top-0 self-start hidden max-h-[100dvh] lg:flex w-60 shrink-0 flex-col border-r border-border bg-background">
+        <div className="flex h-full max-h-[100dvh] min-h-0 flex-col overflow-hidden">
+          <PortailSidebar {...sidebarProps} />
+        </div>
       </aside>
 
       {/* Mobile overlay + drawer */}
@@ -199,9 +201,9 @@ export default function PortailShell({
       )}
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile topbar */}
-        <header className="lg:hidden flex items-center gap-3 h-12 px-4 border-b border-border bg-surface shrink-0">
+        <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-3 border-b border-border bg-surface px-4 lg:hidden">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
@@ -215,9 +217,7 @@ export default function PortailShell({
           </span>
         </header>
 
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+        <main>{children}</main>
       </div>
     </div>
   );
