@@ -26,12 +26,14 @@ function DelayedCountUp({
   decimals = 0,
   suffix = "",
   locale,
+  currency,
 }: {
   value: number;
   index: number;
   decimals?: number;
   suffix?: string;
   locale?: string;
+  currency?: string;
 }) {
   const reduce = useReducedMotion() ?? false;
   const [v, setV] = useState(() => (reduce ? value : 0));
@@ -54,6 +56,7 @@ function DelayedCountUp({
       decimals={decimals}
       suffix={suffix}
       locale={locale}
+      currency={currency}
     />
   );
 }
@@ -116,7 +119,7 @@ export function DashboardKpiCards({
       key: "ca",
       icon: Euro,
       label: "CA encaissé · YTD 2026",
-      stat: <DelayedCountUp value={caMonth} index={3} decimals={2} suffix=" €" locale="fr-BE" />,
+      stat: <DelayedCountUp value={caMonth} index={3} decimals={2} locale="fr-BE" currency="EUR" />,
       sub: null,
     },
     {
@@ -144,7 +147,7 @@ export function DashboardKpiCards({
                 <Icon className="kpi-card-dashboard-icon h-4 w-4 shrink-0" aria-hidden />
               </div>
               <p
-                className="text-4xl font-medium tracking-tight text-[#1A1A1A] [font-feature-settings:'tnum']"
+                className="text-4xl font-medium tracking-tight text-[#1A1A1A] whitespace-nowrap [font-feature-settings:'tnum']"
                 style={{ fontFamily: "var(--font-display)", fontVariantNumeric: "tabular-nums" }}
               >
                 {card.stat}
