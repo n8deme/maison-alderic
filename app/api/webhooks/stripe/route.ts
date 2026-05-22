@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
+import type Stripe from "stripe";
 import {
   handleCheckoutCompleted,
   handleCheckoutExpired,
   handleAsyncPaymentSucceeded,
   handleAsyncPaymentFailed,
+  handleSubscriptionCreated,
+  handleSubscriptionUpdated,
+  handleSubscriptionDeleted,
+  handleInvoicePaymentFailed,
 } from "@/lib/stripe/webhooks";
 
 // Ne pas parser le body — la vérification de signature Stripe exige le raw body
@@ -51,6 +56,23 @@ export async function POST(req: NextRequest) {
 
       case "checkout.session.expired":
         await handleCheckoutExpired(event.data.object);
+        break;
+
+      // Abonnement SaaS
+      case "customer.subscription.created":
+        await handleSubscriptionCreated(event.data.object as Stripe.Subscription);
+        break;
+
+      case "customer.subscription.updated":
+        await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+        break;
+
+      case "customer.subscription.deleted":
+        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        break;
+
+      case "invoice.payment_failed":
+        await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
         break;
 
       default:
