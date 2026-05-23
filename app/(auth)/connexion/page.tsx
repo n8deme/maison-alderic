@@ -2,8 +2,6 @@
 
 import { Suspense, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import { Logo } from "@/components/brand/logo";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -11,19 +9,16 @@ function LoginForm() {
   const [loading, setLoading] = useState<"password" | "magic" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
-  // Fonction pour traduire les erreurs Supabase en français
   function translateError(errorMessage: string): string {
     const translations: Record<string, string> = {
-      "Invalid login credentials": "Email ou mot de passe incorrect",
-      "Email not confirmed": "Veuillez confirmer votre email avant de vous connecter",
-      "User not found": "Aucun compte associé à cet email",
-      "Invalid email or password": "Email ou mot de passe incorrect",
-      "Email rate limit exceeded": "Trop de tentatives. Veuillez réessayer dans quelques minutes",
+      "Invalid login credentials":                "Email ou mot de passe incorrect",
+      "Email not confirmed":                      "Veuillez confirmer votre email avant de vous connecter",
+      "User not found":                           "Aucun compte associé à cet email",
+      "Invalid email or password":               "Email ou mot de passe incorrect",
+      "Email rate limit exceeded":               "Trop de tentatives. Veuillez réessayer dans quelques minutes",
       "Password should be at least 6 characters": "Le mot de passe doit contenir au moins 6 caractères",
     };
-
     return translations[errorMessage] || errorMessage;
   }
 
@@ -35,10 +30,7 @@ function LoginForm() {
 
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
         setError(translateError(error.message));
@@ -53,10 +45,9 @@ function LoginForm() {
           .eq("id", data.user.id)
           .maybeSingle();
 
-        const targetUrl = profile?.role === "avocat" ? "/portail-avocat" : "/portail";
-        window.location.href = targetUrl;
+        window.location.href = profile?.role === "avocat" ? "/portail-avocat" : "/portail";
       }
-    } catch (err) {
+    } catch {
       setError("Une erreur inattendue s'est produite");
       setLoading(null);
     }
@@ -72,9 +63,7 @@ function LoginForm() {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
       });
 
       if (error) {
@@ -85,116 +74,166 @@ function LoginForm() {
 
       setMessage("Un lien de connexion a été envoyé à votre adresse email");
       setLoading(null);
-    } catch (err) {
+    } catch {
       setError("Une erreur inattendue s'est produite");
       setLoading(null);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <Logo variant="wordmark" className="h-14 w-auto mx-auto mb-10" />
-          <h1 className="text-3xl font-serif font-semibold text-slate-900">
-            Espace Client
-          </h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Connectez-vous pour accéder à vos dossiers
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--background)" }}>
+      <header
+        className="border-b px-6 py-4"
+        style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
+      >
+        <span
+          className="text-lg font-heading font-medium tracking-tight"
+          style={{ color: "var(--foreground)" }}
+        >
+          Lawyer<span style={{ color: "var(--accent)" }}>OS</span>
+        </span>
+      </header>
 
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm space-y-6">
+          <div className="space-y-1">
+            <h1
+              className="text-2xl font-heading font-medium tracking-tight"
+              style={{ color: "var(--foreground)" }}
+            >
+              Connexion
+            </h1>
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+              Accédez à votre espace client
+            </p>
+          </div>
+
           {error && (
-            <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200">
-              <p className="text-sm text-red-800">{error}</p>
+            <div
+              className="rounded-sm border p-4 text-sm"
+              style={{ backgroundColor: "#fef2f2", borderColor: "#fecaca", color: "#991b1b" }}
+            >
+              {error}
             </div>
           )}
 
           {message && (
-            <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
-              <p className="text-sm text-blue-800">{message}</p>
+            <div
+              className="rounded-sm border p-4 text-sm"
+              style={{ backgroundColor: "#eff6ff", borderColor: "#bfdbfe", color: "#1e40af" }}
+            >
+              {message}
             </div>
           )}
 
-          <form onSubmit={signInWithPassword} className="space-y-6">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-slate-700 mb-2"
+          <div
+            className="rounded-sm border p-6 space-y-5"
+            style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
+          >
+            <form onSubmit={signInWithPassword} className="space-y-4">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium"
+                  style={{ color: "var(--foreground)" }}
+                >
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3 py-2 rounded-sm text-sm outline-none transition-colors"
+                  style={{
+                    border: "1px solid var(--border)",
+                    backgroundColor: "var(--background)",
+                    color: "var(--foreground)",
+                  }}
+                  placeholder="votre@email.com"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium"
+                  style={{ color: "var(--foreground)" }}
+                >
+                  Mot de passe
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2 rounded-sm text-sm outline-none transition-colors"
+                  style={{
+                    border: "1px solid var(--border)",
+                    backgroundColor: "var(--background)",
+                    color: "var(--foreground)",
+                  }}
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading === "password"}
+                className="w-full py-2.5 px-4 rounded-sm text-sm font-medium transition-colors disabled:opacity-60"
+                style={{ backgroundColor: "var(--foreground)", color: "#ffffff" }}
               >
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-slate-900 focus:border-transparent"
-                placeholder="votre@email.com"
-              />
+                {loading === "password" ? "Connexion..." : "Se connecter"}
+              </button>
+            </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t" style={{ borderColor: "var(--border)" }} />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span
+                  className="px-2"
+                  style={{ backgroundColor: "var(--surface)", color: "var(--text-muted)" }}
+                >
+                  ou
+                </span>
+              </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-slate-700 mb-2"
+            <form onSubmit={signInWithMagicLink}>
+              <button
+                type="submit"
+                disabled={loading === "magic"}
+                className="w-full py-2.5 px-4 rounded-sm text-sm font-medium border transition-colors disabled:opacity-60"
+                style={{
+                  borderColor: "var(--border)",
+                  color: "var(--text-secondary)",
+                  backgroundColor: "transparent",
+                }}
               >
-                Mot de passe
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-slate-900 focus:border-transparent"
-                placeholder="••••••••"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading === "password"}
-              className="w-full py-3 px-4 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading === "password" ? "Connexion..." : "Se connecter"}
-            </button>
-          </form>
-
-          <div className="mt-6 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-slate-500">Ou</span>
-            </div>
+                {loading === "magic" ? "Envoi en cours..." : "Recevoir un lien de connexion"}
+              </button>
+            </form>
           </div>
 
-          <form onSubmit={signInWithMagicLink} className="mt-6">
-            <button
-              type="submit"
-              disabled={loading === "magic"}
-              className="w-full py-3 px-4 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
+            Besoin d&apos;aide ?{" "}
+            <a
+              href="mailto:support@lawyeros.app"
+              className="underline underline-offset-2"
+              style={{ color: "var(--text-secondary)" }}
             >
-              {loading === "magic"
-                ? "Envoi en cours..."
-                : "Recevoir un lien de connexion"}
-            </button>
-          </form>
+              Contactez le support
+            </a>
+          </p>
         </div>
-
-        <p className="text-center text-sm text-slate-600">
-          Besoin d'aide ?{" "}
-          <a href="/demo/contact" className="text-slate-900 hover:underline">
-            Contactez-nous
-          </a>
-        </p>
       </div>
     </div>
   );
@@ -204,8 +243,11 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <p>Chargement...</p>
+        <div
+          className="min-h-screen flex items-center justify-center"
+          style={{ backgroundColor: "var(--background)" }}
+        >
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>Chargement...</p>
         </div>
       }
     >
