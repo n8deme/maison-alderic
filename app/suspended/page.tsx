@@ -7,10 +7,20 @@ export const metadata: Metadata = {
 
 export default function SuspendedPage() {
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center px-4"
-      style={{ backgroundColor: "var(--background)" }}
-    >
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--background)" }}>
+      <header
+        className="border-b px-6 py-4"
+        style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
+      >
+        <span
+          className="text-lg font-heading font-medium tracking-tight"
+          style={{ color: "var(--foreground)" }}
+        >
+          Lawyer<span style={{ color: "var(--accent)" }}>OS</span>
+        </span>
+      </header>
+
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-md text-center space-y-6">
         <div
           className="mx-auto flex h-16 w-16 items-center justify-center rounded-full"
@@ -67,6 +77,7 @@ export default function SuspendedPage() {
             Retour à l&apos;accueil →
           </Link>
         </div>
+      </div>
       </div>
     </div>
   );
