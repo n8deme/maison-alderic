@@ -162,7 +162,7 @@ export default function SignupPage() {
           Créez votre cabinet en ligne
         </h1>
         <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-          14 jours d&apos;essai gratuit — aucune carte bancaire requise.
+          14 jours d&apos;essai gratuit · annulation à tout moment.
         </p>
       </div>
 
@@ -379,7 +379,7 @@ export default function SignupPage() {
           >
             {isPending
               ? "Création en cours..."
-              : "Créer mon compte gratuit — 14 jours sans CB"}
+              : "Créer mon compte — 14 jours gratuits"}
           </button>
         </form>
       </div>

@@ -184,7 +184,7 @@ export function LawyerosHero() {
           </div>
 
           <p className="mt-5 text-xs" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
-            Aucune carte bancaire. Annulation en 1 clic.
+            14 jours d&apos;essai gratuit · annulation à tout moment.
           </p>
 
           <HeroScrollHint />

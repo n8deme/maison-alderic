@@ -117,7 +117,7 @@ export function PricingSection() {
             className="mx-auto mt-4 max-w-xl text-lg"
             style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}
           >
-            14 jours d&apos;essai gratuit sur tous les plans. Aucune carte bancaire requise.
+            14 jours d&apos;essai gratuit sur tous les plans · annulation à tout moment.
           </p>
 
           <div ref={toggleRef} className="relative mt-8 inline-flex rounded-full p-1" style={{ backgroundColor: "#F2F0EB" }}>
@@ -293,7 +293,7 @@ export function PricingSection() {
         </motion.div>
 
         <p className="mt-8 text-center text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--font-body)" }}>
-          Pas de carte bancaire. Pas d&apos;engagement. Annulation en 1 clic.
+          14 jours d&apos;essai gratuit · annulation à tout moment.
         </p>
       </div>
     </section>

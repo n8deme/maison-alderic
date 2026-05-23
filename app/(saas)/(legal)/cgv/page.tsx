@@ -52,7 +52,7 @@ export default function CgvPage() {
 
           <Section title="Article 2 — Accès au service et période d'essai">
             <p>
-              Tout Cabinet Client bénéficie d'une <strong style={{ color: "var(--foreground)" }}>période d'essai de 14 jours</strong> à compter de la création du compte, sans engagement et sans obligation de renseignement de coordonnées bancaires. Durant cette période, les fonctionnalités du plan Cabinet sont accessibles dans leur intégralité.
+              Tout Cabinet Client bénéficie d'une <strong style={{ color: "var(--foreground)" }}>période d'essai de 14 jours</strong> à compter de la création du compte, sans engagement. Durant cette période, les fonctionnalités du plan Cabinet sont accessibles dans leur intégralité.
             </p>
             <p className="mt-3">
               À l'issue de la période d'essai, la poursuite de l'utilisation du service implique la souscription d'un abonnement payant. En l'absence de souscription, les données sont conservées 30 jours supplémentaires, puis supprimées définitivement.

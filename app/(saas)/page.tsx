@@ -10,7 +10,7 @@ import { LawyerosHero } from "./lawyeros-hero";
 export const metadata: Metadata = {
   title: "Le portail client que vos clients méritent",
   description:
-    "LawyerOS donne à votre cabinet un portail professionnel en 10 minutes. Dossiers, messagerie, facturation Stripe, notes IA. 14 jours gratuits, sans carte.",
+    "LawyerOS donne à votre cabinet un portail professionnel en 10 minutes. Dossiers, messagerie, facturation Stripe, notes IA. 14 jours d'essai gratuit · annulation à tout moment.",
   openGraph: {
     title: "LawyerOS — Portail client pour avocats",
     description: "Portail client white-label pour cabinets d'avocats belges et français. Setup en 10 minutes.",
