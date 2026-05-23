@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Logo } from "@/components/brand/logo";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -42,16 +41,34 @@ function getInitials(name: string | null, email: string) {
   return email[0]?.toUpperCase() ?? "?";
 }
 
+function OrgLogo({ orgLogo, orgName }: { orgLogo: string | null; orgName: string }) {
+  if (orgLogo) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={orgLogo} alt={orgName} className="h-9 w-auto object-contain" />
+    );
+  }
+  return (
+    <span className="text-lg font-heading font-medium tracking-tight" style={{ color: "var(--foreground)" }}>
+      Lawyer<span style={{ color: "var(--accent)" }}>OS</span>
+    </span>
+  );
+}
+
 function Sidebar({
   profile,
   signOutAction,
   pathname,
   onClose,
+  orgLogo,
+  orgName,
 }: {
   profile: Profile;
   signOutAction: () => Promise<void>;
   pathname: string;
   onClose?: () => void;
+  orgLogo: string | null;
+  orgName: string;
 }) {
   function isActive(item: { href: string; exact: boolean }) {
     return item.exact ? pathname === item.href : pathname.startsWith(item.href);
@@ -60,8 +77,8 @@ function Sidebar({
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-5 py-5">
-        <div className="text-foreground">
-          <Logo variant="wordmark" className="h-9 w-auto" />
+        <div>
+          <OrgLogo orgLogo={orgLogo} orgName={orgName} />
         </div>
         <div className="mt-1 flex items-center gap-2">
           <p className="text-[10px] uppercase tracking-widest text-text-muted" style={{ fontFamily: "var(--font-body)" }}>
@@ -135,15 +152,19 @@ function Sidebar({
 export default function PortailAvocatShell({
   profile,
   signOutAction,
+  orgLogo,
+  orgName,
   children,
 }: {
   profile: Profile;
   signOutAction: () => Promise<void>;
+  orgLogo: string | null;
+  orgName: string;
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const sidebarProps = { profile, signOutAction, pathname, onClose: () => setMobileOpen(false) };
+  const sidebarProps = { profile, signOutAction, pathname, onClose: () => setMobileOpen(false), orgLogo, orgName };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -172,8 +193,8 @@ export default function PortailAvocatShell({
           >
             <Menu className="h-5 w-5 text-text-muted" />
           </button>
-          <span className="text-foreground">
-            <Logo variant="wordmark" className="h-9 w-auto" />
+          <span>
+            <OrgLogo orgLogo={orgLogo} orgName={orgName} />
           </span>
           <span
             className="rounded-sm px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider"

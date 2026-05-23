@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
@@ -17,6 +18,10 @@ export default async function PortailLayout({ children }: { children: React.Reac
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect("/connexion");
+
+  const hdrs = await headers();
+  const orgLogo = hdrs.get("x-org-logo") || null;
+  const orgName = decodeURIComponent(hdrs.get("x-org-name") || "");
 
   const [profileResult, unreadResult] = await Promise.all([
     supabase
@@ -42,6 +47,8 @@ export default async function PortailLayout({ children }: { children: React.Reac
       profile={profile}
       unreadCount={unreadResult.count ?? 0}
       signOutAction={signOut}
+      orgLogo={orgLogo}
+      orgName={orgName}
     >
       {children}
       <Toaster position="bottom-right" richColors />

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
@@ -20,6 +21,10 @@ export default async function PortailAvocatLayout({ children }: { children: Reac
 
   if (!user) redirect("/connexion");
 
+  const hdrs = await headers();
+  const orgLogo = hdrs.get("x-org-logo") || null;
+  const orgName = decodeURIComponent(hdrs.get("x-org-name") || "");
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, role")
@@ -32,6 +37,8 @@ export default async function PortailAvocatLayout({ children }: { children: Reac
     <PortailAvocatShell
       profile={{ full_name: profile?.full_name ?? null, email: user.email ?? "" }}
       signOutAction={signOut}
+      orgLogo={orgLogo}
+      orgName={orgName}
     >
       {children}
       <Toaster position="bottom-right" richColors />
