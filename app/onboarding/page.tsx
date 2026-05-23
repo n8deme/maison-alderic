@@ -160,7 +160,6 @@ function OnboardingWizard() {
           <Step5
             subdomain={tenant}
             onStripeCheckout={handleStripeCheckout}
-            onTrialSubmit={handleTrialSubmit}
             onBack={back}
             isPending={isPending}
           />
@@ -348,13 +347,11 @@ function Step4({ initial, onSubmit, onBack, isPending }: { initial?: Client[]; o
 function Step5({
   subdomain: _subdomain,
   onStripeCheckout,
-  onTrialSubmit,
   onBack,
   isPending,
 }: {
   subdomain: string;
   onStripeCheckout: (plan: string, billing: "monthly" | "yearly") => void;
-  onTrialSubmit: () => void;
   onBack: () => void;
   isPending: boolean;
 }) {
@@ -419,11 +416,6 @@ function Step5({
             className="w-full py-3 px-4 rounded-sm text-sm font-medium transition-colors disabled:opacity-60"
             style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}>
             {isPending ? "Redirection..." : `Commencer avec ${PLANS.find(p => p.id === selectedPlan)?.name} — 14 jours gratuits`}
-          </button>
-          <button type="button" onClick={onTrialSubmit} disabled={isPending}
-            className="w-full py-2 px-4 rounded-sm text-sm transition-colors disabled:opacity-60"
-            style={{ color: "var(--text-muted)", border: "1px solid var(--border)" }}>
-            Commencer sans CB — payer plus tard
           </button>
           <button type="button" onClick={onBack} disabled={isPending} className="text-sm text-center" style={{ color: "var(--text-muted)" }}>Retour</button>
         </div>
