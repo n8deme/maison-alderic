@@ -173,7 +173,7 @@ export async function importClients(
 }
 
 // ---------------------------------------------------------------------------
-// Step 5 — Finaliser l'onboarding (trial sans CB)
+// Fallback : active un trial 14j si Stripe n'est pas configuré (dev/staging)
 // ---------------------------------------------------------------------------
 export async function finalizeOnboarding(
   orgId: string,

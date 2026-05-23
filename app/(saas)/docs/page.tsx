@@ -19,7 +19,7 @@ const SECTIONS: Section[] = [
     content: [
       {
         heading: "Créer votre cabinet en 10 minutes",
-        body:    "Rendez-vous sur /signup et renseignez vos informations : nom complet, email professionnel, mot de passe et nom de votre cabinet. LawyerOS génère automatiquement votre sous-domaine (ex. cabinet-dupont.lawyeros.app) et crée votre espace dédié. Aucune carte bancaire requise pendant les 14 premiers jours.",
+        body:    "Rendez-vous sur /signup et renseignez vos informations : nom complet, email professionnel, mot de passe et nom de votre cabinet. LawyerOS génère automatiquement votre sous-domaine (ex. cabinet-dupont.lawyeros.app) et crée votre espace dédié. 14 jours d'essai gratuit inclus — aucun prélèvement durant la période d'essai.",
       },
       {
         heading: "Accéder au portail avocat",
