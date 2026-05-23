@@ -20,7 +20,7 @@ export default function PricingPage() {
           className="text-lg font-heading font-medium tracking-tight"
           style={{ color: "var(--foreground)" }}
         >
-          LawyerOS
+          Lawyer<span style={{ color: "var(--accent)" }}>OS</span>
         </Link>
         <div className="flex items-center gap-6">
           <Link

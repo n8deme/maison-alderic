@@ -44,7 +44,7 @@ export function UpgradeForm({
           className="text-lg font-heading font-medium tracking-tight"
           style={{ color: "var(--foreground)" }}
         >
-          LawyerOS
+          Lawyer<span style={{ color: "var(--accent)" }}>OS</span>
         </span>
         <span className="text-sm" style={{ color: "var(--text-muted)" }}>
           {orgName}
